@@ -13,35 +13,35 @@
         <p id="lobbyStatus" class="status-text"></p>
     </div>
 
-    <div id="gamePanel" class="panel hidden">
-        <div class="info-bar">
-            <span>Hamle: <b id="moveDisplay">1</b>/25</span>
-            <span id="roleDisplay">Rolün: --</span>
-        </div>
-
-        <div class="grids-container">
-            <div class="grid-box">
-                <h4>Senin Gridin</h4>
-                <div id="myGrid" class="grid"></div>
-            </div>
-
-            <div id="opponentContainer" class="grid-box opponent">
-                <h4>Rakip Gridi</h4>
-                <div id="opponentGrid" class="grid hidden-grid"></div>
-                <div id="opponentStatus" class="waiting-message"></div>
-            </div>
-        </div>
-
-        <div class="controls">
-            <p id="gameStatusMsg">Oyun Yükleniyor...</p>
-            
-            <div id="actionArea">
-                <input type="text" id="letterInput" maxlength="1" placeholder="?"
-                oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
-                <button id="actionButton" onclick="submitLetter()">Harfi Seç</button>
-            </div>
+<div id="gamePanel" class="panel hidden">
+    
+    <div class="controls-top">
+        <p id="gameStatusMsg">Oyun Yükleniyor...</p>
+        
+        <div id="actionArea">
+            <input type="text" id="letterInput" maxlength="1" placeholder="?" 
+                   oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
+            <button id="actionButton" onclick="submitLetter()">Harfi Seç</button>
         </div>
     </div>
+    
+    <div class="info-bar">
+        <span>Hamle: <b id="moveDisplay">1</b>/25</span>
+        <span id="roleDisplay">Rolün: --</span>
+    </div>
+
+    <div class="grids-container">
+        <div class="grid-box my-grid-box">
+            <h4>Senin Gridin</h4>
+            <div id="myGrid" class="grid"></div>
+        </div>
+
+        <div id="opponentContainer" class="hidden-data-container">
+            <div id="opponentGrid" class="grid"></div>
+            <div id="opponentStatus" class="waiting-message hidden"></div>
+        </div>
+    </div>
+</div>
     
     <div id="gameOverPanel" class="panel hidden">
         <h2>Oyun Bitti! Sonuçlar</h2>
@@ -80,4 +80,5 @@
 <body>
     <script src="script.js"></script>
 </body>
+
 </html>
