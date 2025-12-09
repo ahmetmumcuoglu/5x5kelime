@@ -1,3 +1,7 @@
+/* ================================================= */
+/* 1. GENEL AYARLAR VE LOBİ STİLLERİ */
+/* ================================================= */
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f6f8;
@@ -5,10 +9,11 @@ body {
     display: flex;
     justify-content: center;
     padding: 20px;
+    margin: 0;
 }
 
 .main-wrapper {
-    max-width: 900px; /* Genişlettik */
+    max-width: 900px;
     width: 100%;
     text-align: center;
 }
@@ -22,7 +27,9 @@ body {
     margin-top: 20px;
 }
 
-.hidden { display: none !important; }
+.hidden { 
+    display: none !important; 
+}
 
 /* Butonlar ve Inputlar */
 input[type="text"] {
@@ -33,7 +40,8 @@ input[type="text"] {
     text-align: center;
     text-transform: uppercase;
     width: 150px;
-    font-family: Tahoma, Arial, sans-serif;
+    /* Türkçe karakter görüntüleme düzeltmesi */
+    font-family: Tahoma, Arial, sans-serif; 
 }
 button {
     padding: 10px 20px;
@@ -44,19 +52,66 @@ button {
     font-weight: bold;
     transition: 0.2s;
 }
-.btn-primary { background-color: #3498db; color: white; }
-.btn-primary:hover { background-color: #2980b9; }
-.btn-secondary { background-color: #2ecc71; color: white; }
-.btn-secondary:hover { background-color: #27ae60; }
-button:disabled { background-color: #ccc; cursor: not-allowed; }
+.btn-primary { 
+    background-color: #3498db; 
+    color: white; 
+}
+.btn-primary:hover { 
+    background-color: #2980b9; 
+}
+.btn-secondary { 
+    background-color: #2ecc71; 
+    color: white; 
+}
+.btn-secondary:hover { 
+    background-color: #27ae60; 
+}
+button:disabled { 
+    background-color: #ccc; 
+    cursor: not-allowed; 
+}
 
-/* Oyun Gridleri */
+/* ================================================= */
+/* 2. OYUN ALANI (GAME PANEL) STİLLERİ */
+/* ================================================= */
+
+/* 2. İSTEK ÇÖZÜMÜ: KONTROL PANELİNİ EN ÜSTE TAŞIYORUZ */
+.controls-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+#actionArea {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* BİLGİ ÇUBUĞU */
+.info-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    color: #555;
+}
+
+/* 1. İSTEK ÇÖZÜMÜ: Rakip Gridini Tamamen Gizleme */
 .grids-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
+    justify-content: center; /* Sadece kendi gridimizi ortalamak için */
+    gap: 0; /* Boşlukları kaldır */
     margin: 20px 0;
+}
+.hidden-data-container {
+    /* Rakip gridi ve bekleme mesajını tamamen gizliyoruz, sadece data tutacak */
+    display: none !important;
 }
 
 .grid-box {
@@ -65,6 +120,7 @@ button:disabled { background-color: #ccc; cursor: not-allowed; }
     align-items: center;
 }
 
+/* Grid Yapısı */
 .grid {
     display: grid;
     grid-template-columns: repeat(5, 50px);
@@ -85,34 +141,9 @@ button:disabled { background-color: #ccc; cursor: not-allowed; }
     font-size: 24px;
     font-weight: bold;
     cursor: default;
+    /* Türkçe karakter görüntüleme düzeltmesi */
     font-family: Tahoma, Arial, sans-serif;
 }
-
-/* 1. İSTEK ÇÖZÜMÜ: OYUN ESNASINDA RAKİP GRİDİNİ GİZLEME */
-.hidden-grid {
-    visibility: hidden; /* Görünmez yap, ama yerini koru */
-    height: 274px; /* Grid yüksekliği (50*5 + 4*6) */
-    width: 274px;
-}
-.waiting-message {
-    width: 274px;
-    height: 274px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #ecf0f1;
-    border-radius: 6px;
-    padding: 10px;
-    text-align: center;
-    font-weight: bold;
-    color: #95a5a6;
-    border: 1px solid #bdc3c7;
-    transition: opacity 0.3s;
-}
-.opponent .grid-box h4 {
-    opacity: 0.5; /* Rakip başlığını soluklaştırma */
-}
-
 
 /* Etkileşimler */
 .clickable {
@@ -120,22 +151,38 @@ button:disabled { background-color: #ccc; cursor: not-allowed; }
     background-color: #e8f8f5; 
     border: 2px dashed #2ecc71;
 }
-.clickable:hover { background-color: #d1f2eb; }
-
-
-/* 3. İSTEK ÇÖZÜMÜ: OYUN SONU EKRANI STİLİ */
-.final-results {
-    align-items: flex-start;
-    text-align: left;
+.clickable:hover { 
+    background-color: #d1f2eb; 
 }
+
+/* ================================================= */
+/* 3. OYUN SONU (GAME OVER) STİLLERİ */
+/* ================================================= */
+
+#finalResultMsg {
+    font-size: 1.4em;
+    color: #e74c3c;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+/* 3. İSTEK ÇÖZÜMÜ: OYUN SONU EKRANI DÜZENLEMESİ */
+.grids-container.final-results {
+    /* İki sonuç kutusunu yan yana hizalar */
+    justify-content: space-around; 
+    align-items: flex-start;
+    gap: 20px;
+}
+
 .result-box {
-    width: 400px;
+    width: 400px; /* Genişliği sabitleyip boşlukları kontrol etme */
     margin-bottom: 20px;
     padding: 15px;
     border: 1px solid #eee;
     border-radius: 8px;
     background-color: #fcfcfc;
 }
+
 .word-list {
     list-style-type: none;
     padding: 0;
@@ -147,10 +194,4 @@ button:disabled { background-color: #ccc; cursor: not-allowed; }
     margin: 5px 0;
     padding-bottom: 3px;
     border-bottom: 1px dotted #ccc;
-}
-
-#finalResultMsg {
-    font-size: 1.4em;
-    color: #e74c3c;
-    margin-top: 10px;
 }
