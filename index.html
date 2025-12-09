@@ -1,0 +1,83 @@
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<div class="main-wrapper">
+    <h1>Kelimelik 5x5 (Online)</h1>
+
+    <div id="lobbyPanel" class="panel">
+        <h3>Oyuna Başla</h3>
+        <button class="btn-primary" onclick="createNewGame()">Yeni Oyun Kur</button>
+        <div class="separator">- VEYA -</div>
+        <input type="text" id="gameCodeInput" placeholder="Oda Kodu Gir (Örn: X9A2)">
+        <button class="btn-secondary" onclick="joinGame()">Oyuna Katıl</button>
+        <p id="lobbyStatus" class="status-text"></p>
+    </div>
+
+    <div id="gamePanel" class="panel hidden">
+        <div class="info-bar">
+            <span>Hamle: <b id="moveDisplay">1</b>/25</span>
+            <span id="roleDisplay">Rolün: --</span>
+        </div>
+
+        <div class="grids-container">
+            <div class="grid-box">
+                <h4>Senin Gridin</h4>
+                <div id="myGrid" class="grid"></div>
+            </div>
+
+            <div id="opponentContainer" class="grid-box opponent">
+                <h4>Rakip Gridi</h4>
+                <div id="opponentGrid" class="grid hidden-grid"></div>
+                <div id="opponentStatus" class="waiting-message"></div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <p id="gameStatusMsg">Oyun Yükleniyor...</p>
+            
+            <div id="actionArea">
+                <input type="text" id="letterInput" maxlength="1" placeholder="?"
+                oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
+                <button id="actionButton" onclick="submitLetter()">Harfi Seç</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="gameOverPanel" class="panel hidden">
+        <h2>Oyun Bitti! Sonuçlar</h2>
+        <p id="finalResultMsg" class="status-text"></p>
+        
+        <div class="grids-container final-results">
+            <div class="result-box">
+                <h4 id="playerARole">Kurucu (A)</h4>
+                <p>Toplam Puan: <b id="scoreA">0</b></p>
+                <div id="finalGridA" class="grid"></div>
+                <h5>Bulunan Kelimeler:</h5>
+                <ul id="wordsListA" class="word-list"></ul>
+            </div>
+
+            <div class="result-box">
+                <h4 id="playerBRole">Misafir (B)</h4>
+                <p>Toplam Puan: <b id="scoreB">0</b></p>
+                <div id="finalGridB" class="grid"></div>
+                <h5>Bulunan Kelimeler:</h5>
+                <ul id="wordsListB" class="word-list"></ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kelimelik 5x5</title>
+    <link rel="stylesheet" href="style.css"> 
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+</head>
+<body>
+    <script src="script.js"></script>
+</body>
+</html>
