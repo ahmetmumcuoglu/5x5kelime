@@ -8997,36 +8997,36 @@ async function handleCellClick(index) {
                      updatePayload.status = 'finished';
                      updatePayload.turnOwner = null;
                      updatePayload.currentLetter = null;
+                     // SON HAMLE için kullanılan yerel değişkeni temizle
+                     myFinalLetter = null; 
                 } 
-                // YENİ MANTIK: Eğer bu 24. hamle ise (Sonraki 25. hamleye geçiş):
+                // ÖZEL DURUM: Eğer bu 24. hamle ise (Sonraki 25. hamleye geçiş):
                 else if (currentMoveNumber === 24) {
                      // 25. hamleye geçiş
                      updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                     
-                     // ÖZEL DURUM: 25. hamlede harf seçimi herkese serbest
-                     updatePayload.currentLetter = null; // Harfi sıfırla, herkes seçecek/girecek
-                     updatePayload.turnOwner = null; // Sıra sahibini sıfırla, ikisi de aynı anda oynayabilir
-                     
-                     // İsteğe bağlı: Herkesin son hamleyi aynı anda başlatması için yeni bir bayrak
-                     updatePayload.finalMoveStarted = true;
-                     
+                     updatePayload.currentLetter = null; // Harfi sıfırla (herkes kendisi seçecek)
+                     updatePayload.turnOwner = null; // Sıra sahibini sıfırla (herkes serbest)
                 }
                 // Normal Tur Bitişi (1. hamleden 23. hamleye kadar)
                 else {
                      updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
                      
-                     // MODA GÖRE DAVRANIŞ DEĞİŞİKLİĞİ (Klasik ve Rastgele)
+                     // MODA GÖRE DAVRANIŞ DEĞİŞİKLİĞİ (Rastgele Modda yeni harfi atama)
                      if (mode === 'RANDOM') {
+                         // Rastgele Mod: Listeden sıradaki harfi al
                          const nextLetter = data.letterSequence[currentMoveNumber];
                          updatePayload.currentLetter = nextLetter;
+                         // Random modda turnOwner değiştirmeyi sürdürelim (sadece UI için)
                          updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
                      } else {
-                         updatePayload.currentLetter = null; // Klasik Modda harfi sıfırla
+                         // Klasik Mod: Harfi sıfırla, kullanıcı seçecek
+                         updatePayload.currentLetter = null; 
                          updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
                      }
                 }
             }
-
+            // ZATEN BURAYA KADAR ULAŞAN KOD, HER ZAMAN TRANSACTION.UPDATE YAPMALI
+            // updatePayload, her zaman en azından oyuncunun kendi gridini güncelleme bilgisini içerir.
             transaction.update(gameRef, updatePayload);
         });
     } catch (e) {
@@ -9157,6 +9157,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
