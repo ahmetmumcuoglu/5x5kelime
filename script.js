@@ -9200,60 +9200,81 @@ async function handleCellClick(index) {
 }
 
 // ==========================================
-// PUAN HESAPLAMA FONKSİYONU (UZUNLUĞA GÖRE)
+// PUAN HESAPLAMA FONKSİYONU (EN UZUN KELİME KURALI)
 // ==========================================
 
 function calculateScore(gridData) {
     const GRID_SIZE = 5;
     let totalScore = 0;
+    // Bu Set, sadece puanlanan (en uzun) kelimeleri tutar
     let foundWords = new Set(); 
-    const SCORE_RULES = { 3: 3, 4: 6, 5: 10 };
     
-    // Fonksiyon: Kelime Segmentlerini Tarama ve Puanlama
-    const processSegments = (segments) => {
-        segments.forEach(word => {
-            const wordLength = word.length;
-            
-            // 1. Sözlükte Geçerlilik Kontrolü
-            if (isValidWord(word)) { 
-                
-                // 2. Tekrar Eden Kelime Kontrolü
-                if (!foundWords.has(word)) {
-                    
-                    // 3. Puan Kuralı Uygulama
-                    const finalWordScore = SCORE_RULES[wordLength] || 0; 
+    // Kelime uzunluğuna göre puan kuralları
+    const SCORE_RULES = { 3: 3, 4: 6, 5: 10 };
 
-                    if (finalWordScore > 0) {
-                        foundWords.add(word);
-                        totalScore += finalWordScore;
+    /**
+     * Bir satır/sütun dizesi içindeki tüm olası alt kelimeleri tarar,
+     * en uzun ve geçerli olanın puanını döndürür. (Oyun kuralına uygun)
+     */
+    const findLongestValidWordScore = (lineString) => {
+        let maxScore = 0;
+        let longestValidWord = '';
+        
+        // 1. Boşluklara göre böl ve sadece min 3 harfli segmentleri al
+        const segments = lineString.replace(/\s+/g, ' ').split(' ').filter(s => s.length >= 3);
+        
+        segments.forEach(segment => {
+            const segmentLength = segment.length;
+            
+            // 2. Bu segment içindeki tüm olası alt kelimeleri tara (3, 4 ve 5 harfli)
+            for (let i = 0; i < segmentLength; i++) {
+                // Alt kelime uzunluğu max 5 olabilir
+                for (let j = i + 3; j <= segmentLength && j <= i + 5; j++) {
+                    
+                    const subword = segment.substring(i, j); 
+                    const subwordLength = subword.length;
+                    
+                    // Geçerlilik Kontrolü (isValidWord, 3-5 harf kontrolünü zaten yapıyor)
+                    if (isValidWord(subword)) { 
+                        const currentScore = SCORE_RULES[subwordLength] || 0;
+                        
+                        // En uzun kelimeyi (yani en yüksek puanı) bul
+                        if (currentScore > maxScore) {
+                            maxScore = currentScore;
+                            longestValidWord = subword;
+                        }
                     }
                 }
             }
         });
+        
+        // Eğer bu satır/sütun için puanlanacak bir kelime bulunduysa,
+        // kelimeyi genel olarak 'bulunmuş' listesine ekle.
+        if (longestValidWord) {
+            foundWords.add(longestValidWord);
+        }
+
+        return maxScore;
     }
+
+    // Yardımıcı fonksiyon: Yatay/Dikey hattı tek dizeye dönüştürür (Boş hücre = ' ')
+    const getLineString = (indices) => {
+        return indices.map(index => gridData[index] || ' ').join('');
+    };
+    
 
     // 1. Yatay (Satır) Tarama
     for (let row = 0; row < GRID_SIZE; row++) {
-        let currentRow = '';
-        for (let col = 0; col < GRID_SIZE; col++) {
-            const index = row * GRID_SIZE + col;
-            currentRow += gridData[index];
-        }
-        // Boş hücrelere göre böl ve min 2 harf uzunluğunda olanları al
-        const segments = currentRow.split('').join('').split(' ').filter(s => s.length >= 2);
-        processSegments(segments);
+        const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
+        const currentRow = getLineString(indices);
+        totalScore += findLongestValidWordScore(currentRow);
     }
 
     // 2. Dikey (Sütun) Tarama
     for (let col = 0; col < GRID_SIZE; col++) {
-        let currentCol = '';
-        for (let row = 0; row < GRID_SIZE; row++) {
-            const index = row * GRID_SIZE + col;
-            currentCol += gridData[index];
-        }
-        // Boş hücrelere göre böl ve min 2 harf uzunluğunda olanları al
-        const segments = currentCol.split('').join('').split(' ').filter(s => s.length >= 2);
-        processSegments(segments);
+        const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
+        const currentCol = getLineString(indices);
+        totalScore += findLongestValidWordScore(currentCol);
     }
 
     // Sonuçları döndür
@@ -9412,6 +9433,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
