@@ -8898,8 +8898,12 @@ function listenToGame() {
                 disableControls();
                 placementMode = false;
             } else if (data.status === 'active') {
-                // Ana oyun mantığını çağır
-                handleTurnLogic(data, myGridData);
+                // 1. Önce tur mantığını çalıştır ve placementMode'u ayarla
+                handleTurnLogic(data, myGridData); // <-- Bu ÖNCE ÇALIŞMALI
+
+                // 2. Ardından güncel placementMode'a göre gridleri çiz
+                renderGrid(myGridData, 'myGrid'); 
+                renderGrid(oppGridData, 'opponentGrid');
             } else if (data.status === 'finished') {
                 // Sonuçları göster
                 showResults(data); 
@@ -9413,6 +9417,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
