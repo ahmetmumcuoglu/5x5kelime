@@ -8672,72 +8672,156 @@ const moveDisplay = document.getElementById('moveDisplay');
 const opponentStatusEl = document.getElementById('opponentStatus'); // YENİ
 
 // ==========================================
-// 3. LOBİ FONKSİYONLARI (Oyun Kur/Katıl) - (Değişiklik Yok)
+// OYUN KURMA FONKSİYONU
 // ==========================================
+
 async function createNewGame() {
+    // 1. Oyun Kodunu Üret
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
-    // YENİ: Seçilen Modu Al
+    // 2. Mod Seçimini Al
     const selectedMode = document.getElementById('gameModeSelect').value;
     let sequence = null;
     let initialLetter = null;
 
-    // Eğer Rastgele Mod seçildiyse seriyi oluştur
-    if (selectedMode === 'RANDOM') {
-        sequence = generateGameSequence();
-        initialLetter = sequence[0]; // İlk harfi hemen belirle
-    }
-
     document.getElementById('lobbyStatus').textContent = "Oyun kuruluyor...";
 
+    // 3. Rastgele Mod İçin Harf Dizisini Oluştur
+    if (selectedMode === 'RANDOM') {
+        try {
+            // generateGameSequence fonksiyonu 24 harflik diziyi döndürür.
+            sequence = generateGameSequence();
+            // İlk harfi hemen belirle (Dizinin 0. elemanı)
+            initialLetter = sequence[0]; 
+            
+            // Eğer dizi 24 harf değilse (Hata Kontrolü)
+            if (!sequence || sequence.length !== 24) {
+                 throw new Error("Rastgele harf dizisi 24 elemanlı olmalıdır. Lütfen LETTER_POOL_CONFIG'i kontrol edin.");
+            }
+            
+        } catch (e) {
+            // Harf dizisi oluşturma hatası yakalanırsa, lobide kal
+            document.getElementById('lobbyStatus').textContent = `HATA: Harf dizisi oluşturulamadı. (${e.message || e})`;
+            console.error("Harf Dizisi Oluşturma Hatası:", e);
+            return; // Fonksiyondan çık
+        }
+    }
+    
+    // 4. Firestore'a Veri Yazma
     try {
         await db.collection('games').doc(code).set({
             status: 'waiting',
             turnOwner: 'PlayerA',
-            moveNumber: 1,
+            moveNumber: 1, // Her zaman 1. hamleden başlar
             
-            // YENİ ALANLAR
+            // Oyun Modu Verileri
             gameMode: selectedMode, // MANUAL veya RANDOM
-            letterSequence: sequence, // Rastgele ise dizi, değilse null
+            letterSequence: sequence, // Rastgele ise dizi (24 harf), değilse null
             currentLetter: initialLetter, // Rastgele ise ilk harf, değilse null
             
+            // Gridler
             gridA: Array(25).fill(''),
             gridB: Array(25).fill(''),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // 5. Başarılıysa Arayüzü Güncelle
         setupGameUI(code);
         listenToGame();
     } catch (error) {
-        console.error(error);
-        alert("Oyun kurulamadı.");
+        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı! Firebase Bağlantı Hatası veya Eksik Alan.";
+        console.error("Firebase Yazma Hatası:", error);
+        alert("Oyun kurulamadı. Hata detayları konsolda.");
     }
-}
-async function joinGame() {
-    const code = document.getElementById('gameCodeInput').value.trim().toUpperCase();
-    if (!code) return alert("Lütfen bir kod girin.");
-    const docRef = db.collection('games').doc(code);
-    const doc = await docRef.get();
-    if (doc.exists && doc.data().status === 'waiting') {
-        myPlayerId = 'PlayerB';
-        currentGameId = code;
-        await docRef.update({ status: 'active' });
-        setupGameUI(code);
-        listenToGame();
-    } else {
-        alert("Oyun bulunamadı veya zaten dolu.");
-    }
-}
-function setupGameUI(code) {
-    lobbyPanel.classList.add('hidden');
-    gamePanel.classList.remove('hidden');
-    roleDisplay.textContent = `Rolün: ${myPlayerId === 'PlayerA' ? 'Kurucu (A)' : 'Misafir (B)'} | Oda: ${code}`;
-    renderGrid(myGridEl, myGridData, true);
-    renderGrid(oppGridEl, opponentGridData, false);
 }
 
+// ==========================================
+// OYUNA KATILMA FONKSİYONU
+// ==========================================
+
+async function joinGame() {
+    const code = document.getElementById('gameCodeInput').value.trim().toUpperCase();
+    
+    if (!code) {
+        document.getElementById('lobbyStatus').textContent = "Lütfen bir oda kodu girin.";
+        return;
+    }
+
+    const gameRef = db.collection('games').doc(code);
+    document.getElementById('lobbyStatus').textContent = "Oyuna bağlanılıyor...";
+
+    try {
+        const doc = await gameRef.get();
+
+        if (!doc.exists) {
+            document.getElementById('lobbyStatus').textContent = "HATA: Bu kodda aktif bir oyun bulunamadı.";
+            return;
+        }
+
+        const data = doc.data();
+
+        if (data.status === 'active' || data.status === 'finished') {
+            document.getElementById('lobbyStatus').textContent = "HATA: Oyun zaten başladı veya bitti.";
+            return;
+        }
+        
+        // Oyuncu B olarak katıl
+        myPlayerId = 'PlayerB';
+        currentGameId = code;
+
+        // Oyun durumunu "waiting" -> "active" olarak güncelle
+        await gameRef.update({
+            status: 'active',
+            // turnOwner: data.turnOwner // İlk hamle sahibi (A) zaten belirlenmişti.
+            // Diğer veriler (gameMode, letterSequence) zaten A tarafından kurulmuştu.
+        });
+
+        // Arayüzü oyun paneline geçir ve dinlemeye başla
+        setupGameUI(code);
+        listenToGame();
+
+    } catch (error) {
+        document.getElementById('lobbyStatus').textContent = "Oyuna katılırken bir hata oluştu.";
+        console.error("Oyuna Katılma Hatası:", error);
+    }
+}
+
+// ==========================================
+// ARAYÜZ KURULUMU (LOBİ -> OYUN ALANI GEÇİŞİ)
+// ==========================================
+
+function setupGameUI(code) {
+    // Tüm panelleri gizle
+    document.getElementById('lobbyPanel').classList.add('hidden');
+    document.getElementById('gamePanel').classList.add('hidden');
+    document.getElementById('resultsPanel').classList.add('hidden');
+    
+    // Oyun panelini göster
+    document.getElementById('gamePanel').classList.remove('hidden');
+
+    // Oyun kodu gösterimini güncelle
+    document.getElementById('gameCodeDisplay').textContent = code;
+    
+    // Player Arayüz bilgilerini ayarla
+    const myRole = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
+    document.getElementById('myPlayerRole').textContent = myRole;
+
+    // Oyuncu B (Katılımcı) için hemen 'active' durumu kontrolünü başlatması gerekir.
+    // Oyuncu A (Kurucu) için ise 'waiting' durumunda kalması normaldir.
+    
+    // Son harf için yerel değişkeni temizle (Yeni oyuna başlarken)
+    myFinalLetter = null; 
+
+    // Kontrolleri başlangıç durumuna getir (Hangi durumda başlayacağını listenToGame/handleTurnLogic belirleyecek)
+    disableControls(); 
+    document.getElementById('letterInput').value = '';
+    
+    // Oyuncunun kendi gridini ve rakip gridini temizle
+    document.getElementById('myGrid').innerHTML = '';
+    document.getElementById('opponentGrid').innerHTML = '';
+}
 
 // ==========================================
 // OYUN DİNLEME VE ANA KONTROL FONKSİYONU
@@ -9302,5 +9386,6 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
