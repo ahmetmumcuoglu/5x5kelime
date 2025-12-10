@@ -8580,6 +8580,26 @@ function isValidWord(word) {
     return DICTIONARY.has(upperWord); 
 }
 
+// TÜRKÇE HARF HAVUZU (Rastgele Mod İçin)
+const LETTER_POOL_CONFIG = {
+    'A': 12, 'E': 8, 'İ': 7, 'K': 7, 'L': 7, 'R': 6, 'N': 5, 'T': 5,
+    'I': 4, 'M': 4, 'U': 3, 'Y': 3, 'S': 3, 'D': 3, 'O': 3, 'B': 2, 
+    'Ü': 2, 'Ş': 2, 'Z': 2, 'G': 1, 'H': 1, 'Ç': 1, 'P': 1, 'C': 1, 
+    'V': 1, 'Ö': 1, 'F': 1, 'J': 1, 'Ğ': 1 
+};
+
+function generateGameSequence() {
+    let pool = [];
+    for (let [letter, count] of Object.entries(LETTER_POOL_CONFIG)) {
+        for (let i = 0; i < count; i++) pool.push(letter);
+    }
+    // Karıştır (Shuffle)
+    for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    return pool.slice(0, 25);
+}
 // ==========================================
 // 2. OYUN DEĞİŞKENLERİ
 // ==========================================
@@ -8611,18 +8631,41 @@ async function createNewGame() {
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     myPlayerId = 'PlayerA';
     currentGameId = code;
+    
+    // YENİ: Seçilen Modu Al
+    const selectedMode = document.getElementById('gameModeSelect').value;
+    let sequence = null;
+    let initialLetter = null;
+
+    // Eğer Rastgele Mod seçildiyse seriyi oluştur
+    if (selectedMode === 'RANDOM') {
+        sequence = generateGameSequence();
+        initialLetter = sequence[0]; // İlk harfi hemen belirle
+    }
+
     document.getElementById('lobbyStatus').textContent = "Oyun kuruluyor...";
+
     try {
         await db.collection('games').doc(code).set({
-            status: 'waiting', turnOwner: 'PlayerA', moveNumber: 1, currentLetter: null,
-            gridA: Array(25).fill(''), gridB: Array(25).fill(''),
+            status: 'waiting',
+            turnOwner: 'PlayerA',
+            moveNumber: 1,
+            
+            // YENİ ALANLAR
+            gameMode: selectedMode, // MANUAL veya RANDOM
+            letterSequence: sequence, // Rastgele ise dizi, değilse null
+            currentLetter: initialLetter, // Rastgele ise ilk harf, değilse null
+            
+            gridA: Array(25).fill(''),
+            gridB: Array(25).fill(''),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
         setupGameUI(code);
         listenToGame();
     } catch (error) {
         console.error(error);
-        alert("Oyun kurulamadı. Firebase ayarlarını kontrol et.");
+        alert("Oyun kurulamadı.");
     }
 }
 async function joinGame() {
@@ -8923,4 +8966,5 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
