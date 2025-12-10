@@ -8656,6 +8656,7 @@ let moveNumber = 1;
 let placementMode = false;
 let myGridData = Array(25).fill('');
 let opponentGridData = Array(25).fill('');
+let myFinalLetter = null;
 
 // DOM Elementleri
 const lobbyPanel = document.getElementById('lobbyPanel');
@@ -8896,15 +8897,54 @@ function handleTurnLogic(data) {
 // 5. AKSİYONLAR (Harf Seçme & Yerleştirme) - (Değişiklik Yok)
 // ==========================================
 async function submitLetter() {
-    const val = letterInput.value.trim().toLocaleUpperCase('tr-TR');
-    if (!val || val.length !== 1 || !/[A-ZÇĞİÖŞÜ]/.test(val)) {
-        alert("Lütfen geçerli bir harf girin.");
+    const letterInput = document.getElementById('letterInput');
+    let letter = letterInput.value.toLocaleUpperCase('tr-TR');
+    
+    // Basit Kontrol: Harf girildi mi?
+    if (!letter || letter.length !== 1) {
+        alert("Lütfen geçerli bir harf seçin.");
         return;
     }
-    await db.collection('games').doc(currentGameId).update({
-        currentLetter: val
-    });
-    letterInput.value = '';
+    
+    const gameRef = db.collection('games').doc(currentGameId);
+    
+    try {
+        const doc = await gameRef.get();
+        const data = doc.data();
+        const isFinalMove = (data.moveNumber === 25);
+        
+        // --- 25. HAMLE ÖZEL MANTIĞI ---
+        if (isFinalMove) {
+            // Harfi sadece yerel olarak kaydet ve yerleştirme moduna geç
+            myFinalLetter = letter;
+            
+            // Arayüzü güncelle
+            updateStatus(`SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`, "#e67e22");
+            disableControls(); // Seçim bitti, inputu kapat
+            placementMode = true; // Yerleştirmeye izin ver
+            
+            return; // Veritabanına DOKUNMA!
+        }
+
+        // --- NORMAL MANTIK (Hamle 1-24) ---
+        if (data.currentLetter) {
+            alert("Zaten bir harf seçilmiş. Lütfen yerleştirin.");
+            return;
+        }
+        if (data.turnOwner !== myPlayerId) {
+             alert("Sıra sizde değil.");
+             return;
+        }
+
+        // Normal modda harfi veritabanına kaydet
+        await gameRef.update({
+            currentLetter: letter,
+            // Normal modda sıra rakibe geçmez, harf seçme hakkı biter.
+        });
+
+    } catch (error) {
+        console.error("Harf seçme hatası:", error);
+    }
 }
 
 async function handleCellClick(index) {
@@ -8914,30 +8954,38 @@ async function handleCellClick(index) {
 
     try {
         await db.runTransaction(async (transaction) => {
-            const doc = await transaction.get(gameRef);
-            if (!doc.exists) throw "Oyun yok";
+            // ... (veri çekme kısmı) ...
             
             const data = doc.data();
             const currentMoveNumber = data.moveNumber;
-            const currentLetterValue = data.currentLetter;
             const currentTurnOwner = data.turnOwner;
-            const mode = data.gameMode || 'MANUAL'; // Modu al
+            const mode = data.gameMode || 'MANUAL';
+            
+            // YENİ: Hangi harfi kullanacağımızı belirle
+            let letterToPlace;
+            if (currentMoveNumber === 25) {
+                // Son Hamlede yerel seçilen harfi kullan
+                if (!myFinalLetter) throw "Harf seçilmedi";
+                letterToPlace = myFinalLetter;
+            } else {
+                // Normal hamlede veritabanındaki harfi kullan
+                if (!data.currentLetter) throw "Harf yok";
+                letterToPlace = data.currentLetter;
+            }
 
-            // ... (Grid belirleme ve boşluk kontrol kodları aynen kalır) ...
-            let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
-            let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
+
+            // ... (grid atamaları ve boşluk kontrolü) ...
             
             if (myCurrentGrid[index] !== '') throw "Dolu hücre";
             
-            myCurrentGrid[index] = currentLetterValue; 
+            // Harfi yerleştir
+            myCurrentGrid[index] = letterToPlace; // YENİ DEĞER KULLANILDI
 
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
             else updatePayload.gridB = myCurrentGrid;
 
             // ... handleCellClick fonksiyonunun içinde ...
-
-            // ... (Diğer kontrol ve atamalar aynen kalır) ...
 
             const oppFilledCount = oppCurrentGrid.filter(c => c !== '').length;
             
@@ -9109,6 +9157,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
