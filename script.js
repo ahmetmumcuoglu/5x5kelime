@@ -8796,7 +8796,7 @@ function setupGameUI(code) {
     // Tüm panelleri gizle
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.add('hidden');
-    document.getElementById('resultsPanel').classList.add('hidden');
+    document.getElementById('gameOverPanel').classList.add('hidden');
     
     // Oyun panelini göster
     document.getElementById('gamePanel').classList.remove('hidden');
@@ -9386,6 +9386,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
