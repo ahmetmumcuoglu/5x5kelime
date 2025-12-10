@@ -13,7 +13,7 @@ body {
 }
 
 .main-wrapper {
-    max-width: 900px;
+    max-width: 1000px;
     width: 100%;
     text-align: center;
 }
@@ -32,16 +32,17 @@ body {
 }
 
 /* Butonlar ve Inputlar */
-input[type="text"] {
+input[type="text"], select {
     padding: 10px;
     border: 2px solid #ddd;
     border-radius: 6px;
     font-size: 16px;
     text-align: center;
     text-transform: uppercase;
-    width: 150px;
-    /* Türkçe karakter görüntüleme düzeltmesi */
     font-family: Tahoma, Arial, sans-serif; 
+}
+input[type="text"] {
+    width: 120px;
 }
 button {
     padding: 10px 20px;
@@ -71,19 +72,40 @@ button:disabled {
     cursor: not-allowed; 
 }
 
+.separator {
+    margin: 15px 0;
+    color: #999;
+}
+.status-text {
+    font-weight: bold;
+    margin-top: 15px;
+}
+
 /* ================================================= */
 /* 2. OYUN ALANI (GAME PANEL) STİLLERİ */
 /* ================================================= */
 
-/* 2. İSTEK ÇÖZÜMÜ: KONTROL PANELİNİ EN ÜSTE TAŞIYORUZ */
+/* BİLGİ ÇUBUĞU */
+.info-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    font-size: 1.1em;
+    color: #555;
+    border-bottom: 1px solid #eee;
+}
+.info-bar b {
+    color: #3498db;
+}
+
+/* KONTROL ALANI */
 .controls-top {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
-    padding: 10px 0;
-    border-bottom: 1px solid #eee;
+    margin-bottom: 25px;
 }
 
 #actionArea {
@@ -92,26 +114,24 @@ button:disabled {
     align-items: center;
 }
 
-/* BİLGİ ÇUBUĞU */
-.info-bar {
-    display: flex;
-    justify-content: space-between;
-    padding: 0 10px;
-    margin-bottom: 20px;
-    font-size: 1.1em;
-    color: #555;
+#randomLetterDisplay {
+    font-size: 2.5em; 
+    font-weight: bold; 
+    color: #e67e22; 
+    border: 3px solid #e67e22; 
+    padding: 5px 25px; 
+    border-radius: 8px; 
+    background: #fff;
+    min-width: 50px; /* Harf gelene kadar yer kaplaması için */
+    text-align: center;
 }
 
-/* 1. İSTEK ÇÖZÜMÜ: Rakip Gridini Tamamen Gizleme */
+/* Grid Konteynerleri */
 .grids-container {
     display: flex;
-    justify-content: center; /* Sadece kendi gridimizi ortalamak için */
-    gap: 0; /* Boşlukları kaldır */
+    justify-content: space-around;
+    gap: 30px; 
     margin: 20px 0;
-}
-.hidden-data-container {
-    /* Rakip gridi ve bekleme mesajını tamamen gizliyoruz, sadece data tutacak */
-    display: none !important;
 }
 
 .grid-box {
@@ -126,10 +146,11 @@ button:disabled {
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(5, 50px);
     gap: 4px;
-    /* DÜZELTME: Simsiyah arka planı yumuşak bir gri tonuyla değiştirin */
-    background-color: #ccc; /* Veya #ddd */
+    /* DÜZELTME: Siyah arka plan yerine yumuşak gri boşluklar */
+    background-color: #ddd; 
     padding: 4px;
     border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
 .cell {
@@ -142,58 +163,55 @@ button:disabled {
     font-size: 24px;
     font-weight: bold;
     cursor: default;
+    border-radius: 3px;
     /* Türkçe karakter görüntüleme düzeltmesi */
     font-family: Tahoma, Arial, sans-serif;
+    color: #333;
+    transition: 0.1s;
 }
 
 /* Etkileşimler */
 .clickable {
     cursor: pointer;
     background-color: #e8f8f5; 
-    border: 2px dashed #2ecc71;
+    border: 2px solid #2ecc71;
+    box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
 }
 .clickable:hover { 
     background-color: #d1f2eb; 
+    transform: scale(1.03);
 }
 
 /* ================================================= */
 /* 3. OYUN SONU (GAME OVER) STİLLERİ */
 /* ================================================= */
 
-#finalResultMsg {
-    font-size: 1.4em;
-    color: #e74c3c;
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-
-/* 3. İSTEK ÇÖZÜMÜ: OYUN SONU EKRANI DÜZENLEMESİ */
 .grids-container.final-results {
-    /* İki sonuç kutusunu yan yana hizalar */
-    justify-content: space-around; 
-    align-items: flex-start;
-    gap: 20px;
+    justify-content: center;
+    gap: 40px;
 }
 
 .result-box {
-    width: 400px; /* Genişliği sabitleyip boşlukları kontrol etme */
-    margin-bottom: 20px;
-    padding: 15px;
+    width: 45%; 
+    max-width: 450px;
+    padding: 20px;
     border: 1px solid #eee;
-    border-radius: 8px;
+    border-radius: 10px;
     background-color: #fcfcfc;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .word-list {
     list-style-type: none;
     padding: 0;
-    font-size: 0.9em;
+    text-align: left;
     max-height: 200px;
     overflow-y: auto;
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+    padding-top: 10px;
 }
 .word-list li {
     margin: 5px 0;
-    padding-bottom: 3px;
-    border-bottom: 1px dotted #ccc;
+    padding-left: 10px;
 }
-
