@@ -8580,6 +8580,9 @@ function isValidWord(word) {
     return DICTIONARY.has(upperWord); 
 }
 
+// Türkçedeki Sesli ve Sessiz Harfler
+const VOWELS = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
+
 // TÜRKÇE HARF HAVUZU (Rastgele Mod İçin)
 const LETTER_POOL_CONFIG = {
     'A': 12, 'E': 8, 'İ': 7, 'K': 7, 'L': 7, 'R': 6, 'N': 5, 'T': 5,
@@ -8588,17 +8591,70 @@ const LETTER_POOL_CONFIG = {
     'V': 1, 'Ö': 1, 'F': 1, 'J': 1, 'Ğ': 1 
 };
 
-function generateGameSequence() {
-    let pool = [];
-    for (let [letter, count] of Object.entries(LETTER_POOL_CONFIG)) {
-        for (let i = 0; i < count; i++) pool.push(letter);
-    }
-    // Karıştır (Shuffle)
-    for (let i = pool.length - 1; i > 0; i--) {
+// =========================================================
+// YARDIMCI FONKSİYON: DİZİ KARIŞTIRMA (SHUFFLE)
+// =========================================================
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [pool[i], pool[j]] = [pool[j], pool[i]];
+        [array[i], array[j]] = [array[j], array[i]];
     }
-    return pool.slice(0, 25);
+}
+
+// =========================================================
+// OYUN SIRASINI ÜRETME FONKSİYONU (GÜNCELLENMİŞ)
+// =========================================================
+
+function generateGameSequence() {
+    let vowelPool = [];
+    let consonantPool = [];
+
+    // 1. Ağırlığa göre Harf Havuzlarını Sesli ve Sessiz olarak ayır
+    for (let [letter, count] of Object.entries(LETTER_POOL_CONFIG)) {
+        for (let i = 0; i < count; i++) {
+            if (VOWELS.includes(letter)) {
+                vowelPool.push(letter);
+            } else {
+                consonantPool.push(letter);
+            }
+        }
+    }
+
+    // 2. Havuzları Karıştır (Rastgele çekim sırasını garantiler)
+    shuffleArray(vowelPool);
+    shuffleArray(consonantPool);
+
+    // 3. YENİ MANTIK: 13/12 veya 12/13 Dağılımına Rastgele Karar Ver
+    let vowelTarget;
+    let consonantTarget;
+    
+    // Math.random() < 0.5 ile %50 ihtimalle 13 sesli, %50 ihtimalle 12 sesli seçilir.
+    if (Math.random() < 0.5) {
+        // İhtimal 1 (Yaklaşık %50): Sesli Ağır (13 Sesli / 12 Sessiz)
+        vowelTarget = 13;
+        consonantTarget = 12;
+    } else {
+        // İhtimal 2 (Yaklaşık %50): Sessiz Ağır (12 Sesli / 13 Sessiz)
+        vowelTarget = 12;
+        consonantTarget = 13;
+    }
+
+    let finalSequence = [];
+    
+    // 4. Hedef Sayıda Harf Çekimi
+    
+    // Sesli Harfleri Çek
+    const requiredVowels = Math.min(vowelTarget, vowelPool.length);
+    finalSequence.push(...vowelPool.splice(0, requiredVowels));
+
+    // Sessiz Harfleri Çek
+    const requiredConsonants = Math.min(consonantTarget, consonantPool.length);
+    finalSequence.push(...consonantPool.splice(0, requiredConsonants));
+
+    // 5. Son 25 Harflik Diziyi Karıştır
+    shuffleArray(finalSequence); 
+
+    return finalSequence;
 }
 // ==========================================
 // 2. OYUN DEĞİŞKENLERİ
@@ -9015,6 +9071,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
