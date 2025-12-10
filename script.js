@@ -8573,8 +8573,8 @@ const WORD_ARRAY = [
 const DICTIONARY = new Set(WORD_ARRAY); 
 
 function isValidWord(word) {
-    if (!word || word.length < 2) {
-        return false; // Minimum kelime uzunluğu (genellikle 2 veya 3)
+    if (word.length < 3 || word.length > 5) {
+        return false;
     }
     
     // Sözlükteki kelimeler büyük harf olduğu için, kontrol edilen kelimeyi de
@@ -9423,6 +9423,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
