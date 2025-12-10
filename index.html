@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Kelimelik 5x5</title>
+    <title>Kelimelik 5x5 Online</title>
     <link rel="stylesheet" href="style.css"> 
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -17,7 +17,7 @@
             
             <div style="margin-bottom: 15px;">
                 <label for="gameModeSelect" style="font-weight:bold; display:block; margin-bottom:5px;">Oyun Modu:</label>
-                <select id="gameModeSelect" style="padding: 8px; font-size: 16px; border-radius: 6px;">
+                <select id="gameModeSelect">
                     <option value="MANUAL">Klasik (Sırayla Seçmeli)</option>
                     <option value="RANDOM">Rastgele (Otomatik)</option>
                 </select>
@@ -25,7 +25,7 @@
 
             <button class="btn-primary" onclick="createNewGame()">Yeni Oyun Kur</button>
             <div class="separator">- VEYA -</div>
-            <input type="text" id="gameCodeInput" placeholder="Oda Kodu Gir">
+            <input type="text" id="gameCodeInput" placeholder="Oda Kodu Gir" maxlength="4">
             <button class="btn-secondary" onclick="joinGame()">Oyuna Katıl</button>
             <p id="lobbyStatus" class="status-text"></p>
         </div>
@@ -33,45 +33,43 @@
         <div id="gamePanel" class="panel hidden">
             
             <div class="info-bar">
-                <span>Oda Kodu: <b id="gameCodeDisplay">--</b></span> 
+                <span>Oda: <b id="gameCodeDisplay">--</b></span> 
                 <span>Hamle: <b id="moveNumberDisplay">1/25</b></span> 
-                <span id="myPlayerRole">Rolün: --</span> 
+                <span>Rolün: <b id="myPlayerRole">--</b></span> 
             </div>
 
             <div class="controls-top">
                 <p id="gameStatusMsg">Oyun Yükleniyor...</p>
                 
                 <div id="actionArea">
-                    <input type="text" id="letterInput" maxlength="1" placeholder="?" 
+                    <input type="text" id="letterInput" maxlength="1" placeholder="Harf?" 
                            oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
-                    <button id="actionButton" onclick="submitLetter()">Harfi Seç</button>
+                    <button id="submitLetterButton" onclick="submitLetter()">Harfi Seç</button>
                 </div>
                 
-                <div id="randomLetterDisplay" class="hidden" style="font-size: 2em; font-weight: bold; color: #e67e22; border: 2px solid #e67e22; padding: 5px 20px; border-radius: 8px; background: #fff;">
-                </div>
+                <div id="randomLetterDisplay" class="hidden">?</div>
             </div>
             
             <div class="grids-container">
-                <div class="grid-box my-grid-box">
+                <div class="grid-box">
                     <h4>Senin Gridin</h4>
                     <div id="myGrid" class="grid"></div>
                 </div>
 
-                <div class="grid-box opponent-grid-box">
+                <div class="grid-box">
                     <h4>Rakip Gridi</h4>
                     <div id="opponentGrid" class="grid"></div> 
-                    <div id="opponentStatus" class="waiting-message hidden">Rakip bekleniyor...</div>
                 </div>
             </div>
         </div>
         
         <div id="gameOverPanel" class="panel hidden">
-            <h2>Oyun Bitti! Sonuçlar</h2>
+            <h2>🏆 Oyun Bitti! Sonuçlar</h2>
             <p id="finalResultMsg" class="status-text"></p>
             
             <div class="grids-container final-results">
                 <div class="result-box">
-                    <h4 id="playerARole">Kurucu (A)</h4>
+                    <h4>Kurucu (A)</h4>
                     <p>Toplam Puan: <b id="scoreA">0</b></p>
                     <div id="finalGridA" class="grid"></div>
                     <h5>Bulunan Kelimeler:</h5>
@@ -79,7 +77,7 @@
                 </div>
 
                 <div class="result-box">
-                    <h4 id="playerBRole">Misafir (B)</h4>
+                    <h4>Misafir (B)</h4>
                     <p>Toplam Puan: <b id="scoreB">0</b></p>
                     <div id="finalGridB" class="grid"></div>
                     <h5>Bulunan Kelimeler:</h5>
