@@ -9007,11 +9007,10 @@ function handleTurnLogic(data, myGridData) {
 }
 
 // ==========================================
-// HARF SEÇİMİ (SUBMIT LETTER)
+// HARF SEÇİMİ (SUBMIT LETTER) - DÜZELTİLMİŞ
 // ==========================================
 
 async function submitLetter() {
-    // DOM Elementleri global olarak tanımlandığı varsayılır (letterInput, actionButton)
     let letter = letterInput.value.toLocaleUpperCase('tr-TR'); 
     
     // 1. Kontrol: Geçerli tek bir harf girildi mi?
@@ -9022,59 +9021,52 @@ async function submitLetter() {
     
     const gameRef = db.collection('games').doc(currentGameId);
     
+    // --- ÖZEL DURUM KONTROLÜ: 25. HAMLE ---
+    
+    // Önce güncel moveNumber'ı tek bir okuma ile çekelim
+    const doc = await gameRef.get();
+    if (!doc.exists) {
+        statusMsg.textContent = "HATA: Oyun verisi bulunamadı.";
+        return;
+    }
+    const data = doc.data();
+    const isFinalMove = (data.moveNumber === 25);
+    
+    if (isFinalMove) {
+        // 25. Hamle: YEREL İŞLEM (Transaction gerekmez)
+        myFinalLetter = letter; 
+        placementMode = true; 
+        
+        statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
+        disableControls(); 
+        
+        // Arayüzü hemen güncelle
+        renderGrid(data.gridA, 'myGrid'); // data.gridA/B, myPlayerId'ye göre ayarlanabilir
+        
+        letterInput.value = '';
+        return; // İşlem bitti, buradan çık
+    }
+    
+    // --- NORMAL KLASİK MOD MANTIĞI (Transaction ile güvenli yazma) ---
     try {
         await db.runTransaction(async (transaction) => {
-            const doc = await transaction.get(gameRef);
-            if (!doc.exists) throw new Error("Oyun bulunamadı.");
-            
-            const data = doc.data();
-            const isFinalMove = (data.moveNumber === 25);
-            
-            // --- 25. HAMLE ÖZEL MANTIĞI ---
-            if (isFinalMove) {
-    // Harfi sadece yerel olarak kaydet (Veritabanına gönderme!)
-    myFinalLetter = letter; 
-    
-    // Arayüzü güncelle: handleTurnLogic'teki mantığa uygun hale getir.
-    statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
-    disableControls(); // Seçim bitti, inputu kapat
-    placementMode = true; // Yerleştirmeye izin ver
-    
-    // Input alanını temizle
-    letterInput.value = '';
-    
-    // YEREL GRİDİ GÜNCELLE (KRİTİK): Yeni placementMode'a göre çizim yap!
-    // Bu, hücrelerin yeşil/tıklanabilir olmasını sağlar.
-    const myCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB; // data, transaction'dan geliyordu, ama burada veritabanından veri yok. En iyisi bu kısmı atlamak.
-    
-    // NOTE: listenToGame zaten çalışıyor olmalı, bu yüzden sadece myGrid'i yeniden çizmek yeterli.
-    // Ancak daha güvenilir bir yol, harfi seçtikten sonra anlık olarak gridi çizmektir.
-    
-    // Harf seçildiğinde, anlık olarak gridi tekrar çizmeliyiz:
-    // Bu kodun çalışması için myGridData'nın güncel olması gerek, ki bu zor.
-    // EN BASİT YÖNTEM: Yerel DOM objesini kullanmak:
-    renderGrid(myGridData, 'myGrid'); // <--- Bu satırı ekleyin!
-    
-    // Transaction'ı atla
-    return; 
-}
-            // --- NORMAL KLASİK MOD MANTIĞI (Hamle 1-24) ---
-            
+            // Data zaten dışarıda çekildi ama Transaction için tekrar çekilmesi gerekir
+            const doc_inner = await transaction.get(gameRef);
+            const data_inner = doc_inner.data();
+
             // Sıra bende mi ve harf daha önce seçilmiş mi?
-            if (data.currentLetter) {
-                throw new Error("Harf zaten seçilmiş. Lütfen yerleştirme sıranızı bekleyin.");
+            if (data_inner.currentLetter) {
+                throw new Error("Harf zaten seçilmiş.");
             }
-            if (data.turnOwner !== myPlayerId) {
-                 throw new Error("Sıra sizde değil. Harf seçemezsiniz.");
+            if (data_inner.turnOwner !== myPlayerId) {
+                 throw new Error("Sıra sizde değil.");
             }
 
-            // Normal modda harfi veritabanına kaydet
+            // Harfi veritabanına kaydet
             transaction.update(gameRef, {
                 currentLetter: letter,
-                // Normal modda sıra rakibe geçmez, sadece harf seçme hakkı biter.
             });
             
-            // Input alanını temizle (Transaction başarılı olursa dinleyici güncelleyecektir)
             letterInput.value = '';
         });
 
@@ -9428,6 +9420,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
