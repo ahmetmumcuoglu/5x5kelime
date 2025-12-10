@@ -9033,22 +9033,22 @@ async function submitLetter() {
     const isFinalMove = (data.moveNumber === 25);
     
     if (isFinalMove) {
-        // 25. Hamle: YEREL İŞLEM (Transaction gerekmez)
-        myFinalLetter = letter; 
-        placementMode = true; 
-        
-        statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
-        disableControls(); 
+    // 25. Hamle: YEREL İŞLEM
+    myFinalLetter = letter; 
+    placementMode = true; 
+    
+    statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
+    disableControls(); 
 
-        // KRİTİK EKLENTİ: Hangi grid benim gridim?
-        const myCurrentGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
-      
-        // Arayüzü hemen güncelle
-        renderGrid(data.gridA, 'myGrid'); // data.gridA/B, myPlayerId'ye göre ayarlanabilir
-        
-        letterInput.value = '';
-        return; // İşlem bitti, buradan çık
-    }
+    // KRİTİK EKLENTİ: Hangi grid benim gridim?
+    const myCurrentGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
+    
+    // HATA DÜZELTİLDİ: Doğru değişkeni kullanıyoruz!
+    renderGrid(myCurrentGridData, 'myGrid'); 
+    
+    letterInput.value = '';
+    return; // İşlem bitti, buradan çık
+}
     
     // --- NORMAL KLASİK MOD MANTIĞI (Transaction ile güvenli yazma) ---
     try {
@@ -9423,6 +9423,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
