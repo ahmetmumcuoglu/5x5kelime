@@ -9198,20 +9198,37 @@ async function handleCellClick(index) {
 }
 
 // ==========================================
-// PUAN HESAPLAMA FONKSİYONU
+// PUAN HESAPLAMA FONKSİYONU (UZUNLUĞA GÖRE)
 // ==========================================
 
 function calculateScore(gridData) {
     const GRID_SIZE = 5;
     let totalScore = 0;
-    let foundWords = new Set(); // Tekrar eden kelimeleri engellemek için Set kullanırız
+    let foundWords = new Set(); 
+    const SCORE_RULES = { 3: 3, 4: 6, 5: 10 };
+    
+    // Fonksiyon: Kelime Segmentlerini Tarama ve Puanlama
+    const processSegments = (segments) => {
+        segments.forEach(word => {
+            const wordLength = word.length;
+            
+            // 1. Sözlükte Geçerlilik Kontrolü
+            if (isValidWord(word)) { 
+                
+                // 2. Tekrar Eden Kelime Kontrolü
+                if (!foundWords.has(word)) {
+                    
+                    // 3. Puan Kuralı Uygulama
+                    const finalWordScore = SCORE_RULES[wordLength] || 0; 
 
-    // Harf Puanlarını Getiren Yardımcı Fonksiyon
-    // LETTER_POINTS global objesi olmalıdır: { 'A': 1, 'B': 3, ... }
-    const getLetterScore = (letter) => {
-        // Harf puanlarını alırken büyük harf kullanıldığından emin ol
-        return LETTER_POINTS[letter.toLocaleUpperCase('tr-TR')] || 0; 
-    };
+                    if (finalWordScore > 0) {
+                        foundWords.add(word);
+                        totalScore += finalWordScore;
+                    }
+                }
+            }
+        });
+    }
 
     // 1. Yatay (Satır) Tarama
     for (let row = 0; row < GRID_SIZE; row++) {
@@ -9220,24 +9237,9 @@ function calculateScore(gridData) {
             const index = row * GRID_SIZE + col;
             currentRow += gridData[index];
         }
-
-        // Satırı kelimelere ayır (boşluklar veya boş hücreler kelimeleri böler)
+        // Boş hücrelere göre böl ve min 2 harf uzunluğunda olanları al
         const segments = currentRow.split('').join('').split(' ').filter(s => s.length >= 2);
-        
-        segments.forEach(word => {
-            if (isValidWord(word)) {
-                if (!foundWords.has(word)) {
-                    foundWords.add(word);
-                    
-                    // Kelimenin puanını hesapla
-                    let wordScore = 0;
-                    for (const char of word) {
-                        wordScore += getLetterScore(char);
-                    }
-                    totalScore += wordScore;
-                }
-            }
-        });
+        processSegments(segments);
     }
 
     // 2. Dikey (Sütun) Tarama
@@ -9247,24 +9249,9 @@ function calculateScore(gridData) {
             const index = row * GRID_SIZE + col;
             currentCol += gridData[index];
         }
-        
-        // Sütunu kelimelere ayır
+        // Boş hücrelere göre böl ve min 2 harf uzunluğunda olanları al
         const segments = currentCol.split('').join('').split(' ').filter(s => s.length >= 2);
-
-        segments.forEach(word => {
-            if (isValidWord(word)) {
-                if (!foundWords.has(word)) {
-                    foundWords.add(word);
-                    
-                    // Kelimenin puanını hesapla
-                    let wordScore = 0;
-                    for (const char of word) {
-                        wordScore += getLetterScore(char);
-                    }
-                    totalScore += wordScore;
-                }
-            }
-        });
+        processSegments(segments);
     }
 
     // Sonuçları döndür
@@ -9423,6 +9410,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
