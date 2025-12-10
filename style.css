@@ -126,7 +126,8 @@ button:disabled {
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(5, 50px);
     gap: 4px;
-    background-color: #333;
+    /* DÜZELTME: Simsiyah arka planı yumuşak bir gri tonuyla değiştirin */
+    background-color: #ccc; /* Veya #ddd */
     padding: 4px;
     border-radius: 6px;
 }
@@ -195,3 +196,4 @@ button:disabled {
     padding-bottom: 3px;
     border-bottom: 1px dotted #ccc;
 }
+
