@@ -8657,6 +8657,7 @@ let placementMode = false;
 let myGridData = Array(25).fill('');
 let opponentGridData = Array(25).fill('');
 let myFinalLetter = null;
+let unsubscribe = null;
 
 // DOM Elementleri
 const lobbyPanel = document.getElementById('lobbyPanel');
@@ -9392,6 +9393,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
