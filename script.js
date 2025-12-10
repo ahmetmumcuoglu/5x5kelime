@@ -9032,21 +9032,32 @@ async function submitLetter() {
             
             // --- 25. HAMLE ÖZEL MANTIĞI ---
             if (isFinalMove) {
-                // Harfi sadece yerel olarak kaydet (Veritabanına gönderme!)
-                myFinalLetter = letter; 
-                
-                // Arayüzü güncelle: handleTurnLogic'teki mantığa uygun hale getir.
-                statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
-                disableControls(); // Seçim bitti, inputu kapat
-                placementMode = true; // Yerleştirmeye izin ver
-                
-                // Input alanını temizle
-                letterInput.value = '';
-                
-                // Transaction'ı atla
-                return; 
-            }
-
+    // Harfi sadece yerel olarak kaydet (Veritabanına gönderme!)
+    myFinalLetter = letter; 
+    
+    // Arayüzü güncelle: handleTurnLogic'teki mantığa uygun hale getir.
+    statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
+    disableControls(); // Seçim bitti, inputu kapat
+    placementMode = true; // Yerleştirmeye izin ver
+    
+    // Input alanını temizle
+    letterInput.value = '';
+    
+    // YEREL GRİDİ GÜNCELLE (KRİTİK): Yeni placementMode'a göre çizim yap!
+    // Bu, hücrelerin yeşil/tıklanabilir olmasını sağlar.
+    const myCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB; // data, transaction'dan geliyordu, ama burada veritabanından veri yok. En iyisi bu kısmı atlamak.
+    
+    // NOTE: listenToGame zaten çalışıyor olmalı, bu yüzden sadece myGrid'i yeniden çizmek yeterli.
+    // Ancak daha güvenilir bir yol, harfi seçtikten sonra anlık olarak gridi çizmektir.
+    
+    // Harf seçildiğinde, anlık olarak gridi tekrar çizmeliyiz:
+    // Bu kodun çalışması için myGridData'nın güncel olması gerek, ki bu zor.
+    // EN BASİT YÖNTEM: Yerel DOM objesini kullanmak:
+    renderGrid(myGridData, 'myGrid'); // <--- Bu satırı ekleyin!
+    
+    // Transaction'ı atla
+    return; 
+}
             // --- NORMAL KLASİK MOD MANTIĞI (Hamle 1-24) ---
             
             // Sıra bende mi ve harf daha önce seçilmiş mi?
@@ -9417,6 +9428,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
