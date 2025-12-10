@@ -8745,36 +8745,54 @@ function listenToGame() {
 
 function handleTurnLogic(data) {
     const isMyTurn = (data.turnOwner === myPlayerId);
-    opponentStatusEl.classList.remove('hidden'); // Başlangıçta Rakip Durum mesajı görünür
+    
+    // DOM Elementleri
+    const actionArea = document.getElementById('actionArea');
+    const randomDisplay = document.getElementById('randomLetterDisplay');
 
-    // Durum A: Harf Henüz Seçilmedi
+    // 1. MOD KONTROLÜ: Arayüzü Ayarla
+    if (data.gameMode === 'RANDOM') {
+        actionArea.classList.add('hidden'); // Manuel girişi gizle
+        randomDisplay.classList.remove('hidden'); // Büyük harf göstergesini aç
+        randomDisplay.textContent = data.currentLetter || "Hazırlanıyor...";
+        
+        // Rastgele modda "Sıra" kavramı sadece yerleştirme içindir.
+        // Her zaman placementMode aktiftir (eğer o turda koymadıysam)
+        
+        const myFilledCount = myGridData.filter(c => c !== '').length;
+        if (myFilledCount < moveNumber) {
+            updateStatus(`GELEN HARF: ${data.currentLetter}`, "#e67e22");
+            placementMode = true;
+        } else {
+            updateStatus("Sıradaki harf için rakip bekleniyor...", "#2980b9");
+            placementMode = false;
+        }
+        return; // Rastgele mod mantığı burada biter, aşağıya (Manuel'e) gitmez.
+    }
+
+    // 2. KLASİK (MANUAL) MOD MANTIĞI (Eski kodun aynısı)
+    actionArea.classList.remove('hidden');
+    randomDisplay.classList.add('hidden');
+
     if (!currentLetter) {
         if (isMyTurn) {
             updateStatus("SIRA SENDE: Bir harf belirle.", "#27ae60");
             enableControls(true);
             placementMode = false;
-            opponentStatusEl.textContent = "Rakip seni bekliyor..."; // 2. İSTEK
         } else {
-            updateStatus(`Sıra rakipte (${data.turnOwner}). Harf seçmesini bekle...`, "#7f8c8d");
+            updateStatus(`Sıra rakipte (${data.turnOwner})...`, "#7f8c8d");
             disableControls();
             placementMode = false;
-            opponentStatusEl.textContent = "Rakip harf seçiyor..."; // 2. İSTEK
         }
-    } 
-    // Durum B: Harf Seçildi, Yerleştirme Zamanı
-    else {
+    } else {
         const myFilledCount = myGridData.filter(c => c !== '').length;
-        
         if (myFilledCount < moveNumber) {
-            updateStatus(`HARF: "${currentLetter}". Gridine yerleştir!`, "#e67e22");
+            updateStatus(`SEÇİLEN HARF: "${currentLetter}"`, "#e67e22");
             disableControls(); 
             placementMode = true; 
-            opponentStatusEl.textContent = "Harf seçildi, rakip yerleştiriyor..."; // 2. İSTEK
         } else {
-            // Ben koydum ama rakip henüz koymadıysa
-            updateStatus("Sen yerleştirdin. Rakibin de harfi yerleştirmesi bekleniyor.", "#2980b9"); // 2. İSTEK
+            updateStatus("Rakip bekleniyor...", "#2980b9");
             placementMode = false;
-            opponentStatusEl.textContent = "Rakip de yerleştirdiğinde yeni tura geçilecek."; // 2. İSTEK
         }
     }
 }
@@ -8807,15 +8825,16 @@ async function handleCellClick(index) {
             const data = doc.data();
             const currentMoveNumber = data.moveNumber;
             const currentLetterValue = data.currentLetter;
-            const currentTurnOwner = data.turnOwner; 
+            const currentTurnOwner = data.turnOwner;
+            const mode = data.gameMode || 'MANUAL'; // Modu al
 
+            // ... (Grid belirleme ve boşluk kontrol kodları aynen kalır) ...
             let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
             let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
             
             if (myCurrentGrid[index] !== '') throw "Dolu hücre";
-            if (!currentLetterValue) throw "Harf yok";
             
-            myCurrentGrid[index] = currentLetterValue.toLocaleUpperCase('tr-TR'); 
+            myCurrentGrid[index] = currentLetterValue; 
 
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
@@ -8823,6 +8842,7 @@ async function handleCellClick(index) {
 
             const oppFilledCount = oppCurrentGrid.filter(c => c !== '').length;
             
+            // --- TUR BİTİŞ KONTROLÜ ---
             if (oppFilledCount === currentMoveNumber) {
                 
                 if (currentMoveNumber >= 25) {
@@ -8830,9 +8850,21 @@ async function handleCellClick(index) {
                      updatePayload.turnOwner = null;
                      updatePayload.currentLetter = null;
                 } else {
-                     updatePayload.currentLetter = null;
                      updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                     updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                     
+                     // MODA GÖRE DAVRANIŞ DEĞİŞİKLİĞİ
+                     if (mode === 'RANDOM') {
+                         // Rastgele Mod: Listeden sıradaki harfi al
+                         // currentMoveNumber şu an 1 ise, bir sonraki harf index 1'dedir (2. harf)
+                         const nextLetter = data.letterSequence[currentMoveNumber];
+                         updatePayload.currentLetter = nextLetter;
+                         // Random modda turnOwner değişmesine gerek yok ama tutarlılık için değiştirebiliriz
+                         updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                     } else {
+                         // Klasik Mod: Harfi sıfırla, kullanıcı seçecek
+                         updatePayload.currentLetter = null;
+                         updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                     }
                 }
             }
 
@@ -8842,7 +8874,6 @@ async function handleCellClick(index) {
         if(e !== "Dolu hücre" && e !== "Harf yok") console.error("Hata:", e);
     }
 }
-
 
 // ==========================================
 // 6. YARDIMCI FONKSİYONLAR
@@ -8966,5 +8997,6 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
