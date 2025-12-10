@@ -8743,35 +8743,53 @@ function listenToGame() {
     });
 }
 
+// ==========================================
+// ARAYÜZ MANTIĞI (UI UPDATE)
+// ==========================================
+
 function handleTurnLogic(data) {
     const isMyTurn = (data.turnOwner === myPlayerId);
     
-    // DOM Elementleri
+    // DOM Elementlerini Seç
     const actionArea = document.getElementById('actionArea');
     const randomDisplay = document.getElementById('randomLetterDisplay');
+    const statusText = document.getElementById('gameStatusMsg'); // Durum mesajı alanı
 
-    // 1. MOD KONTROLÜ: Arayüzü Ayarla
+    // --- 1. RASTGELE (RANDOM) MOD MANTIĞI ---
     if (data.gameMode === 'RANDOM') {
-        actionArea.classList.add('hidden'); // Manuel girişi gizle
-        randomDisplay.classList.remove('hidden'); // Büyük harf göstergesini aç
-        randomDisplay.textContent = data.currentLetter || "Hazırlanıyor...";
+        // MANUEL KONTROLLERİ GİZLE
+        actionArea.classList.add('hidden'); 
         
-        // Rastgele modda "Sıra" kavramı sadece yerleştirme içindir.
-        // Her zaman placementMode aktiftir (eğer o turda koymadıysam)
+        // RASTGELE HARF KUTUSUNU AÇ
+        randomDisplay.classList.remove('hidden');
+        randomDisplay.textContent = data.currentLetter || "...";
         
+        // Yerleştirme Durumuna Bak
         const myFilledCount = myGridData.filter(c => c !== '').length;
+        
+        // Eğer ben henüz bu turdaki harfi koymadıysam:
         if (myFilledCount < moveNumber) {
-            updateStatus(`GELEN HARF: ${data.currentLetter}`, "#e67e22");
+            updateStatus(`HARF GELDİ: ${data.currentLetter}`, "#e67e22"); // Mesajı güncelle
             placementMode = true;
+            // Harf kutusunu parlat/vurgula
+            randomDisplay.style.borderColor = "#e67e22";
+            randomDisplay.style.color = "#e67e22";
         } else {
-            updateStatus("Sıradaki harf için rakip bekleniyor...", "#2980b9");
+            // Ben koydum, rakip bekleniyor
+            updateStatus("Harf yerleştirildi. Rakip bekleniyor...", "#2980b9");
             placementMode = false;
+            // Harf kutusunu soluklaştır (işim bitti anlamında)
+            randomDisplay.style.borderColor = "#ccc";
+            randomDisplay.style.color = "#ccc";
         }
-        return; // Rastgele mod mantığı burada biter, aşağıya (Manuel'e) gitmez.
+        return; // Rastgele mod bitti, fonksiyondan çık.
     }
 
-    // 2. KLASİK (MANUAL) MOD MANTIĞI (Eski kodun aynısı)
+    // --- 2. KLASİK (MANUAL) MOD MANTIĞI ---
+    
+    // MANUEL KONTROLLERİ AÇ
     actionArea.classList.remove('hidden');
+    // RASTGELE KUTUYU GİZLE
     randomDisplay.classList.add('hidden');
 
     if (!currentLetter) {
@@ -8780,7 +8798,7 @@ function handleTurnLogic(data) {
             enableControls(true);
             placementMode = false;
         } else {
-            updateStatus(`Sıra rakipte (${data.turnOwner})...`, "#7f8c8d");
+            updateStatus(`Sıra rakipte (${data.turnOwner}). Harf seçmesini bekle...`, "#7f8c8d");
             disableControls();
             placementMode = false;
         }
@@ -8997,6 +9015,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
