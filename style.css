@@ -153,6 +153,20 @@ button:disabled {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
+/* Yeni kural: Rakip gridini oyun sırasında tamamen gizle */
+.hidden-during-game {
+    display: none !important;
+}
+
+/* Kendi gridini ortalamak için grids-container'ı güncelle */
+.grids-container {
+    display: flex;
+    /* justify-content ayarını merkeze alıyoruz, gizli element olmadığı için kendi gridimiz ortalanacak */
+    justify-content: center;
+    gap: 30px; 
+    margin: 20px 0;
+}
+
 .cell {
     width: 50px;
     height: 50px;
@@ -215,3 +229,4 @@ button:disabled {
     margin: 5px 0;
     padding-left: 10px;
 }
+
