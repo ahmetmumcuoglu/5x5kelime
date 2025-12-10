@@ -9039,7 +9039,10 @@ async function submitLetter() {
         
         statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
         disableControls(); 
-        
+
+        // KRİTİK EKLENTİ: Hangi grid benim gridim?
+        const myCurrentGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
+      
         // Arayüzü hemen güncelle
         renderGrid(data.gridA, 'myGrid'); // data.gridA/B, myPlayerId'ye göre ayarlanabilir
         
@@ -9420,6 +9423,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
