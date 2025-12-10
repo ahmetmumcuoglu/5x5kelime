@@ -8993,16 +8993,19 @@ function handleTurnLogic(data) {
         }
     }
 }
+
 // ==========================================
-// 5. AKSİYONLAR (Harf Seçme & Yerleştirme) - (Değişiklik Yok)
+// HARF SEÇİMİ (SUBMIT LETTER)
 // ==========================================
+
 async function submitLetter() {
     const letterInput = document.getElementById('letterInput');
-    let letter = letterInput.value.toLocaleUpperCase('tr-TR');
+    // Türkçe karakterleri büyük harf yap (toLocaleUpperCase('tr-TR'))
+    let letter = letterInput.value.toLocaleUpperCase('tr-TR'); 
     
     // Basit Kontrol: Harf girildi mi?
     if (!letter || letter.length !== 1) {
-        alert("Lütfen geçerli bir harf seçin.");
+        alert("Lütfen geçerli tek bir harf girin.");
         return;
     }
     
@@ -9010,113 +9013,143 @@ async function submitLetter() {
     
     try {
         const doc = await gameRef.get();
+        if (!doc.exists) throw "Oyun bulunamadı.";
+        
         const data = doc.data();
         const isFinalMove = (data.moveNumber === 25);
         
         // --- 25. HAMLE ÖZEL MANTIĞI ---
         if (isFinalMove) {
-            // Harfi sadece yerel olarak kaydet ve yerleştirme moduna geç
-            myFinalLetter = letter;
+            // Harfi sadece yerel olarak kaydet (Veritabanına gönderme!)
+            myFinalLetter = letter; 
             
-            // Arayüzü güncelle
+            // Arayüzü güncelleyen handleTurnLogic'in tekrar çalışmasını sağlamak için 
+            // sadece status mesajını güncelleyebiliriz (ya da doğrudan handleTurnLogic çağrılabilir, 
+            // ancak updateStatus yeterli olmalı)
+            
+            // Arayüzü güncelle: handleTurnLogic'teki if bloğuna uygun hale getir.
             updateStatus(`SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`, "#e67e22");
             disableControls(); // Seçim bitti, inputu kapat
             placementMode = true; // Yerleştirmeye izin ver
             
-            return; // Veritabanına DOKUNMA!
+            // Input alanını temizle (kullanıcıya başka bir şey yazma şansı vermemek için)
+            letterInput.value = '';
+            
+            return; // Veritabanına işlem yapmadan çık
         }
 
         // --- NORMAL MANTIK (Hamle 1-24) ---
+        
+        // Klasik modda: Başkasının harf seçme sırası mı?
         if (data.currentLetter) {
-            alert("Zaten bir harf seçilmiş. Lütfen yerleştirin.");
+            alert("Harf zaten seçilmiş. Lütfen yerleştirme sıranızı bekleyin.");
             return;
         }
+        
+        // Klasik modda: Sıra bende mi?
         if (data.turnOwner !== myPlayerId) {
-             alert("Sıra sizde değil.");
+             alert("Sıra sizde değil. Harf seçemezsiniz.");
              return;
         }
 
         // Normal modda harfi veritabanına kaydet
         await gameRef.update({
             currentLetter: letter,
-            // Normal modda sıra rakibe geçmez, harf seçme hakkı biter.
+            // Normal modda sıra rakibe geçmez, sadece harf seçme hakkı biter.
         });
+        
+        // Input alanını temizle
+        letterInput.value = '';
 
     } catch (error) {
         console.error("Harf seçme hatası:", error);
     }
 }
 
+// ==========================================
+// HÜCRE TIKLAMA VE YERLEŞTİRME MANTIĞI
+// ==========================================
+
 async function handleCellClick(index) {
     if (!placementMode) return;
+    
+    // Gerekli Global Değişken Kontrolleri
+    if (myGridData[index] !== '') return; 
     
     const gameRef = db.collection('games').doc(currentGameId);
 
     try {
         await db.runTransaction(async (transaction) => {
-            // ... (veri çekme kısmı) ...
+            const doc = await transaction.get(gameRef);
+            if (!doc.exists) throw "Oyun veritabanında bulunamadı.";
             
             const data = doc.data();
             const currentMoveNumber = data.moveNumber;
             const currentTurnOwner = data.turnOwner;
             const mode = data.gameMode || 'MANUAL';
             
-            // YENİ: Hangi harfi kullanacağımızı belirle
+            // 25. Hamle Kontrolü
+            const isFinalMove = (currentMoveNumber === 25);
+
+            // YERLEŞTİRİLECEK HARFİ BELİRLE
             let letterToPlace;
-            if (currentMoveNumber === 25) {
-                // Son Hamlede yerel seçilen harfi kullan
-                if (!myFinalLetter) throw "Harf seçilmedi";
+            if (isFinalMove) {
+                // 25. Son Hamlede yerel seçilen harfi kullan
+                if (!myFinalLetter) throw "Harf seçilmedi.";
                 letterToPlace = myFinalLetter;
             } else {
-                // Normal hamlede veritabanındaki harfi kullan
-                if (!data.currentLetter) throw "Harf yok";
+                // Normal hamlede (1-24) veritabanındaki harfi kullan
+                if (!data.currentLetter) throw "Harf yok.";
                 letterToPlace = data.currentLetter;
             }
-
-
-            // ... (grid atamaları ve boşluk kontrolü) ...
             
-            if (myCurrentGrid[index] !== '') throw "Dolu hücre";
+            // Grid Verilerini Hazırla
+            let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
+            let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
             
-            // Harfi yerleştir
-            myCurrentGrid[index] = letterToPlace; // YENİ DEĞER KULLANILDI
+            // Yerleştirme Kontrolü
+            if (myCurrentGrid[index] !== '') throw "Dolu hücreye yerleştirme yapılamaz.";
+            
+            // Harfi Grid'e yerleştir
+            myCurrentGrid[index] = letterToPlace; 
 
+            // Payload'u Hazırla (Kendi Grid'imi güncelle)
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
             else updatePayload.gridB = myCurrentGrid;
 
-            // ... handleCellClick fonksiyonunun içinde ...
-
+            // Rakibin doldurduğu hücre sayısını kontrol et
             const oppFilledCount = oppCurrentGrid.filter(c => c !== '').length;
             
-            // --- TUR BİTİŞ KONTROLÜ ---
+            // --- TUR BİTİŞ KONTROLÜ (Tur İlerletme Mantığı) ---
+            // Eğer rakip de benimle aynı sayıda hamle yapmışsa (yani bu turda ikimiz de koyduysak)
             if (oppFilledCount === currentMoveNumber) {
                 
-                // Hamle sayısı 24'ten büyükse (yani 25. hamle tamamlanıyorsa) oyunu bitir
+                // Hamle sayısı 25 ise (son harf de yerleştirildi): Oyunu Bitir
                 if (currentMoveNumber >= 25) {
                      updatePayload.status = 'finished';
                      updatePayload.turnOwner = null;
                      updatePayload.currentLetter = null;
-                     // SON HAMLE için kullanılan yerel değişkeni temizle
+                     // Son hamle için kullanılan yerel değişkeni temizle
                      myFinalLetter = null; 
                 } 
                 // ÖZEL DURUM: Eğer bu 24. hamle ise (Sonraki 25. hamleye geçiş):
                 else if (currentMoveNumber === 24) {
                      // 25. hamleye geçiş
                      updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                     updatePayload.currentLetter = null; // Harfi sıfırla (herkes kendisi seçecek)
-                     updatePayload.turnOwner = null; // Sıra sahibini sıfırla (herkes serbest)
+                     updatePayload.currentLetter = null; // Harfi sıfırla (Herkes kendisi seçecek)
+                     updatePayload.turnOwner = null; // Sıra sahibini sıfırla (Herkes serbest)
+                     // Son hamle için yerel değişkeni temizle (Eğer 24. hamleyi ben bitiriyorsam, rakibin 25. harf seçimine engel olmasın)
+                     myFinalLetter = null; 
                 }
                 // Normal Tur Bitişi (1. hamleden 23. hamleye kadar)
                 else {
                      updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
                      
-                     // MODA GÖRE DAVRANIŞ DEĞİŞİKLİĞİ (Rastgele Modda yeni harfi atama)
                      if (mode === 'RANDOM') {
-                         // Rastgele Mod: Listeden sıradaki harfi al
+                         // Rastgele Mod: Listeden sıradaki harfi al (currentMoveNumber artık yeni index)
                          const nextLetter = data.letterSequence[currentMoveNumber];
                          updatePayload.currentLetter = nextLetter;
-                         // Random modda turnOwner değiştirmeyi sürdürelim (sadece UI için)
                          updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
                      } else {
                          // Klasik Mod: Harfi sıfırla, kullanıcı seçecek
@@ -9125,13 +9158,25 @@ async function handleCellClick(index) {
                      }
                 }
             }
-            // ZATEN BURAYA KADAR ULAŞAN KOD, HER ZAMAN TRANSACTION.UPDATE YAPMALI
-            // updatePayload, her zaman en azından oyuncunun kendi gridini güncelleme bilgisini içerir.
+            
+            // Transaction'ı güncelle
             transaction.update(gameRef, updatePayload);
         });
+        
+        // Başarılı yerleştirmeden sonra yerel harfi temizle (sadece 25. hamle için geçerli, diğerleri veritabanından güncellenir)
+        if (isFinalMove) {
+             myFinalLetter = null; 
+        }
+
     } catch (e) {
-// ...
-        if(e !== "Dolu hücre" && e !== "Harf yok") console.error("Hata:", e);
+        // Hata yakalama
+        if (e !== "Dolu hücreye yerleştirme yapılamaz." && e !== "Harf yok." && e !== "Harf seçilmedi.") {
+            console.error("Hücre tıklama/yerleştirme hatası:", e);
+        }
+        // Eğer 25. hamlede harf seçilmediyse kullanıcıya bildir
+        if (e === "Harf seçilmedi.") {
+            alert("Lütfen önce 'Harfi Seç' butonuyla 25. hamle harfinizi belirleyin.");
+        }
     }
 }
 
@@ -9257,13 +9302,5 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
-
-
-
-
-
-
-
-
 
 
