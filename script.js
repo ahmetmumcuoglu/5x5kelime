@@ -8573,11 +8573,16 @@ const WORD_ARRAY = [
 const DICTIONARY = new Set(WORD_ARRAY); 
 
 function isValidWord(word) {
-    if (word.length < 3 || word.length > 5) return false;
-
-    const upperWord = word.toLocaleUpperCase('tr-TR'); 
+    if (!word || word.length < 2) {
+        return false; // Minimum kelime uzunluğu (genellikle 2 veya 3)
+    }
     
-    return DICTIONARY.has(upperWord); 
+    // Sözlükteki kelimeler büyük harf olduğu için, kontrol edilen kelimeyi de
+    // Türkçe karakterlere duyarlı şekilde büyük harfe dönüştür.
+    const upperCaseWord = word.toLocaleUpperCase('tr-TR');
+    
+    // DICTIONARY global Set'i içinde kelimeyi kontrol et.
+    return DICTIONARY.has(upperCaseWord);
 }
 
 // Türkçedeki Sesli ve Sessiz Harfler
@@ -8602,7 +8607,7 @@ function shuffleArray(array) {
 }
 
 // =========================================================
-// OYUN SIRASINI ÜRETME FONKSİYONU (24 HARF İÇİN GÜNCELLENDİ)
+// OYUN SIRASINI ÜRETME FONKSİYONU (12 SESLİ + 12 SESSİZ = 24 HARF)
 // =========================================================
 
 function generateGameSequence() {
@@ -8624,53 +8629,60 @@ function generateGameSequence() {
     shuffleArray(vowelPool);
     shuffleArray(consonantPool);
 
-    // 3. YENİ MANTIK: Kesin 12 Sesli ve 12 Sessiz Hedefi
-    const vowelTarget = 12;
-    const consonantTarget = 12; 
-    // Toplam 24 harf için ayarlandı.
+    // 3. Hedef Sayıları Belirle (25. hamle manuel olduğu için toplam 24 harf)
+    const VOWEL_TARGET = 12;
+    const CONSONANT_TARGET = 12; 
 
     let finalSequence = [];
     
     // 4. Hedef Sayıda Harf Çekimi
     
     // Sesli Harfleri Çek (12 tane)
-    const requiredVowels = Math.min(vowelTarget, vowelPool.length);
+    const requiredVowels = Math.min(VOWEL_TARGET, vowelPool.length);
     finalSequence.push(...vowelPool.splice(0, requiredVowels));
 
     // Sessiz Harfleri Çek (12 tane)
-    const requiredConsonants = Math.min(consonantTarget, consonantPool.length);
+    const requiredConsonants = Math.min(CONSONANT_TARGET, consonantPool.length);
     finalSequence.push(...consonantPool.splice(0, requiredConsonants));
 
     // 5. Son 24 Harflik Diziyi Karıştır
     shuffleArray(finalSequence); 
 
+    // Kontrol: Eğer toplam 24 harf üretemediysek (ki bu LETTER_POOL'un yetersizliği demektir), uyarı ver.
+    if (finalSequence.length !== (VOWEL_TARGET + CONSONANT_TARGET)) {
+        console.warn(`UYARI: Harf havuzu yetersiz. Yalnızca ${finalSequence.length} harf üretildi.`);
+    }
+
     return finalSequence;
 }
+
 // ==========================================
 // 2. OYUN DEĞİŞKENLERİ
 // ==========================================
-let currentGameId = null;
-let myPlayerId = null; 
-let currentLetter = null;
-let moveNumber = 1;
-let placementMode = false;
-let myGridData = Array(25).fill('');
-let opponentGridData = Array(25).fill('');
-let myFinalLetter = null;
-let unsubscribe = null;
+let currentGameId = null;     // Mevcut oyunun kodu (Örn: "AB12")
+let myPlayerId = null;        // Oyuncunun rolü ('PlayerA' veya 'PlayerB')
+let placementMode = false;    // Hücrelere tıklamaya izin var mı? (Boolean)
+let myFinalLetter = null;     // 25. hamle için yerel olarak seçilen harf (Sadece 25. hamlede kullanılır)
+let unsubscribe = null;       // Firebase anlık dinleyicisini kapatmak için kullanılır.
 
-// DOM Elementleri
+// ==========================================
+// 3. DOM ELEMENTLERİ
+// ==========================================
+
 const lobbyPanel = document.getElementById('lobbyPanel');
 const gamePanel = document.getElementById('gamePanel');
-const gameOverPanel = document.getElementById('gameOverPanel'); // YENİ
+const gameOverPanel = document.getElementById('gameOverPanel'); 
 const myGridEl = document.getElementById('myGrid');
 const oppGridEl = document.getElementById('opponentGrid');
 const statusMsg = document.getElementById('gameStatusMsg');
 const letterInput = document.getElementById('letterInput');
-const actionButton = document.getElementById('actionButton');
-const roleDisplay = document.getElementById('roleDisplay');
-const moveDisplay = document.getElementById('moveDisplay');
-const opponentStatusEl = document.getElementById('opponentStatus'); // YENİ
+
+// HTML'deki ID'lerle eşleştirilen kritik elementler
+const actionButton = document.getElementById('submitLetterButton');
+const gameCodeDisplay = document.getElementById('gameCodeDisplay'); 
+const myPlayerRoleEl = document.getElementById('myPlayerRole'); 
+const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
+const randomLetterDisplay = document.getElementById('randomLetterDisplay');
 
 // ==========================================
 // OYUN KURMA FONKSİYONU
@@ -9393,6 +9405,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
