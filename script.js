@@ -8570,7 +8570,9 @@ const WORD_ARRAY = [
 "ZÜRRA",
 "ZÜYUF"
 ];
-const DICTIONARY = new Set(WORD_ARRAY); 
+const DICTIONARY = new Set(WORD_ARRAY.map(word => 
+    word.toLocaleUpperCase('tr-TR')
+));
 
 function isValidWord(word) {
     if (word.length < 3 || word.length > 5) {
@@ -9410,6 +9412,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
