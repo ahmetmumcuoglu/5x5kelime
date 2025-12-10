@@ -8793,34 +8793,40 @@ async function joinGame() {
 // ==========================================
 
 function setupGameUI(code) {
-    // Tüm panelleri gizle
+    // 1. Tüm ana panelleri gizle. ID'lerin doğru olduğundan emin ol!
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.add('hidden');
-    document.getElementById('gameOverPanel').classList.add('hidden');
-    
-    // Oyun panelini göster
-    document.getElementById('gamePanel').classList.remove('hidden');
+    document.getElementById('gameOverPanel').classList.add('hidden'); // DÜZELTİLDİ
 
-    // Oyun kodu gösterimini güncelle
-    document.getElementById('gameCodeDisplay').textContent = code;
+    // 2. Oyun panelini göster
+    const gamePanel = document.getElementById('gamePanel');
+    if (gamePanel) gamePanel.classList.remove('hidden');
     
-    // Player Arayüz bilgilerini ayarla
+    // Kalan diğer kritik elementleri kontrol edelim.
+    // Eğer bunlardan biri yoksa yine hata alırsınız.
+    
+    const codeDisplay = document.getElementById('gameCodeDisplay');
+    if (codeDisplay) codeDisplay.textContent = code;
+
+    const myRoleElement = document.getElementById('myPlayerRole');
     const myRole = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
-    document.getElementById('myPlayerRole').textContent = myRole;
+    if (myRoleElement) myRoleElement.textContent = myRole;
 
-    // Oyuncu B (Katılımcı) için hemen 'active' durumu kontrolünü başlatması gerekir.
-    // Oyuncu A (Kurucu) için ise 'waiting' durumunda kalması normaldir.
+    // Gridleri temizleme (Bunların da var olduğundan emin olun)
+    const myGrid = document.getElementById('myGrid');
+    if (myGrid) myGrid.innerHTML = '';
     
-    // Son harf için yerel değişkeni temizle (Yeni oyuna başlarken)
+    const oppGrid = document.getElementById('opponentGrid');
+    if (oppGrid) oppGrid.innerHTML = '';
+
+    // Son harf için yerel değişkeni temizle 
     myFinalLetter = null; 
 
-    // Kontrolleri başlangıç durumuna getir (Hangi durumda başlayacağını listenToGame/handleTurnLogic belirleyecek)
+    // Kontrolleri başlangıç durumuna getir 
     disableControls(); 
-    document.getElementById('letterInput').value = '';
-    
-    // Oyuncunun kendi gridini ve rakip gridini temizle
-    document.getElementById('myGrid').innerHTML = '';
-    document.getElementById('opponentGrid').innerHTML = '';
+    const letterInput = document.getElementById('letterInput');
+    if (letterInput) letterInput.value = '';
+
 }
 
 // ==========================================
@@ -9386,6 +9392,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
