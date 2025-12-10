@@ -8685,54 +8685,57 @@ const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
 const randomLetterDisplay = document.getElementById('randomLetterDisplay');
 
 // ==========================================
-// OYUN KURMA FONKSİYONU
+// YENİ OYUN KURMA FONKSİYONU
 // ==========================================
 
 async function createNewGame() {
-    // 1. Oyun Kodunu Üret
+    // 1. Oyun Kodunu Üret ve Oyuncu Rolünü Belirle
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
     // 2. Mod Seçimini Al
-    const selectedMode = document.getElementById('gameModeSelect').value;
+    const gameModeSelect = document.getElementById('gameModeSelect');
+    const selectedMode = gameModeSelect ? gameModeSelect.value : 'MANUAL'; // Varsayılan MANUAL
+    
     let sequence = null;
     let initialLetter = null;
 
+    // Lobi durumunu güncelle
     document.getElementById('lobbyStatus').textContent = "Oyun kuruluyor...";
 
     // 3. Rastgele Mod İçin Harf Dizisini Oluştur
     if (selectedMode === 'RANDOM') {
         try {
             // generateGameSequence fonksiyonu 24 harflik diziyi döndürür.
-            sequence = generateGameSequence();
+            sequence = generateGameSequence(); 
+            
+            if (!sequence || sequence.length !== 24) {
+                 throw new Error("Rastgele harf dizisi 24 elemanlı olmalıdır.");
+            }
+            
             // İlk harfi hemen belirle (Dizinin 0. elemanı)
             initialLetter = sequence[0]; 
             
-            // Eğer dizi 24 harf değilse (Hata Kontrolü)
-            if (!sequence || sequence.length !== 24) {
-                 throw new Error("Rastgele harf dizisi 24 elemanlı olmalıdır. Lütfen LETTER_POOL_CONFIG'i kontrol edin.");
-            }
-            
         } catch (e) {
-            // Harf dizisi oluşturma hatası yakalanırsa, lobide kal
-            document.getElementById('lobbyStatus').textContent = `HATA: Harf dizisi oluşturulamadı. (${e.message || e})`;
+            document.getElementById('lobbyStatus').textContent = `HATA: Harf dizisi oluşturulamadı. Lütfen konsolu kontrol edin.`;
             console.error("Harf Dizisi Oluşturma Hatası:", e);
-            return; // Fonksiyondan çık
+            currentGameId = null; // Başarısız olursa kodu temizle
+            return; 
         }
     }
     
     // 4. Firestore'a Veri Yazma
     try {
         await db.collection('games').doc(code).set({
-            status: 'waiting',
-            turnOwner: 'PlayerA',
-            moveNumber: 1, // Her zaman 1. hamleden başlar
+            status: 'waiting',      // Başlangıçta rakip beklenir
+            turnOwner: 'PlayerA',   // İlk tur sahibi her zaman kurucu (A)
+            moveNumber: 1,          // 1. hamleden başlar
             
             // Oyun Modu Verileri
-            gameMode: selectedMode, // MANUAL veya RANDOM
-            letterSequence: sequence, // Rastgele ise dizi (24 harf), değilse null
-            currentLetter: initialLetter, // Rastgele ise ilk harf, değilse null
+            gameMode: selectedMode, 
+            letterSequence: sequence,     // Random ise 24 harflik dizi, Manual ise null
+            currentLetter: initialLetter, // Random ise ilk harf, Manual ise null
             
             // Gridler
             gridA: Array(25).fill(''),
@@ -8740,13 +8743,14 @@ async function createNewGame() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 5. Başarılıysa Arayüzü Güncelle
+        // 5. Başarılıysa Arayüzü Güncelle ve Dinlemeyi Başlat
         setupGameUI(code);
         listenToGame();
+
     } catch (error) {
-        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı! Firebase Bağlantı Hatası veya Eksik Alan.";
+        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı! Firebase Hatası.";
         console.error("Firebase Yazma Hatası:", error);
-        alert("Oyun kurulamadı. Hata detayları konsolda.");
+        currentGameId = null; 
     }
 }
 
@@ -8755,10 +8759,12 @@ async function createNewGame() {
 // ==========================================
 
 async function joinGame() {
-    const code = document.getElementById('gameCodeInput').value.trim().toUpperCase();
+    // 1. Oda Kodunu Al ve Kontrol Et
+    const gameCodeInput = document.getElementById('gameCodeInput');
+    const code = gameCodeInput ? gameCodeInput.value.trim().toUpperCase() : '';
     
-    if (!code) {
-        document.getElementById('lobbyStatus').textContent = "Lütfen bir oda kodu girin.";
+    if (!code || code.length !== 4) {
+        document.getElementById('lobbyStatus').textContent = "HATA: Lütfen 4 haneli geçerli bir oda kodu girin.";
         return;
     }
 
@@ -8769,7 +8775,7 @@ async function joinGame() {
         const doc = await gameRef.get();
 
         if (!doc.exists) {
-            document.getElementById('lobbyStatus').textContent = "HATA: Bu kodda aktif bir oyun bulunamadı.";
+            document.getElementById('lobbyStatus').textContent = "HATA: Bu kodda aktif/bekleyen bir oyun bulunamadı.";
             return;
         }
 
@@ -8780,24 +8786,24 @@ async function joinGame() {
             return;
         }
         
-        // Oyuncu B olarak katıl
+        // 2. Oyuncu B olarak global değişkenleri ayarla
         myPlayerId = 'PlayerB';
         currentGameId = code;
 
-        // Oyun durumunu "waiting" -> "active" olarak güncelle
+        // 3. Oyun durumunu "waiting" -> "active" olarak güncelle
         await gameRef.update({
             status: 'active',
-            // turnOwner: data.turnOwner // İlk hamle sahibi (A) zaten belirlenmişti.
-            // Diğer veriler (gameMode, letterSequence) zaten A tarafından kurulmuştu.
+            // turnOwner, gameMode ve letterSequence (Random ise) A tarafından belirlenmiştir.
         });
 
-        // Arayüzü oyun paneline geçir ve dinlemeye başla
+        // 4. Arayüzü oyun paneline geçir ve dinlemeye başla
         setupGameUI(code);
         listenToGame();
 
     } catch (error) {
         document.getElementById('lobbyStatus').textContent = "Oyuna katılırken bir hata oluştu.";
         console.error("Oyuna Katılma Hatası:", error);
+        currentGameId = null; 
     }
 }
 
@@ -9405,6 +9411,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
