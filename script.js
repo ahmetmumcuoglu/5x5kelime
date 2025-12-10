@@ -8740,65 +8740,68 @@ function setupGameUI(code) {
 
 
 // ==========================================
-// 4. CANLI OYUN DİNLEME (Listener)
+// OYUN DİNLEME VE ANA KONTROL FONKSİYONU
 // ==========================================
 
 function listenToGame() {
-    db.collection('games').doc(currentGameId).onSnapshot((doc) => {
-        if (!doc.exists) return;
-        const data = doc.data();
+    if (!currentGameId) return;
 
-        // 1. Verileri Çek
-        moveNumber = data.moveNumber;
-        currentLetter = data.currentLetter;
-        
-        // Kimin hangi grid verisi olduğunu belirle
-        if (myPlayerId === 'PlayerA') {
-            myGridData = data.gridA;
-            opponentGridData = data.gridB;
-        } else {
-            myGridData = data.gridB;
-            opponentGridData = data.gridA;
-        }
+    // Önceki dinleyiciyi kapat (varsa)
+    if (unsubscribe) {
+        unsubscribe();
+    }
+    
+    // Firestore'da anlık dinleme başlat
+    unsubscribe = db.collection('games').doc(currentGameId)
+        .onSnapshot((doc) => {
+            if (!doc.exists) {
+                alert("Oyun bulunamadı veya silindi.");
+                // Arayüzü lobiye döndürme vb. eklenebilir.
+                return;
+            }
 
-        // 2. Oyun Durumunu Yönet
-        if (data.status === 'waiting') {
-            updateStatus("Arkadaşının katılması bekleniyor...", "#f39c12");
-            disableControls();
-        } else if (data.status === 'finished') {
-            // 3. İSTEK ÇÖZÜMÜ: Oyun Bitti Ekranını Hazırla
-            gamePanel.classList.add('hidden');
-            gameOverPanel.classList.remove('hidden');
+            const data = doc.data();
+            const opponentId = (myPlayerId === 'PlayerA') ? 'PlayerB' : 'PlayerA';
 
-            const resultA = calculateScore(data.gridA);
-            const resultB = calculateScore(data.gridB);
-
-            renderGameOverScreen(
-                data.gridA, resultA.totalScore, resultA.foundWords,
-                data.gridB, resultB.totalScore, resultB.foundWords,
-                myPlayerId
-            );
+            // Global değişkenleri güncelle
+            myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             
-        } else {
-            handleTurnLogic(data);
-        }
+            // UI Güncellemeleri
+            document.getElementById('gameCodeDisplay').textContent = currentGameId;
+            document.getElementById('myPlayerRole').textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
+            document.getElementById('moveNumberDisplay').textContent = `${data.moveNumber}/25`;
+            
+            // Gridleri Görselleştir
+            renderGrid(myGridData, 'myGrid');
+            const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
+            renderGrid(oppGridData, 'opponentGrid');
 
-        // 3. Ekranı Güncelle (Çizim)
-        moveDisplay.textContent = moveNumber;
-        renderGrid(myGridEl, myGridData, true); 
-        renderGrid(oppGridEl, opponentGridData, false); 
-    });
+            // Durum Kontrolü
+            if (data.status === 'waiting') {
+                document.getElementById('gameStatusMsg').textContent = `Arkadaşının Katılması Bekleniyor... (${opponentId})`;
+                disableControls();
+                placementMode = false;
+            } else if (data.status === 'active') {
+                // Ana oyun mantığını çağır
+                handleTurnLogic(data);
+            } else if (data.status === 'finished') {
+                showResults(data);
+            }
+        }, (error) => {
+            console.error("Dinleme hatası:", error);
+        });
 }
 
+
 // ==========================================
-// ARAYÜZ MANTIĞI (UI UPDATE) - GÜNCEL VERSİYON
+// TUR MANTIĞI VE ARAYÜZ KONTROLÜ
 // ==========================================
+// Bu fonksiyon listenToGame içinde çağrılır ve arayüzü günceller.
 
 function handleTurnLogic(data) {
-    // Verileri lokal değişkenlere çekme (myGridData, myPlayerId, currentLetter gibi global değişkenlerin güncel olduğunu varsayarız)
     const isMyTurn = (data.turnOwner === myPlayerId);
     const currentLetter = data.currentLetter;
-    const moveNumber = data.moveNumber; // Hamle Sayısı
+    const moveNumber = data.moveNumber; 
 
     // DOM Elementlerini Seç
     const actionArea = document.getElementById('actionArea'); // Input ve Buton Konteyneri
@@ -8806,34 +8809,34 @@ function handleTurnLogic(data) {
     const myFilledCount = myGridData.filter(c => c !== '').length;
 
     // --- ÖZEL DURUM: SON HAMLE (25. Hamle) KONTROLÜ ---
-    const isFinalMove = (data.moveNumber === 25);
+    const isFinalMove = (moveNumber === 25);
     const hasPlacedFinalLetter = myFilledCount >= 25;
 
     if (isFinalMove) {
-        // Son hamle moduna girdik! Herkes manuel oynar (harf seçme + yerleştirme).
+        // Son hamle moduna girdik! Herkes manuel oynar.
         
-        // Rastgele modun görsellerini kapat, Manuel'i aç
+        // Arayüzü Manuel Moda Çevir
         actionArea.classList.remove('hidden');
         randomDisplay.classList.add('hidden');
         
         // Eğer ben koyduysam:
         if (hasPlacedFinalLetter) {
             updateStatus("SON HARF YERLEŞTİRİLDİ. Rakip bekleniyor...", "#2980b9");
-            disableControls(); // Input'u ve butonu kapat
+            disableControls();
             placementMode = false;
         } 
         // Eğer ben henüz koymadıysam:
         else {
-            updateStatus("SON HAMLE FIRSATI! İstediğin harfi seç ve yerleştir.", "#e74c3c");
             
-            // Eğer harf daha önce seçilmediyse (null ise), harf seçimi yapabilirim
-            if (!currentLetter) {
+            // Harf seçilmiş mi (Yerel değişkeni kontrol et)
+            if (!myFinalLetter) {
+                 updateStatus("SON HAMLE FIRSATI! İstediğin harfi seç.", "#e74c3c");
                  enableControls(true); // Input ve butonu aç
                  placementMode = false; // Önce harf seçilmeli
             } else {
-                 // Eğer harfi seçmişsem (currentLetter doluysa)
-                 updateStatus(`SON HARFİN SEÇİLDİ: "${currentLetter}" - Şimdi yerleştir!`, "#e67e22");
-                 disableControls(); // Seçimi bitir, inputu kapat
+                 // Harfi seçtim (myFinalLetter dolu), şimdi yerleştirmeliyim
+                 updateStatus(`SON HARFİN SEÇİLDİ: "${myFinalLetter}" - Şimdi yerleştir!`, "#e67e22");
+                 disableControls(); // Seçim bitti, inputu kapat
                  placementMode = true; // Yerleştirmeye izin ver
             }
         }
@@ -8841,31 +8844,28 @@ function handleTurnLogic(data) {
     }
 
 
-    // --- 1. RASTGELE (RANDOM) MOD MANTIĞI ---
+    // --- 1. RASTGELE (RANDOM) MOD MANTIĞI (Hamle 1-24) ---
     if (data.gameMode === 'RANDOM') {
         actionArea.classList.add('hidden'); 
         randomDisplay.classList.remove('hidden');
-        randomDisplay.textContent = data.currentLetter || "...";
+        randomDisplay.textContent = currentLetter || "...";
         
-        // Eğer ben henüz bu turdaki harfi koymadıysam:
         if (myFilledCount < moveNumber) {
-            updateStatus(`HARF GELDİ: ${data.currentLetter}`, "#e67e22");
+            updateStatus(`HARF GELDİ: ${currentLetter}`, "#e67e22");
             placementMode = true;
             randomDisplay.style.borderColor = "#e67e22";
             randomDisplay.style.color = "#e67e22";
         } else {
-            // Ben koydum, rakip bekleniyor
             updateStatus("Harf yerleştirildi. Rakip bekleniyor...", "#2980b9");
             placementMode = false;
             randomDisplay.style.borderColor = "#ccc";
             randomDisplay.style.color = "#ccc";
         }
-        return; // Rastgele mod bitti, fonksiyondan çık.
+        return; 
     }
 
-    // --- 2. KLASİK (MANUAL) MOD MANTIĞI ---
+    // --- 2. KLASİK (MANUAL) MOD MANTIĞI (Hamle 1-24) ---
     
-    // Manuel Kontrolleri Göster, Random Kutuyu Gizle
     actionArea.classList.remove('hidden');
     randomDisplay.classList.add('hidden');
 
@@ -8873,20 +8873,120 @@ function handleTurnLogic(data) {
         // Harf henüz seçilmemiş
         if (isMyTurn) {
             updateStatus("SIRA SENDE: Bir harf belirle.", "#27ae60");
-            enableControls(true); // Input/Buton açık
+            enableControls(true); 
             placementMode = false;
         } else {
             updateStatus(`Sıra rakipte (${data.turnOwner}). Harf seçmesini bekle...`, "#7f8c8d");
-            disableControls(); // Input/Buton kapalı
+            disableControls(); 
             placementMode = false;
         }
     } else {
         // Harf seçilmiş (currentLetter dolu)
-        // Benim gridimdeki doluluk, mevcut hamle sayısından azsa, benim yerleştirmem gerekiyor demektir.
         if (myFilledCount < moveNumber) {
             updateStatus(`SEÇİLEN HARF: "${currentLetter}"`, "#e67e22");
             disableControls(); 
-            placementMode = true; // Yerleştirmeye izin ver
+            placementMode = true; 
+        } else {
+            updateStatus("Rakip bekleniyor...", "#2980b9");
+            placementMode = false;
+        }
+    }
+}
+
+// ==========================================
+// TUR MANTIĞI VE ARAYÜZ KONTROLÜ
+// ==========================================
+// Bu fonksiyon listenToGame içinde çağrılır ve arayüzü günceller.
+
+function handleTurnLogic(data) {
+    const isMyTurn = (data.turnOwner === myPlayerId);
+    const currentLetter = data.currentLetter;
+    const moveNumber = data.moveNumber; 
+
+    // DOM Elementlerini Seç
+    const actionArea = document.getElementById('actionArea'); // Input ve Buton Konteyneri
+    const randomDisplay = document.getElementById('randomLetterDisplay'); // Rastgele Harf Kutusu
+    const myFilledCount = myGridData.filter(c => c !== '').length;
+
+    // --- ÖZEL DURUM: SON HAMLE (25. Hamle) KONTROLÜ ---
+    const isFinalMove = (moveNumber === 25);
+    const hasPlacedFinalLetter = myFilledCount >= 25;
+
+    if (isFinalMove) {
+        // Son hamle moduna girdik! Herkes manuel oynar.
+        
+        // Arayüzü Manuel Moda Çevir
+        actionArea.classList.remove('hidden');
+        randomDisplay.classList.add('hidden');
+        
+        // Eğer ben koyduysam:
+        if (hasPlacedFinalLetter) {
+            updateStatus("SON HARF YERLEŞTİRİLDİ. Rakip bekleniyor...", "#2980b9");
+            disableControls();
+            placementMode = false;
+        } 
+        // Eğer ben henüz koymadıysam:
+        else {
+            
+            // Harf seçilmiş mi (Yerel değişkeni kontrol et)
+            // myFinalLetter, submitLetter fonksiyonu tarafından set edilir.
+            if (!myFinalLetter) {
+                 updateStatus("SON HAMLE FIRSATI! İstediğin harfi seç.", "#e74c3c");
+                 enableControls(true); // Input ve butonu aç
+                 placementMode = false; // Önce harf seçilmeli
+            } else {
+                 // Harfi seçtim (myFinalLetter dolu), şimdi yerleştirmeliyim
+                 updateStatus(`SON HARFİN SEÇİLDİ: "${myFinalLetter}" - Şimdi yerleştir!`, "#e67e22");
+                 disableControls(); // Seçim bitti, inputu kapat
+                 placementMode = true; // Yerleştirmeye izin ver
+            }
+        }
+        return; // Son hamle mantığı burada biter
+    }
+
+
+    // --- 1. RASTGELE (RANDOM) MOD MANTIĞI (Hamle 1-24) ---
+    if (data.gameMode === 'RANDOM') {
+        actionArea.classList.add('hidden'); 
+        randomDisplay.classList.remove('hidden');
+        randomDisplay.textContent = currentLetter || "...";
+        
+        if (myFilledCount < moveNumber) {
+            updateStatus(`HARF GELDİ: ${currentLetter}`, "#e67e22");
+            placementMode = true;
+            randomDisplay.style.borderColor = "#e67e22";
+            randomDisplay.style.color = "#e67e22";
+        } else {
+            updateStatus("Harf yerleştirildi. Rakip bekleniyor...", "#2980b9");
+            placementMode = false;
+            randomDisplay.style.borderColor = "#ccc";
+            randomDisplay.style.color = "#ccc";
+        }
+        return; 
+    }
+
+    // --- 2. KLASİK (MANUAL) MOD MANTIĞI (Hamle 1-24) ---
+    
+    actionArea.classList.remove('hidden');
+    randomDisplay.classList.add('hidden');
+
+    if (!currentLetter) {
+        // Harf henüz seçilmemiş
+        if (isMyTurn) {
+            updateStatus("SIRA SENDE: Bir harf belirle.", "#27ae60");
+            enableControls(true); 
+            placementMode = false;
+        } else {
+            updateStatus(`Sıra rakipte (${data.turnOwner}). Harf seçmesini bekle...`, "#7f8c8d");
+            disableControls(); 
+            placementMode = false;
+        }
+    } else {
+        // Harf seçilmiş (currentLetter dolu)
+        if (myFilledCount < moveNumber) {
+            updateStatus(`SEÇİLEN HARF: "${currentLetter}"`, "#e67e22");
+            disableControls(); 
+            placementMode = true; 
         } else {
             updateStatus("Rakip bekleniyor...", "#2980b9");
             placementMode = false;
@@ -9157,6 +9257,7 @@ function disableControls() {
     letterInput.disabled = true;
     actionButton.disabled = true;
 }
+
 
 
 
