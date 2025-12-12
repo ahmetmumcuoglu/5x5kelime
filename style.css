@@ -197,36 +197,148 @@ button:disabled {
 }
 
 /* ================================================= */
-/* 3. OYUN SONU (GAME OVER) STİLLERİ */
+/* 3. OYUN SONU EKRANI (MODERN TASARIM) */
 /* ================================================= */
 
-.grids-container.final-results {
+#gameOverPanel {
+    max-width: 900px; /* Genişliği artırdık */
+    text-align: center;
+}
+
+.result-message {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    font-weight: bold;
+    min-height: 40px;
+}
+
+/* Kartları Yan Yana Getiren Konteyner */
+.results-container {
+    display: flex;
     justify-content: center;
-    gap: 40px;
+    gap: 20px;
+    flex-wrap: wrap; /* Mobilde alt alta geçsin */
+    margin-bottom: 30px;
 }
 
-.result-box {
-    width: 45%; 
-    max-width: 450px;
-    padding: 20px;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    background-color: #fcfcfc;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+/* Bireysel Sonuç Kartı */
+.result-card {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    width: 45%; /* İki kart yan yana sığsın */
+    min-width: 300px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
 }
 
-.word-list {
-    list-style-type: none;
-    padding: 0;
+/* Kart Başlığı (İsim ve Puan) */
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.card-header h4 {
+    margin: 0;
+    color: #555;
+    font-size: 1.1rem;
+}
+
+.final-score {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c3e50;
+    background: #fff;
+    padding: 5px 15px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+}
+
+/* Grid ve Liste Alanı */
+.card-body {
+    display: flex;
+    gap: 15px;
+}
+
+/* Küçük Grid Ayarları */
+.mini-grid-wrapper {
+    flex: 0 0 auto; /* Boyutu sabitle */
+}
+
+.mini-grid {
+    /* Grid boyutunu sonuç ekranında biraz küçültelim */
+    width: 200px !important; 
+    height: 200px !important;
+}
+
+.mini-grid .cell {
+    font-size: 1.2rem; /* Harfleri biraz küçült */
+}
+
+/* Kelime Listesi Alanı */
+.word-list-wrapper {
+    flex: 1; /* Kalan alanı kapla */
     text-align: left;
-    max-height: 200px;
+    background: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    max-height: 200px; /* Çok uzarsa kaydırma çubuğu çıksın */
     overflow-y: auto;
-    border-top: 1px solid #eee;
-    margin-top: 10px;
-    padding-top: 10px;
 }
+
+.word-list-wrapper h5 {
+    margin: 0 0 10px 0;
+    font-size: 0.9rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+/* Kelime Listesi (Etiket Görünümü) */
+.word-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
 .word-list li {
-    margin: 5px 0;
-    padding-left: 10px;
+    background-color: #e3f2fd;
+    color: #1565c0;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid #bbdefb;
+}
+
+/* Harf sayısına göre renkler (Opsiyonel Güzellik) */
+/* 5 Harfliler Altın Rengi */
+/* JS tarafında class eklemiyoruz ama CSS ile ayırt etmek zor. 
+   Şimdilik hepsi mavi kalsın. */
+
+/* Mobilde Düzenleme */
+@media (max-width: 768px) {
+    .result-card {
+        width: 100%; /* Mobilde tam genişlik */
+    }
+    .card-body {
+        flex-direction: column; /* Grid üstte, kelimeler altta */
+        align-items: center;
+    }
+    .word-list-wrapper {
+        width: 100%;
+    }
 }
 
