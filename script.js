@@ -8575,7 +8575,7 @@ const DICTIONARY = new Set(WORD_ARRAY.map(word =>
 ));
 
 function isValidWord(word) {
-    if (word.length < 3 || word.length > 5) {
+    if (word.length < 2 || word.length > 5) {
         return false;
     }
     
@@ -9206,39 +9206,30 @@ async function handleCellClick(index) {
 function calculateScore(gridData) {
     const GRID_SIZE = 5;
     let totalScore = 0;
-    // Bu Set, sadece puanlanan (en uzun) kelimeleri tutar
     let foundWords = new Set(); 
     
-    // Kelime uzunluğuna göre puan kuralları
     const SCORE_RULES = { 3: 3, 4: 6, 5: 10 };
+    const TWO_LETTER_BONUS = 2; // 2 harfli geçerli kelime için verilecek sabit puan
 
-    /**
-     * Bir satır/sütun dizesi içindeki tüm olası alt kelimeleri tarar,
-     * en uzun ve geçerli olanın puanını döndürür. (Oyun kuralına uygun)
-     */
+    // --- YARDIMCI FONKSİYON 1: EN UZUN KELİMEYİ BULUP PUANLAMA ---
     const findLongestValidWordScore = (lineString) => {
         let maxScore = 0;
         let longestValidWord = '';
         
-        // 1. Boşluklara göre böl ve sadece min 3 harfli segmentleri al
+        // Boşluklara göre böl ve sadece min 3 harfli segmentleri al
         const segments = lineString.replace(/\s+/g, ' ').split(' ').filter(s => s.length >= 3);
         
         segments.forEach(segment => {
             const segmentLength = segment.length;
             
-            // 2. Bu segment içindeki tüm olası alt kelimeleri tara (3, 4 ve 5 harfli)
             for (let i = 0; i < segmentLength; i++) {
-                // Alt kelime uzunluğu max 5 olabilir
                 for (let j = i + 3; j <= segmentLength && j <= i + 5; j++) {
-                    
                     const subword = segment.substring(i, j); 
                     const subwordLength = subword.length;
                     
-                    // Geçerlilik Kontrolü (isValidWord, 3-5 harf kontrolünü zaten yapıyor)
                     if (isValidWord(subword)) { 
                         const currentScore = SCORE_RULES[subwordLength] || 0;
                         
-                        // En uzun kelimeyi (yani en yüksek puanı) bul
                         if (currentScore > maxScore) {
                             maxScore = currentScore;
                             longestValidWord = subword;
@@ -9248,8 +9239,6 @@ function calculateScore(gridData) {
             }
         });
         
-        // Eğer bu satır/sütun için puanlanacak bir kelime bulunduysa,
-        // kelimeyi genel olarak 'bulunmuş' listesine ekle.
         if (longestValidWord) {
             foundWords.add(longestValidWord);
         }
@@ -9257,24 +9246,65 @@ function calculateScore(gridData) {
         return maxScore;
     }
 
+    // --- YARDIMCI FONKSİYON 2: 2 HARFLİ BONUS KELİMELERİ BULMA ---
+    const findTwoLetterBonusScore = (lineString) => {
+        let bonusScore = 0;
+        
+        // Boşluklara göre ayır ve tüm segmentleri al (min uzunluk 2'den başlıyoruz)
+        const segments = lineString.replace(/\s+/g, ' ').split(' ').filter(s => s.length >= 2);
+        
+        segments.forEach(segment => {
+            const segmentLength = segment.length;
+            
+            // Tüm olası 2 harfli alt kelimeleri tara
+            for (let i = 0; i < segmentLength - 1; i++) {
+                const subword = segment.substring(i, i + 2); // 2 harfli alt kelime
+                
+                // 1. Geçerlilik Kontrolü: 2 harfli kelimenin sözlükte olup olmadığı
+                if (isValidWord(subword)) { 
+                    // 2. Tekrar Kontrolü: Bu kelimeyi daha önce puanladık mı?
+                    if (!foundWords.has(subword)) {
+                        foundWords.add(subword); // Set'e ekle
+                        bonusScore += TWO_LETTER_BONUS; // 2 puan ekle
+                    }
+                }
+            }
+        });
+        
+        return bonusScore;
+    }
+
+
     // Yardımıcı fonksiyon: Yatay/Dikey hattı tek dizeye dönüştürür (Boş hücre = ' ')
     const getLineString = (indices) => {
         return indices.map(index => gridData[index] || ' ').join('');
     };
     
 
+    // --- ANA DÖNGÜ ---
+
     // 1. Yatay (Satır) Tarama
     for (let row = 0; row < GRID_SIZE; row++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
         const currentRow = getLineString(indices);
+        
+        // Önce en uzun kelimeyi puanla
         totalScore += findLongestValidWordScore(currentRow);
+        
+        // Ardından kalan tüm geçerli 2 harfli kelimeleri puanla
+        totalScore += findTwoLetterBonusScore(currentRow);
     }
 
     // 2. Dikey (Sütun) Tarama
     for (let col = 0; col < GRID_SIZE; col++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
         const currentCol = getLineString(indices);
+        
+        // Önce en uzun kelimeyi puanla
         totalScore += findLongestValidWordScore(currentCol);
+        
+        // Ardından kalan tüm geçerli 2 harfli kelimeleri puanla
+        totalScore += findTwoLetterBonusScore(currentCol);
     }
 
     // Sonuçları döndür
@@ -9283,7 +9313,6 @@ function calculateScore(gridData) {
         words: Array.from(foundWords).sort()
     };
 }
-
 // ==========================================
 // OYUN SONUÇLARINI GÖSTERME FONKSİYONU
 // ==========================================
@@ -9433,6 +9462,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
