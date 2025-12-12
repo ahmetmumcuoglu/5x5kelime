@@ -9335,9 +9335,18 @@ function calculateScore(gridData) {
         });
     }
 
+   // Sonuçları döndür (SIRALAMA MANTIĞI GÜNCELLENDİ)
     return {
         score: totalScore,
-        words: Array.from(foundWords).sort()
+        // Kelimeleri Set'ten Diziye çevir ve sırala
+        words: Array.from(foundWords).sort((a, b) => {
+            // 1. Kriter: Uzunluk (Büyükten küçüğe)
+            if (b.length !== a.length) {
+                return b.length - a.length;
+            }
+            // 2. Kriter: Eğer uzunluk aynıysa Alfabetik (A-Z)
+            return a.localeCompare(b, 'tr');
+        })
     };
 }
 
@@ -9490,6 +9499,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
