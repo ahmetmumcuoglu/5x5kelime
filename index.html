@@ -63,32 +63,55 @@
             </div>
         </div>
         
-        <div id="gameOverPanel" class="panel hidden">
-            <h2>🏆 Oyun Bitti! Sonuçlar</h2>
-            <p id="finalResultMsg" class="status-text"></p>
+     <div id="gameOverPanel" class="panel hidden">
+    <h2 class="panel-title">OYUN SONUCU</h2>
+    <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
+    
+    <div class="results-container">
+        <div class="result-card">
+            <div class="card-header">
+                <h4>Kurucu (A)</h4>
+                <div class="final-score" id="scoreA">0</div>
+            </div>
             
-            <div class="grids-container final-results">
-                <div class="result-box">
-                    <h4>Kurucu (A)</h4>
-                    <p>Toplam Puan: <b id="scoreA">0</b></p>
-                    <div id="finalGridA" class="grid"></div>
-                    <h5>Bulunan Kelimeler:</h5>
+            <div class="card-body">
+                <div class="mini-grid-wrapper">
+                    <div id="finalGridA" class="grid mini-grid"></div>
+                </div>
+                
+                <div class="word-list-wrapper">
+                    <h5>Bulunan Kelimeler</h5>
                     <ul id="wordsListA" class="word-list"></ul>
                 </div>
+            </div>
+        </div>
 
-                <div class="result-box">
-                    <h4>Misafir (B)</h4>
-                    <p>Toplam Puan: <b id="scoreB">0</b></p>
-                    <div id="finalGridB" class="grid"></div>
-                    <h5>Bulunan Kelimeler:</h5>
+        <div class="result-card">
+            <div class="card-header">
+                <h4>Katılımcı (B)</h4>
+                <div class="final-score" id="scoreB">0</div>
+            </div>
+            
+            <div class="card-body">
+                <div class="mini-grid-wrapper">
+                    <div id="finalGridB" class="grid mini-grid"></div>
+                </div>
+                
+                <div class="word-list-wrapper">
+                    <h5>Bulunan Kelimeler</h5>
                     <ul id="wordsListB" class="word-list"></ul>
                 </div>
             </div>
-            <button class="btn-primary" onclick="window.location.reload()">Yeni Oyun Başlat</button>
         </div>
     </div>
+
+    <div class="panel-footer">
+        <button id="restartBtn" onclick="window.location.reload()">TEKRAR OYNA</button>
+    </div>
+</div>
     
     <script src="script.js"></script>
 </body>
 </html>
+
 
