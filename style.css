@@ -372,3 +372,59 @@ button:disabled {
     box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
 }
 
+/* Lobi Kontrol Kutusu */
+.lobby-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px; /* Genişliği sınırlayalım ki butonlar çok uzamasın */
+    margin: 0 auto;   /* Ortala */
+}
+
+/* Her Bir Blok (Grup) */
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Ayırıcı Yazılar (- VEYA -) */
+.lobby-divider {
+    color: #aaa;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 10px 0;
+    letter-spacing: 1px;
+}
+
+/* Buton ve Select Genel Stilleri */
+.lobby-controls button, 
+.lobby-controls select {
+    width: 100%; /* Hepsi kutu genişliğini doldursun */
+    padding: 12px;
+    font-size: 1rem;
+    box-sizing: border-box; /* Padding dahil genişlik hesaplansın */
+}
+
+/* Katılma Alanı (Yan Yana Durması Gerekenler) */
+.join-area {
+    display: flex;
+    gap: 10px; /* Input ve Buton arası boşluk */
+    width: 100%;
+}
+
+.join-area input {
+    flex: 1; /* Kalan boşluğu doldur */
+    padding: 12px;
+    font-size: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+}
+
+.join-area button {
+    flex: 1; /* Input ile eşit veya dengeli genişlik */
+    white-space: nowrap; /* Yazı alt satıra geçmesin */
+}
