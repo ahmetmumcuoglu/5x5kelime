@@ -9068,36 +9068,35 @@ function listenToGame() {
 }
 
 function handleTurnLogic(data, myGridData) {
-    const actionArea = document.getElementById('actionArea'); // Input ve butonu kapsayan genel alan
+    const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
     const statusMsg = document.getElementById('gameStatusMsg');
     
     const moveNumber = data.moveNumber || 1;
     const currentLetter = data.currentLetter || "";
     
-    // Dolu hücre sayısını hesapla
     const myFilledCount = myGridData.filter(cell => cell !== '' && cell !== null).length;
     
     if (statusMsg) {
         statusMsg.className = "status-msg";
     }
 
-    // Başlangıçta UI'ı Varsayılan Duruma Getir
+    // Varsayılan UI ayarları: Gizle ve Kontrolleri Kapat
     if (actionArea) actionArea.classList.add('hidden');
     if (randomLetterDisplay) randomLetterDisplay.classList.remove('hidden'); 
     if (randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
     
-    // Varsayılan kontrolleri kapat
     disableControls();
     placementMode = false;
 
 
-    // --- 1. JOKER HAMLESİ (25. Hamle) KONTROLÜ (TÜM MODLAR İÇİN) ---
+    // --- 1. JOKER HAMLESİ (25. Hamle) KONTROLÜ (TÜM MODLAR İÇİN AYRILMIŞ) ---
     if (moveNumber === 25) {
         
+        // UI'ı joker seçimine hazırla
         if (actionArea) actionArea.classList.remove('hidden');
         if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
-
+        
         if (myFilledCount >= 25) {
             // Hamle yapıldı, oyunun bitmesi bekleniyor
             statusMsg.textContent = "Tüm hücreler dolu. Oyunun bitmesi bekleniyor...";
@@ -9105,7 +9104,7 @@ function handleTurnLogic(data, myGridData) {
         } else {
             // Harfi seçme zamanı
             if (!myFinalLetter) {
-                // Oyuncu henüz joker harfi seçmedi
+                // Oyuncu henüz joker harfi seçmedi (myFinalLetter yerel değişkeni kullanılır)
                 statusMsg.textContent = "SON HAMLE! Lütfen Joker Harfi seçip girin.";
                 statusMsg.style.color = "#e74c3c";
                 enableControls(true); // Input ve butonu aç
@@ -9114,20 +9113,24 @@ function handleTurnLogic(data, myGridData) {
                 // Oyuncu harfi seçti, şimdi yerleştirme zamanı
                 statusMsg.textContent = `Joker Harf: "${myFinalLetter}" seçildi. Şimdi yerleştir!`;
                 statusMsg.style.color = "#3498db";
+                
+                // Joker harf seçimi tamamlandığı için yerleştirmeye izin verilir
                 placementMode = true;
-                renderGrid(myGridData, 'myGrid'); 
+                renderGrid(myGridData, 'myGrid'); // Yerleştirme iznini aç
             }
         }
-        return; 
+        return; // 25. hamle mantığı burada sonlanır.
     }
 
-    // --- 2. TEK KİŞİLİK MOD (Normal Hamleler 1-24) ---
+    // --- 2. NORMAL HAMLELER (1-24) ---
+
+    // A. TEK KİŞİLİK MOD
     if (data.isSinglePlayer) {
         if (myFilledCount < moveNumber) {
             statusMsg.textContent = `Harf: ${currentLetter} - Yerleştirmek için bir hücreye tıkla!`;
             statusMsg.style.color = "#3498db";
             placementMode = true;
-            renderGrid(myGridData, 'myGrid'); // Yerleştirme iznini açmak için yeniden çiz.
+            renderGrid(myGridData, 'myGrid');
         } else {
             statusMsg.textContent = "Kaydediliyor, lütfen bekleyin...";
             statusMsg.style.color = "#7f8c8d";
@@ -9135,28 +9138,26 @@ function handleTurnLogic(data, myGridData) {
         return;
     }
 
-    // --- 3. ÇOK OYUNCULU MOD (Normal Hamleler 1-24) ---
+    // B. ÇOK OYUNCULU MOD (KLASİK & RANDOM)
     const isMyTurn = (data.turnOwner === myPlayerId);
     const currentLetterIsAvailable = currentLetter !== null && currentLetter !== "";
     const hasNotPlacedInThisTurn = myFilledCount < moveNumber;
 
-    // A. HARF SEÇİM AŞAMASI (Klasik Mod)
+    // Harf Seçim Aşaması (Sadece Klasik Modda ve Harf Seçilmediyse)
     if (data.gameMode === 'CLASSIC' && !currentLetterIsAvailable) {
-        
         if (isMyTurn) { // Sıra harf seçme sahibi (A-B-A-B...)
             statusMsg.textContent = `Sıra Sende. ${moveNumber}. Harfi Seç!`;
             statusMsg.style.color = "#27ae60"; 
-            enableControls(true); // Input ve butonu aç
+            enableControls(true); 
             if(actionArea) actionArea.classList.remove('hidden');
         } else {
-            // Harf seçme sırası rakipte
             statusMsg.textContent = "Rakibin harfi seçmesi bekleniyor...";
             statusMsg.style.color = "#7f8c8d";
         }
         return;
     }
 
-    // B. YERLEŞTİRME AŞAMASI (Harf Seçildi - Klasik ve Random)
+    // Yerleştirme Aşaması (Harf Seçildi - Klasik ve Random)
     if (currentLetterIsAvailable) {
         
         if(actionArea) actionArea.classList.add('hidden'); // Input alanını gizle
@@ -9175,7 +9176,7 @@ function handleTurnLogic(data, myGridData) {
         }
         
     } else {
-        // Hata durumları veya beklenmedik durum
+        // Harf Seçimi bekleniyor ama sıra bende değil veya beklenmedik durum
         statusMsg.textContent = "Oyun durumu beklemede veya sıranız değil.";
         statusMsg.style.color = "#7f8c8d";
     }
@@ -9698,6 +9699,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
