@@ -9114,20 +9114,21 @@ function handleTurnLogic(data, myGridData) {
         }
 
         // B) Normal Hamleler (1-24) - Random
-        if(actionArea) actionArea.classList.add('hidden');
-        if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
-        if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
-        
-        // Eğer gridimizdeki dolu sayısı, hamle sayısından azsa -> Henüz oynamadık demektir.
-        if (myFilledCount < moveNumber) {
-            statusMsg.textContent = `HARF: ${currentLetter} - Yerleştir!`;
-            placementMode = true; // <--- TEK KİŞİLİK MODDA TIKLAMAYI AÇAN KOD
-        } else {
-            statusMsg.textContent = "Kaydediliyor...";
-            placementMode = false;
-        }
-        return; 
+    const myFilledCount = myGridData.filter(c => c !== '').length;
+    
+    // actionArea ve randomLetterDisplay gizlenip/gösteriliyor...
+    
+    // Kritik Kontrol: Eğer harf sayım, hamle numarasından azsa (Henüz oynamadım)
+    if (myFilledCount < data.moveNumber) {
+        // statusMsg.textContent = `HARF: ${data.currentLetter} - Yerleştir!`;
+        placementMode = true; // <--- Bu satırın çalıştığından emin ol!
+    } else {
+        // Zaten oynadım, Firestore'un moveNumber'ı artırmasını bekliyorum
+        // statusMsg.textContent = "Kaydediliyor...";
+        placementMode = false;
     }
+    return; // Buradan çıkmalı!
+}
 
     // --- BURADAN AŞAĞISI ÇOK OYUNCULU MOD (ESKİ MANTIK) ---
     
@@ -9705,6 +9706,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
