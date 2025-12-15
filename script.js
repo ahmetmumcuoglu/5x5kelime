@@ -9675,7 +9675,7 @@ function renderGrid(gridData, elementId) {
         }
 
         gridElement.appendChild(cell);
-    });
+    };
 }
 
 // ==========================================
@@ -9708,6 +9708,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
