@@ -521,7 +521,7 @@ button:disabled {
 }
 /* 6 Puan için Yeşil Arka Plan */
 .score-6 {
-    background-color: #2ecc71 !important; 
+    background-color: #21d96f !important; 
 }
 /* 5 Puan için Mor Arka Plan */
 .score-5 {
@@ -533,7 +533,7 @@ button:disabled {
 }
 /* 3 Puan için Koyu Sarı Arka Plan */
 .score-3 {
-    background-color: #f1c40f !important; 
+    background-color: #f1d70f !important; 
 }
 /* 2 Puan için Kırmızı Arka Plan */
 .score-2 {
@@ -550,6 +550,7 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
 
 
 
