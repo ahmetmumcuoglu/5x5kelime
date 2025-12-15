@@ -539,9 +539,13 @@ button:disabled {
 .score-2 {
     background-color: #d768d9 !important; 
 }
-
 .mini-grid .score-0 {
-    background-color: #bdc3c7 !important; /* Açık Gri */
+    background-color: #abb0b3 !important; /* Açık Gri */
+}
+
+.final-grid .score-0,{
+    background-color: #abb0b3 !important; /* Açık Gri */
+    color: #333 !important; /* Yazı rengi siyah */
 }
 
 /* Köşe hücresi için şeffaflık (isteğe bağlı) */
@@ -549,6 +553,7 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
 
 
 
