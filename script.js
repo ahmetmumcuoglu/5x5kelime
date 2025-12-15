@@ -9650,7 +9650,7 @@ function renderGrid(gridData, elementId) {
 }
 
 // ==========================================
-// YENİ FONKSİYON: SONUÇ GRIDINI ÇİZME (RENK KODLAMALI)
+// YENİ FONKSİYON: SONUÇ GRIDINI ÇİZME (GÜVENLİ VE RENK KODLAMALI)
 // ==========================================
 
 function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
@@ -9664,7 +9664,7 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     // İçeriği temizle
     gridElement.innerHTML = '';
     
-    // Yardımcı fonksiyon: Puana göre CSS sınıfı döndürür (Bkz. CSS adımı)
+    // Yardımcı fonksiyon: Puana göre CSS sınıfı döndürür
     const getScoreClass = (score) => {
         if (score >= 10) return 'score-10';
         if (score >= 6) return 'score-6';
@@ -9672,7 +9672,7 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
         if (score >= 4) return 'score-4';
         if (score >= 3) return 'score-3';
         if (score >= 2) return 'score-2';
-        return ''; 
+        return ''; // 0 veya 1 puan için boş string dönecek
     };
 
     // 5x5 harf hücresi ve 5x1 satır puanı hücresi oluştur
@@ -9688,14 +9688,11 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
             const scoreCell = document.createElement('div');
             const score = rowScores[rowIndex];
             
-            // Satır puanı kutusuna renk sınıfını ekle
-            scoreCell.classList.add('cell', 'score-cell-row');
-            
-            const scoreClass = getScoreClass(score);
-            if (scoreClass) {
-                scoreCell.classList.add(scoreClass); // Sadece sınıf doluysa ekle
-            }
-            // --------------------------------------------------
+            // --- KRİTİK GÜVENLİK DÜZELTMESİ ---
+            // Sınıf listesini oluştur, boş stringleri filtrele
+            const classes = ['cell', 'score-cell-row', getScoreClass(score)].filter(Boolean);
+            scoreCell.classList.add(...classes);
+            // ----------------------------------
             
             scoreCell.textContent = score;
             gridElement.appendChild(scoreCell);
@@ -9703,10 +9700,16 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     }
     
     // 5x1 kolon puanı hücresi oluştur
+    // Hata izi bu forEach döngüsünü işaret ediyor olabilir.
     colScores.forEach(score => {
         const scoreCell = document.createElement('div');
-        // Kolon puanı kutusuna renk sınıfını ekle
-        scoreCell.classList.add('cell', 'score-cell-col', getScoreClass(score));
+        
+        // --- KRİTİK GÜVENLİK DÜZELTMESİ ---
+        // Sınıf listesini oluştur, boş stringleri filtrele
+        const classes = ['cell', 'score-cell-col', getScoreClass(score)].filter(Boolean);
+        scoreCell.classList.add(...classes);
+        // ----------------------------------
+
         scoreCell.textContent = score;
         gridElement.appendChild(scoreCell);
     });
@@ -9743,6 +9746,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
