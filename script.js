@@ -8933,62 +8933,112 @@ function setupGameUI(gameId) {
 }
 
 // ==========================================
-// OYUN DİNLEME VE ANA KONTROL FONKSİYONU
+// OYUNU DİNLEME (GÜNCELLENMİŞ - TEK KİŞİLİK SKOR EKRANI DÜZELTİLDİ)
 // ==========================================
 
 function listenToGame() {
-    if (!currentGameId) return;
+    if (unsubscribe) unsubscribe();
 
-    // 1. Önceki dinleyiciyi kapat (unsubscribe global değişkeni kullanılmalı)
-    if (unsubscribe) {
-        unsubscribe();
-    }
-    
-    // 2. Firestore'da anlık dinleme başlat
     unsubscribe = db.collection('games').doc(currentGameId)
         .onSnapshot((doc) => {
             if (!doc.exists) {
-                alert("Oyun bulunamadı veya silindi.");
-                // Oyuncu lobiye geri döndürülebilir
-                window.location.reload(); 
+                alert("Oyun sonlandırıldı veya bulunamadı.");
+                window.location.reload();
                 return;
             }
 
             const data = doc.data();
-            const opponentId = (myPlayerId === 'PlayerA') ? 'PlayerB' : 'PlayerA';
 
-            // 3. Grid Verilerini Al
+            // 1. Global Grid Verisini Güncelle (HandleCellClick için kritik)
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
+            
+            // Rakip gridi (Sadece görsel güncelleme için)
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-            
-            // 4. UI Güncellemeleri
-            gameCodeDisplay.textContent = currentGameId;
-            myPlayerRoleEl.textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
-            moveNumberDisplayEl.textContent = `${data.moveNumber}/25`;
-            
-            // Gridleri Görselleştir
+
+            // 2. Gridleri Ekrana Çiz
             renderGrid(myGridData, 'myGrid');
             renderGrid(oppGridData, 'opponentGrid');
 
-            // 5. Durum Kontrolü
-            if (data.status === 'waiting') {
-                statusMsg.textContent = `Arkadaşının Katılması Bekleniyor... (Oda Kodu: ${currentGameId})`;
-                disableControls();
-                placementMode = false;
-            } else if (data.status === 'active') {
-                // 1. Önce tur mantığını çalıştır ve placementMode'u ayarla
-                handleTurnLogic(data, myGridData); // <-- Bu ÖNCE ÇALIŞMALI
+            // 3. Bilgileri Güncelle
+            const moveNumDisplay = document.getElementById('moveNumberDisplay');
+            if (moveNumDisplay) moveNumDisplay.textContent = `${data.moveNumber}/25`;
 
-                // 2. Ardından güncel placementMode'a göre gridleri çiz
-                renderGrid(myGridData, 'myGrid'); 
-                renderGrid(oppGridData, 'opponentGrid');
-            } else if (data.status === 'finished') {
-                // Sonuçları göster
-                showResults(data); 
+            const roleDisplay = document.getElementById('myPlayerRole');
+            if (roleDisplay) roleDisplay.textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
+
+            // -------------------------------------------------
+            // DURUM 1: OYUN AKTİF (ACTIVE)
+            // -------------------------------------------------
+            if (data.status === 'active') {
+                document.getElementById('lobbyPanel').classList.add('hidden');
+                document.getElementById('gamePanel').classList.remove('hidden');
+                document.getElementById('gameOverPanel').classList.add('hidden');
+
+                // Hamle mantığını çalıştır (Sıra kimde, harf ne, vs.)
+                handleTurnLogic(data, myGridData);
+            } 
+            
+            // -------------------------------------------------
+            // DURUM 2: OYUN BİTTİ (FINISHED)
+            // -------------------------------------------------
+            else if (data.status === 'finished') {
+                // Puanları Hesapla
+                const resultA = calculateScore(data.gridA);
+                const resultB = calculateScore(data.gridB);
+
+                // Skorları Yaz
+                document.getElementById('scoreA').textContent = resultA.score;
+                document.getElementById('scoreB').textContent = resultB.score;
+
+                // Sonuç Gridlerini Çiz (Küçük Gridler)
+                renderGrid(data.gridA, 'finalGridA');
+                renderGrid(data.gridB, 'finalGridB');
+
+                // Kelime Listelerini Doldur
+                const listA = document.getElementById('wordsListA');
+                const listB = document.getElementById('wordsListB');
+                
+                listA.innerHTML = resultA.words.map(w => `<li>${w}</li>`).join('');
+                listB.innerHTML = resultB.words.map(w => `<li>${w}</li>`).join('');
+
+                // --- YENİ EKLENEN KISIM: TEK KİŞİLİK / ÇOK KİŞİLİK AYRIMI ---
+                const finalMsgElement = document.getElementById('finalResultMsg');
+                const resultCards = document.querySelectorAll('.result-card'); // Kartları bul (0: A, 1: B)
+
+                if (data.isSinglePlayer) {
+                    // --- TEK KİŞİLİK MOD ---
+                    // 1. Mesajı güncelle
+                    finalMsgElement.textContent = `Oyun Tamamlandı! Toplam Puan: ${resultA.score}`;
+                    finalMsgElement.style.color = "#2c3e50"; // Nötr Lacivert
+
+                    // 2. İkinci oyuncunun kartını GİZLE
+                    if (resultCards[1]) {
+                        resultCards[1].style.display = 'none';
+                    }
+                } else {
+                    // --- ÇOK OYUNCULU MOD (ESKİ MANTIK) ---
+                    // 1. İkinci oyuncunun kartını GÖSTER (Gizliyse aç)
+                    if (resultCards[1]) {
+                        resultCards[1].style.display = 'flex';
+                    }
+
+                    // 2. Kazananı belirle
+                    if (resultA.score > resultB.score) {
+                        finalMsgElement.textContent = "OYUN BİTTİ. Kurucu (A) Kazandı!";
+                        finalMsgElement.style.color = "#27ae60"; // Yeşil
+                    } else if (resultB.score > resultA.score) {
+                        finalMsgElement.textContent = "OYUN BİTTİ. Katılımcı (B) Kazandı!";
+                        finalMsgElement.style.color = "#c0392b"; // Kırmızı
+                    } else {
+                        finalMsgElement.textContent = "OYUN BİTTİ. Berabere!";
+                        finalMsgElement.style.color = "#f39c12"; // Turuncu
+                    }
+                }
+
+                // Panelleri Değiştir
+                document.getElementById('gamePanel').classList.add('hidden');
+                document.getElementById('gameOverPanel').classList.remove('hidden');
             }
-        }, (error) => {
-            console.error("Dinleme hatası:", error);
-            statusMsg.textContent = "HATA: Oyun verilerine ulaşılamıyor.";
         });
 }
 
@@ -9634,6 +9684,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
