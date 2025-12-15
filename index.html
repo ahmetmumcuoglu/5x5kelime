@@ -50,7 +50,7 @@
         
         <div class="game-header">
             <div class="game-info">
-                <span>Oda: <b id="displayGameCode">--</b></span> 
+                <span>Oda: <b id="gameCodeDisplay">--</b></span> 
                 <span>Hamle: <b id="moveNumberDisplay">1/25</b></span> 
                 <span>Rolün: <b id="myPlayerRole">--</b></span> 
             </div>
@@ -70,10 +70,11 @@
                 <div id="actionArea" class="hidden">
                     <input type="text" id="letterInput" maxlength="1" placeholder="?" 
                            oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
-                    <button id="submitLetterButton" onclick="submitMove()">SEÇ</button>
+                    <button id="submitLetterButton" onclick="submitLetter()">SEÇ</button>
                 </div>
                 
-                <div id="statusMsg" class="status-msg">Oyun Yükleniyor...</div>
+                <div id="gameStatusMsg" class="status-msg">Oyun Yükleniyor...</div>
+                <div id="statusMsg" style="display:none;"></div> 
             </div>
 
             <div class="grid-section" id="opponentSection">
