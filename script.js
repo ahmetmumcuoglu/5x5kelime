@@ -9184,19 +9184,50 @@ function handleTurnLogic(data, myGridData) {
     }
 
     // Yerleştirme İzni Kontrolü
-    if (isMyTurn) {
-        if (myFilledCount < moveNumber) {
-            statusMsg.textContent = `Sıra Sende! Harf: ${randomLetterDisplay.textContent}`;
-            placementMode = true;
-          renderGrid(myGridData, 'myGrid');
-        } else {
-            statusMsg.textContent = "Rakibin oynaması bekleniyor...";
-            placementMode = false;
-        }
+  
+ if (isMyTurn) {
+    if (myFilledCount === 0) {
+        // --- OYUN KURUCU İLK HARFİ GİRİYOR (MOVE 1) ---
+        statusMsg.textContent = "Oyunu sen kurdun. Başlangıç harfini gir!";
+        statusMsg.style.color = "#27ae60"; // Yeşil renk yapalım
+
+        // 1. DÜZELTME: Harf giriş kutusunu göster.
+        document.getElementById('letterInputContainer').style.display = 'block';
+        
+        // 2. DÜZELTME: Random harf gösterimini gizle.
+        randomLetterDisplay.style.display = 'none'; 
+
+        placementMode = false; // Henüz yerleşim modu yok.
+        
+        // Tahtayı çiz, ancak tıklama dinleyicileri atanmayacak (placementMode=false)
+        renderGrid(myGridData, 'myGrid'); 
+
+    } else if (myFilledCount < moveNumber) {
+        // --- NORMAL HARF YERLEŞTİRME ZAMANI (MOVE > 1) ---
+        statusMsg.textContent = `Sıra Sende! Harf: ${randomLetterDisplay.textContent}`;
+        statusMsg.style.color = "#3498db";
+
+        // 3. DÜZELTME: Harf giriş kutusunu gizle (zaten harf belirlenmiş).
+        document.getElementById('letterInputContainer').style.display = 'none';
+
+        // 4. DÜZELTME: Random harfi göster (o harfi yerleştirecek).
+        randomLetterDisplay.style.display = 'block'; 
+
+        placementMode = true; // Yerleşim moduna gir.
+        renderGrid(myGridData, 'myGrid'); // Tahtayı yeniden çiz ve tıklama dinleyicilerini ata.
+
     } else {
+        // --- RAKİP BEKLENİYOR ---
         statusMsg.textContent = "Rakibin oynaması bekleniyor...";
+        statusMsg.style.color = "#7f8c8d";
         placementMode = false;
+        
+        // Tüm action alanlarını gizle
+        document.getElementById('letterInputContainer').style.display = 'none';
+        randomLetterDisplay.style.display = 'none';
     }
+} else {
+    // ... (Rakip sırasıysa yapılacaklar)
 }
 
 // ==========================================
@@ -9708,5 +9739,6 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
