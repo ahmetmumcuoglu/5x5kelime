@@ -25,6 +25,9 @@
 
             <button class="btn-primary" onclick="createNewGame()">Yeni Oyun Kur</button>
             <div class="separator">- VEYA -</div>
+            <button id="singlePlayerBtn" onclick="startSinglePlayerGame()" style="background-color: #9b59b6;">
+        Tek Başına Oyna (Random)
+    </button>
             <input type="text" id="gameCodeInput" placeholder="Oda Kodu Gir" maxlength="4">
             <button class="btn-secondary" onclick="joinGame()">Oyuna Katıl</button>
             <p id="lobbyStatus" class="status-text"></p>
@@ -114,6 +117,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
