@@ -537,7 +537,7 @@ button:disabled {
 }
 /* 2 Puan için Kırmızı Arka Plan */
 .score-2 {
-    background-color: #e74c3c !important; 
+    background-color: #d768d9 !important; 
 }
 
 /* Köşe hücresi için şeffaflık (isteğe bağlı) */
@@ -545,6 +545,7 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
 
 
 
