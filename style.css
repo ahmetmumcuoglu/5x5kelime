@@ -540,8 +540,7 @@ button:disabled {
     background-color: #d768d9 !important; 
 }
 
-/* 1 ve 0 Puan için Gri Arka Plan - KRİTİK GÜNCELLEME */
-.score-1, .score-0 {
+.mini-grid .score-0 {
     background-color: #bdc3c7 !important; /* Açık Gri */
 }
 
@@ -550,6 +549,7 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
 
 
 
