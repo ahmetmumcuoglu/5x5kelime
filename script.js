@@ -8812,7 +8812,7 @@ async function joinGame() {
 }
 
 // ==========================================
-// TEK KİŞİLİK OYUN BAŞLATMA
+// TEK KİŞİLİK OYUN BAŞLATMA (GÜNCELLENMİŞ)
 // ==========================================
 
 async function startSinglePlayerGame() {
@@ -8852,13 +8852,32 @@ async function startSinglePlayerGame() {
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Arayüzü Kur ve Dinlemeyi Başlat
+        // Arayüzü Kur
         setupGameUI(code);
         
-        // Tek kişilik modda rakip gridi başlığını gizleyelim veya değiştirelim
-        const oppGridHeader = document.querySelector('#opponentGrid').parentElement.querySelector('h4');
-        if(oppGridHeader) oppGridHeader.style.display = 'none';
+        // --- UI TEMİZLİĞİ (TEK KİŞİLİK MODA ÖZEL GİZLEMELER) ---
+        
+        // 1. Rakip Alanını (Sağ Taraf) Gizle
+        const opponentSection = document.getElementById('opponentSection');
+        if (opponentSection) opponentSection.style.display = 'none';
 
+        // 2. "Sıra Bekleniyor" Yazısını Gizle
+        const turnIndicator = document.getElementById('turnIndicator');
+        if (turnIndicator) turnIndicator.style.display = 'none';
+
+        // 3. "Oda Kodu" bilgisini gizle (Tek kişilikte gereksiz)
+        const codeDisplay = document.getElementById('gameCodeDisplay');
+        if (codeDisplay && codeDisplay.parentElement) {
+            codeDisplay.parentElement.style.display = 'none';
+        }
+
+        // 4. "Rolün: Kurucu" bilgisini gizle
+        const roleDisplay = document.getElementById('myPlayerRole');
+        if (roleDisplay && roleDisplay.parentElement) {
+            roleDisplay.parentElement.style.display = 'none';
+        }
+
+        // Dinlemeyi Başlat
         listenToGame();
 
     } catch (error) {
@@ -9615,6 +9634,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
