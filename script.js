@@ -8667,6 +8667,7 @@ let placementMode = false;    // Hücrelere tıklamaya izin var mı? (Boolean)
 let myFinalLetter = null;     // 25. hamle için yerel olarak seçilen harf (Sadece 25. hamlede kullanılır)
 let unsubscribe = null;       // Firebase anlık dinleyicisini kapatmak için kullanılır.
 let selectedDraftIndex = null; // Seçili hücrenin indeksini tutar (Onay mekanizması için)
+let myGridData = [];
 
 // ==========================================
 // 3. DOM ELEMENTLERİ
@@ -8939,7 +8940,7 @@ function listenToGame() {
             const opponentId = (myPlayerId === 'PlayerA') ? 'PlayerB' : 'PlayerA';
 
             // 3. Grid Verilerini Al
-            const myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
+            myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
             
             // 4. UI Güncellemeleri
@@ -9618,6 +9619,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
