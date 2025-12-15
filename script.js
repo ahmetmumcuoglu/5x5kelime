@@ -8679,10 +8679,8 @@ const gameOverPanel = document.getElementById('gameOverPanel');
 const myGridEl = document.getElementById('myGrid');
 const oppGridEl = document.getElementById('opponentGrid');
 const statusMsg = document.getElementById('gameStatusMsg');
-const letterInput = document.getElementById('letterInput');
 
 // HTML'deki ID'lerle eşleştirilen kritik elementler
-const actionButton = document.getElementById('submitLetterButton');
 const gameCodeDisplay = document.getElementById('gameCodeDisplay'); 
 const myPlayerRoleEl = document.getElementById('myPlayerRole'); 
 const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
@@ -9679,36 +9677,6 @@ function renderGrid(gridData, elementId) {
     });
 }
 
-// ==========================================
-// KONTROL DÜĞMESİ ERİŞİLEBİLİRLİĞİ (ENABLE/DISABLE)
-// ==========================================
-
-/**
- * Kontrol alanını tamamen kilitler (Input ve Buton).
- */
-function disableControls() {
-    // Global DOM değişkenlerini kullanıyoruz: letterInput, actionButton
-    letterInput.disabled = true;
-    actionButton.disabled = true;
-    actionButton.textContent = "Harfi Seç"; // Buton metnini varsayılana ayarla
-}
-
-/**
- * Kontrol alanını açar. Genellikle harf seçimi gerektiğinde kullanılır.
- * @param {boolean} isLetterSelectionMode - Eğer true ise, buton harf seçimi için açılır.
- */
-function enableControls(isLetterSelectionMode = true) {
-    if (isLetterSelectionMode) {
-        // Harf seçimi modu: Input ve buton açılır
-        letterInput.disabled = false;
-        actionButton.disabled = false;
-        actionButton.textContent = "Harfi Seç";
-    } else {
-        // Yerleştirme modu: Input kapalı kalır, butonu kullanmayız.
-        letterInput.disabled = true;
-        actionButton.disabled = true;
-    }
-}
 
 // ==========================================
 // KONTROL FONKSİYONLARI
@@ -9736,41 +9704,4 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
