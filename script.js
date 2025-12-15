@@ -9218,8 +9218,6 @@ async function handleCellClick(index) {
     // Gerekli Global Değişken Kontrolleri
     if (myGridData[index] !== '') return; 
     
-    const gameRef = db.collection('games').doc(currentGameId);
-    
     // ... (Buradan sonrası mevcut kodunuzdaki transaction bloğu ile aynıdır)
 
     // 25. Hamle yerel kontrolü (myFinalLetter)
@@ -9619,6 +9617,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
