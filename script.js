@@ -9340,39 +9340,44 @@ async function handleCellClick(index) {
                 }
             }
             
-            // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM)
+           // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM)
             else {
+                // Rakip dolu hücre sayısı (Yerleşimden önceki durumu görmek için)
                 let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
                 const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
+                
+                // Oynayan oyuncunun yeni dolu hücre sayısı
                 const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
 
-                // KOŞUL: İki oyuncunun dolu hücre sayısı eşitlendiğinde tur tamamlanmıştır.
-                if (myNewFilledCount === oppFilledCount) {
+                // MoveNumber artışını kontrol etmek için iki oyuncunun da yerleşim yapıp yapmadığını kontrol ediyoruz.
+                let shouldIncrementMove = (myNewFilledCount === oppFilledCount);
+                
+                // 1. TUR TAMAMLAMA (Eğer iki oyuncu da yerleşim yaptıysa)
+                if (shouldIncrementMove) {
                     
-                    // Turu/Hamleyi Artır
+                    // a) Hamleyi Artır
                     const nextMove = currentMoveNumber + 1;
                     updatePayload.moveNumber = nextMove;
                     
-                    // Sırayı bir sonraki harfi seçecek/oynayacak oyuncuya devret
-                    updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
-
-                    if (data.gameMode === 'RANDOM') {
-                        // RANDOM: Bir sonraki harfi veritabanına yaz
-                        if (nextMove <= 24) { 
-                           updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
-                        } else {
-                           updatePayload.currentLetter = null; 
-                        }
-                    } else {
-                        // KLASİK: currentLetter'ı sıfırla ki yeni turnOwner harfi seçsin.
-                        updatePayload.currentLetter = null; 
+                    // b) Harf Seçme Sırasını Devret (A-B-A-B...)
+                    // Move 1 (Seçim A), Move 2 (Seçim B), Move 3 (Seçim A)
+                    // MoveNumber'ın tek/çift olmasına göre harf seçme hakkını veriyoruz.
+                    if (nextMove % 2 !== 0) { // Tek Hamle: 1, 3, 5... (Kurucu A seçer)
+                        updatePayload.turnOwner = 'PlayerA';
+                    } else { // Çift Hamle: 2, 4, 6... (Misafir B seçer)
+                        updatePayload.turnOwner = 'PlayerB';
                     }
+
+                    // c) Yeni harf gereksinimini başlat (Random mod zaten çalışıyor, sadece Klasik'i basitleştiriyoruz)
+                    updatePayload.currentLetter = null; 
+                    
                 } 
-                // ÖNEMLİ DÜZELTME: Eğer tur artmıyorsa (yani sadece bir oyuncu oynadıysa), 
-                // turnOwner ve currentLetter değerlerini updatePayload'a eklemiyoruz. 
-                // Böylece, bu değerler Firebase'deki mevcut durumunda kalır ve Misafir oyuncunun ekranı bozulmaz.
+                // ÖNEMLİ: Eğer tur artmıyorsa (shouldIncrementMove = false), 
+                // yani harfi yerleştiren ilk oyuncu isek, 
+                // turnOwner, currentLetter ve moveNumber değerleri sabit kalır. 
+                // Bu sayede ikinci oyuncu harfi görebilir ve yerleştirebilir.
             }
-            
+
             // Oyun Bitiş Kontrolü
             if (updatePayload.moveNumber > 25 || currentMoveNumber >= 25) {
                 updatePayload.status = 'finished';
@@ -9691,6 +9696,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
