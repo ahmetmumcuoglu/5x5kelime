@@ -9356,47 +9356,70 @@ async function handleCellClick(index) {
                 }
             }
             
-            // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM) Düzeltilmiş Mantık
+           // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM) Düzeltilmiş Mantık
             else {
+                // Rakip gridleri ve dolu hücre sayıları
                 let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-                const oppFilledCount = oppCurrentGrid.filter(c => c !== '').length;
+                const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
                 
-                // 1. Sırayı Rakibe Geçir (Hem Klasik hem Random modda gereklidir)
-                updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                // Oynayan oyuncunun yeni dolu hücre sayısı
+                // (myCurrentGrid zaten yukarıda güncellendi)
+                const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
 
-                // 2. Harf Sıfırlama (Sadece Klasik Modda yeni harf seçimi için)
-                if (data.gameMode === 'CLASSIC') {
-                    updatePayload.currentLetter = null; 
+                // TUR ATLAMA KONTROLÜ
+                // Tur, sadece İKİ OYUNCU DA mevcut hamleyi tamamladığında artırılmalıdır.
+                // İki oyuncunun dolu hücre sayısı, bir sonraki moveNumber'ı işaret etmelidir.
+                
+                // Örn: Move 1'deyiz. Player A koydu (A dolu: 1), Player B koydu (B dolu: 1). Eşitler.
+                // Yani, hem A'nın, hem de B'nin dolu sayısı, mevcut hamle numarasına eşit olmalı.
+                
+                let shouldIncrementMove = false;
+                
+                // Benim yeni dolu sayım (myNewFilledCount) ve rakibin mevcut dolu sayısı (oppFilledCount).
+                // Eğer benim yeni sayım rakibinkine eşitse, bu tur tamamlanmış demektir.
+                if (myNewFilledCount === oppFilledCount) {
+                     shouldIncrementMove = true;
                 }
 
-                // 3. MoveNumber (Hamle No) Artırma Kontrolü
-                // Eğer iki oyuncunun da dolu hücre sayısı eşitse, tur atlanır.
-                if (myNewFilledCount === oppFilledCount + 1) { 
-                    // Bu senaryoda: Ben oynadım (myNewFilledCount) ve rakip de benden önce oynamıştı (oppFilledCount).
-                    // Bu Klasik modda tutarsızlık yaratır. En güvenli kontrol:
-                    // Eğer benim yeni dolu hücre sayım ve rakibin mevcut dolu hücre sayısı bir sonraki tura denk geliyorsa
-                    if (myNewFilledCount === currentMoveNumber && oppFilledCount === currentMoveNumber) {
-                        // Eğer hem ben hem de rakip mevcut turu tamamladıysak.
-                        updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                        
-                        // RANDOM Modda, bir sonraki harfi hemen belirle
+                if (shouldIncrementMove) {
+                    const nextMove = currentMoveNumber + 1;
+                    if (nextMove <= 25) {
+                        updatePayload.moveNumber = nextMove;
+
+                        // RANDOM MOD: Bir sonraki harfi veritabanına yaz
                         if (data.gameMode === 'RANDOM') {
-                             const nextMove = currentMoveNumber; // next move'un indexi
-                             if (nextMove < 24) { // 1'den başladığı için 24. hamle için 23. indexe bakar.
-                                updatePayload.currentLetter = data.letterSequence[nextMove];
-                             } else {
+                            if (nextMove <= 24) { 
+                                // nextMove, dizideki bir sonraki harfin indexidir (1'den başladığı için)
+                                updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
+                            } else {
                                 updatePayload.currentLetter = null; // 25. hamle manuel
-                             }
+                            }
                         }
+                        // KLASİK MOD: currentLetter zaten null kalmalı (Yeni harf seçimi istenir)
+                        else if (data.gameMode === 'CLASSIC') {
+                             updatePayload.currentLetter = null;
+                        }
+                    } 
+                    
+                    // Oyun Bitiş Kontrolü
+                    if (nextMove > 25) {
+                        updatePayload.status = 'finished';
+                        updatePayload.currentLetter = null;
                     }
                 }
 
-                // Tur atlama sonrası oyun bitiş kontrolü (Eğer moveNumber 25'i geçtiyse)
-                if (currentMoveNumber === 25) {
-                    // Bu hamle sonrası 26. move'a geçilmesi bekleniyorsa
-                    updatePayload.status = 'finished';
+                // SIRA GEÇİŞİ: Klasik modda harf yerleştirildiğinde sıra her zaman rakibe geçer.
+                // Random modda da sıra değişimini yapalım ki `handleTurnLogic` içinde `isMyTurn` doğru çalışsın.
+                updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+
+                // Eğer Klasik moddaysak ve henüz move artmadıysa, harf seçimi sıfırlanmalıdır.
+                if (data.gameMode === 'CLASSIC' && !shouldIncrementMove) {
                     updatePayload.currentLetter = null;
                 }
+                
+                // Player B (Misafir) harf yerleştirdiğinde, move artmadığı sürece sıra A'ya geçecek
+                // ve A'nın sırası geldiğinde (move artmadığı için) A'nın dolu sayısı B'nin dolu sayısına eşit olacak.
+                // Bu, `handleTurnLogic` içindeki mantığı stabil hale getirir.
             }
             
             transaction.update(gameRef, updatePayload);
@@ -9712,6 +9735,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
