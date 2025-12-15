@@ -499,7 +499,7 @@ button:disabled {
 /* PUAN HÜCRELERİ İÇİN GENEL STİL */
 .final-grid .score-cell-row, 
 .final-grid .score-cell-col {
-    background-color: transparent; /* Şeffaf yap */
+    background-color: #f0f0f0;
     border: none; /* Kenarlığı kaldır */
     font-weight: bold;
     font-size: 1.3em; /* Puanları daha büyük göster */
@@ -531,4 +531,5 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
 
