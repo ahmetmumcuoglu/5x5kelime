@@ -9070,7 +9070,7 @@ function listenToGame() {
 }
 
 // ==========================================
-// HAMLE VE SIRA MANTIĞI (DÜZELTİLMİŞ VE GÜVENLİ)
+// HAMLE VE SIRA MANTIĞI (SON VE KESİN DÜZELTME)
 // ==========================================
 
 function handleTurnLogic(data, myGridData) {
@@ -9083,12 +9083,18 @@ function handleTurnLogic(data, myGridData) {
     const currentLetter = data.currentLetter;
     
     // myFilledCount'ı fonksiyonun en başında tanımlıyoruz.
-    // Bu sayede hem Tek Kişilik hem de Çok Oyunculu modda kullanılabilir.
     const myFilledCount = myGridData.filter(c => c !== '').length;
 
     // --- ÖNCELİKLİ KONTROL: TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
         
+        // KRİTİK EK: Harf gelmediyse bekle!
+        if (!currentLetter && moveNumber < 25) {
+             statusMsg.textContent = "Harf verisi bekleniyor...";
+             placementMode = false;
+             return; 
+        }
+
         // A) 25. Hamle (Manuel Seçim)
         if (moveNumber === 25) {
              if(actionArea) actionArea.classList.remove('hidden'); 
@@ -9117,10 +9123,9 @@ function handleTurnLogic(data, myGridData) {
         if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
         if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
         
-        // Kritik Kontrol: Eğer harf sayım, hamle numarasından azsa (Henüz oynamadım)
         if (myFilledCount < moveNumber) {
             statusMsg.textContent = `HARF: ${currentLetter} - Yerleştir!`;
-            placementMode = true; // TEK KİŞİLİK MODDA TIKLAMAYI AÇAN KOD
+            placementMode = true; 
         } else {
             statusMsg.textContent = "Kaydediliyor...";
             placementMode = false;
@@ -9134,14 +9139,14 @@ function handleTurnLogic(data, myGridData) {
     
     // 25. Hamle Kontrolü (Çok Oyunculu)
     if (moveNumber === 25) {
-        if(actionArea) actionArea.classList.remove('hidden');
-        if(randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
+         if(actionArea) actionArea.classList.remove('hidden');
+         if(randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
         
-        if (myFilledCount >= 25) {
+         if (myFilledCount >= 25) {
             statusMsg.textContent = "Oyunun bitmesi bekleniyor...";
             disableControls();
             placementMode = false;
-        } else {
+         } else {
             if (!myFinalLetter) {
                 statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
                 enableControls(true);
@@ -9151,8 +9156,8 @@ function handleTurnLogic(data, myGridData) {
                 disableControls();
                 placementMode = true;
             }
-        }
-        return;
+         }
+         return;
     }
 
     // Normal Hamleler (1-24)
@@ -9166,6 +9171,15 @@ function handleTurnLogic(data, myGridData) {
          } else {
              if(randomLetterDisplay) randomLetterDisplay.textContent = "?";
          }
+         
+         // Klasik Modda harf seçilmediyse yerleştirmeye izin verme!
+         if (!data.currentLetter && isMyTurn) {
+             statusMsg.textContent = "Önce harfi seçmelisin!";
+             enableControls(true); 
+             placementMode = false; 
+             return; 
+         }
+         
     } else {
         if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
     }
@@ -9697,6 +9711,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
