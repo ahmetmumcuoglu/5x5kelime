@@ -9205,9 +9205,6 @@ async function handleCellClick(index) {
         // myGridData global değişkenini kullanıyoruz (Firebase'den en son gelen veri)
         renderGrid(myGridData, 'myGrid'); 
         
-        statusMsg.textContent = "ONAYLAMAK İÇİN AYNI HÜCREYE TEKRAR TIKLAYIN.";
-        statusMsg.style.color = "#f39c12"; // Sarı uyarı rengi
-        
         return; // Fonksiyondan çık, veritabanına yazma!
     }
     
@@ -9619,6 +9616,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
