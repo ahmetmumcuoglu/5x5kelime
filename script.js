@@ -9070,25 +9070,24 @@ function listenToGame() {
 }
 
 // ==========================================
-// HAMLE VE SIRA MANTIĞI (DÜZELTİLMİŞ)
+// HAMLE VE SIRA MANTIĞI (DÜZELTİLMİŞ VE GÜVENLİ)
 // ==========================================
 
 function handleTurnLogic(data, myGridData) {
-    const moveNumber = data.moveNumber; 
-    const currentLetter = data.currentLetter;
-
-    // --- DOM ELEMENTLERİNİ GÜVENLİ ŞEKİLDE SEÇ ---
-    // Bu değişkenler globalde olmayabilir, burada tanımlamak hayat kurtarır.
+    // DOM Elementlerini Güvenli Şekilde Seç
     const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
-    // Globalde statusMsg tanımlıydı ama burada tekrar çağırmak garanti olur.
     const statusMsg = document.getElementById('gameStatusMsg'); 
+
+    const moveNumber = data.moveNumber; 
+    const currentLetter = data.currentLetter;
+    
+    // myFilledCount'ı fonksiyonun en başında tanımlıyoruz.
+    // Bu sayede hem Tek Kişilik hem de Çok Oyunculu modda kullanılabilir.
+    const myFilledCount = myGridData.filter(c => c !== '').length;
 
     // --- ÖNCELİKLİ KONTROL: TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
-        // Tek kişilik modda sıra her zaman bizdedir.
-        
-        const myFilledCount = myGridData.filter(c => c !== '').length;
         
         // A) 25. Hamle (Manuel Seçim)
         if (moveNumber === 25) {
@@ -9098,11 +9097,11 @@ function handleTurnLogic(data, myGridData) {
              if (myFilledCount >= 25) {
                  statusMsg.textContent = "Oyun Bitti. Sonuçlar hesaplanıyor...";
                  placementMode = false;
-                 disableControls(); // Bu fonksiyonu aşağıda tanımlayacağız
+                 disableControls(); 
              } else {
                  if (!myFinalLetter) {
                      statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
-                     enableControls(true); // Bu fonksiyonu aşağıda tanımlayacağız
+                     enableControls(true); 
                      placementMode = false; 
                  } else {
                      statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
@@ -9114,28 +9113,24 @@ function handleTurnLogic(data, myGridData) {
         }
 
         // B) Normal Hamleler (1-24) - Random
-    myFilledCount = myGridData.filter(c => c !== '').length;
-    
-    // actionArea ve randomLetterDisplay gizlenip/gösteriliyor...
-    
-    // Kritik Kontrol: Eğer harf sayım, hamle numarasından azsa (Henüz oynamadım)
-    if (myFilledCount < data.moveNumber) {
-        // statusMsg.textContent = `HARF: ${data.currentLetter} - Yerleştir!`;
-        placementMode = true; // <--- Bu satırın çalıştığından emin ol!
-    } else {
-        // Zaten oynadım, Firestore'un moveNumber'ı artırmasını bekliyorum
-        // statusMsg.textContent = "Kaydediliyor...";
-        placementMode = false;
+        if(actionArea) actionArea.classList.add('hidden');
+        if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
+        if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
+        
+        // Kritik Kontrol: Eğer harf sayım, hamle numarasından azsa (Henüz oynamadım)
+        if (myFilledCount < moveNumber) {
+            statusMsg.textContent = `HARF: ${currentLetter} - Yerleştir!`;
+            placementMode = true; // TEK KİŞİLİK MODDA TIKLAMAYI AÇAN KOD
+        } else {
+            statusMsg.textContent = "Kaydediliyor...";
+            placementMode = false;
+        }
+        return; 
     }
-    return; // Buradan çıkmalı!
-}
 
-    // --- BURADAN AŞAĞISI ÇOK OYUNCULU MOD (ESKİ MANTIK) ---
+    // --- BURADAN AŞAĞISI ÇOK OYUNCULU MOD ---
     
     const isMyTurn = (data.turnOwner === myPlayerId);
-    const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-    myFilledCount = myGridData.filter(c => c !== '').length;
-    // oppFilledCount burada kullanılmıyor ama mantık takibi için kalabilir.
     
     // 25. Hamle Kontrolü (Çok Oyunculu)
     if (moveNumber === 25) {
@@ -9164,22 +9159,19 @@ function handleTurnLogic(data, myGridData) {
     if(actionArea) actionArea.classList.add('hidden');
     if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
     
-    // Klasik Modda Harf Gösterimi
+    // Harf Gösterimi
     if (data.gameMode === 'CLASSIC') {
          if (data.currentLetter) {
              if(randomLetterDisplay) randomLetterDisplay.textContent = data.currentLetter;
          } else {
              if(randomLetterDisplay) randomLetterDisplay.textContent = "?";
          }
-    } 
-    // Random Modda Harf Gösterimi
-    else {
+    } else {
         if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
     }
 
     // Yerleştirme İzni Kontrolü
     if (isMyTurn) {
-        // Sıra bende ama ben zaten oynamış mıyım?
         if (myFilledCount < moveNumber) {
             statusMsg.textContent = `Sıra Sende! Harf: ${randomLetterDisplay.textContent}`;
             placementMode = true;
@@ -9188,7 +9180,6 @@ function handleTurnLogic(data, myGridData) {
             placementMode = false;
         }
     } else {
-        // Sıra rakipte
         statusMsg.textContent = "Rakibin oynaması bekleniyor...";
         placementMode = false;
     }
@@ -9706,6 +9697,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
