@@ -9105,6 +9105,7 @@ function handleTurnLogic(data, myGridData) {
                 statusMsg.style.color = "#3498db";
                 disableControls();
                 placementMode = true;
+              renderGrid(myGridData, 'myGrid');
             }
         } else {
             // Normal hamleler (1-24)
@@ -9120,6 +9121,7 @@ function handleTurnLogic(data, myGridData) {
                 statusMsg.textContent = `Harf: ${currentLetter} - Yerleştirmek için bir hücreye tıkla!`;
                 statusMsg.style.color = "#3498db";
                 placementMode = true;
+              renderGrid(myGridData, 'myGrid');
             } else {
                 statusMsg.textContent = "Kaydediliyor, lütfen bekleyin...";
                 statusMsg.style.color = "#7f8c8d";
@@ -9151,6 +9153,7 @@ function handleTurnLogic(data, myGridData) {
                 statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
                 disableControls();
                 placementMode = true;
+              renderGrid(myGridData, 'myGrid');
             }
          }
          return;
@@ -9185,6 +9188,7 @@ function handleTurnLogic(data, myGridData) {
         if (myFilledCount < moveNumber) {
             statusMsg.textContent = `Sıra Sende! Harf: ${randomLetterDisplay.textContent}`;
             placementMode = true;
+          renderGrid(myGridData, 'myGrid');
         } else {
             statusMsg.textContent = "Rakibin oynaması bekleniyor...";
             placementMode = false;
@@ -9704,4 +9708,5 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
