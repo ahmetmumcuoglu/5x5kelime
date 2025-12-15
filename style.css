@@ -483,3 +483,51 @@ button:disabled {
 #opponentSection {
     display: none !important;
 }
+
+/* GENEL SONUÇ GRIDİ STİLİ */
+.final-grid .cell {
+    /* Varsayılan hücre stili (şeffaf bir görünüm için gerekirse arka planı kaldırın) */
+    background-color: #f0f0f0; /* Örneğin hafif gri */
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+/* PUAN HÜCRELERİ İÇİN GENEL STİL */
+.final-grid .score-cell-row, 
+.final-grid .score-cell-col {
+    background-color: transparent; /* Şeffaf yap */
+    border: none; /* Kenarlığı kaldır */
+    font-weight: bold;
+    font-size: 1.3em; /* Puanları daha büyük göster */
+    /* Gölge veya kenarlık eklemek isterseniz burayı kullanın */
+}
+
+/* RENK KODLAMASI */
+.score-10 {
+    color: #3498db; /* Mavi */
+}
+.score-6 {
+    color: #2ecc71; /* Yeşil */
+}
+.score-5 {
+    color: #9b59b6; /* Mor */
+}
+.score-4 {
+    color: #e67e22; /* Turuncu */
+}
+.score-3 {
+    color: #f1c40f; /* Koyu Sarı */
+}
+.score-2 {
+    color: #e74c3c; /* Kırmızı */
+}
+
+/* Köşe hücresi için şeffaflık (isteğe bağlı) */
+.final-grid .empty-corner {
+    background-color: transparent;
+    border: none;
+}
