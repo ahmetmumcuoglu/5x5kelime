@@ -428,3 +428,53 @@ button:disabled {
     flex: 1; /* Input ile eşit veya dengeli genişlik */
     white-space: nowrap; /* Yazı alt satıra geçmesin */
 }
+
+/* ========================================= */
+/* BUTON RENKLENDİRMELERİ */
+/* ========================================= */
+
+/* Yeni Oyun Kur Butonu (MAVİ) */
+#createGameBtn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#createGameBtn:hover {
+    background-color: #2980b9; /* Üzerine gelince koyulaşır */
+}
+
+/* Oyuna Katıl Butonu (YEŞİL) */
+#joinGameBtn {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#joinGameBtn:hover {
+    background-color: #27ae60; /* Üzerine gelince koyulaşır */
+}
+
+/* Tek Başına Oyna Butonu (MOR) */
+/* HTML içinde style olarak vermiştik ama buradan yönetmek daha temizdir */
+#singlePlayerBtn {
+    background-color: #9b59b6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#singlePlayerBtn:hover {
+    background-color: #8e44ad; /* Üzerine gelince koyulaşır */
+}
