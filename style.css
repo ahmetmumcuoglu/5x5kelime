@@ -363,4 +363,12 @@ button:disabled {
     }
 }
 
+/* Seçili (Onay Bekleyen) Hücre Stili */
+.cell.selected-draft {
+    background-color: #f1c40f !important; /* Sarı renk */
+    color: #333 !important;
+    border: 3px solid #d35400 !important; /* Turuncu çerçeve */
+    transform: scale(1.05); /* Hafif büyüme efekti */
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+}
 
