@@ -276,10 +276,10 @@ button:disabled {
 /* SONUÇ EKRANINDAKİ KÜÇÜK GRİD */
 /* !important kullanarak ana oyun stillerini eziyoruz */
 .mini-grid {
-    width: 220px !important;  /* Genişliği küçült ve sabitle */
-    height: 220px !important; /* Yüksekliği küçült ve sabitle */
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(5, 1fr);
+    width: 270px !important;  /* Genişliği küçült ve sabitle */
+    height: 270px !important; /* Yüksekliği küçült ve sabitle */
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
     gap: 3px !important; /* Hücreler arası boşluğu azalt */
     padding: 5px !important;
     background-color: #eee; /* Gridin kendi arka planı */
@@ -531,3 +531,4 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
