@@ -540,11 +540,18 @@ button:disabled {
     background-color: #d768d9 !important; 
 }
 
+/* 1 ve 0 Puan için Gri Arka Plan - KRİTİK GÜNCELLEME */
+.score-1, .score-0 {
+    background-color: #bdc3c7 !important; /* Açık Gri */
+    color: #333 !important; /* Yazı rengi siyah */
+}
+
 /* Köşe hücresi için şeffaflık (isteğe bağlı) */
 .final-grid .empty-corner {
     background-color: transparent;
     border: none;
 }
+
 
 
 
