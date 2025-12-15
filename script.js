@@ -9689,7 +9689,14 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
             const score = rowScores[rowIndex];
             
             // Satır puanı kutusuna renk sınıfını ekle
-            scoreCell.classList.add('cell', 'score-cell-row', getScoreClass(score));
+            scoreCell.classList.add('cell', 'score-cell-row');
+            
+            const scoreClass = getScoreClass(score);
+            if (scoreClass) {
+                scoreCell.classList.add(scoreClass); // Sadece sınıf doluysa ekle
+            }
+            // --------------------------------------------------
+            
             scoreCell.textContent = score;
             gridElement.appendChild(scoreCell);
         }
@@ -9736,6 +9743,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
