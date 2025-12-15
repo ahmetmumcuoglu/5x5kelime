@@ -478,3 +478,8 @@ button:disabled {
 #singlePlayerBtn:hover {
     background-color: #8e44ad; /* Üzerine gelince koyulaşır */
 }
+
+/* Rakip Alanını Oyun Sırasında Tamamen Gizle */
+#opponentSection {
+    display: none !important;
+}
