@@ -9265,10 +9265,10 @@ async function submitLetter() {
 }
 
 async function handleCellClick(index) {
-    // 1. Kontrol: Yerleştirme modunda mıyız? (handleTurnLogic'ten gelmeli)
+    // 1. Kontrol: Yerleştirme modunda mıyız?
     if (!placementMode) {
         const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
-        if (statusMsg) statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız. Sıra sizde mi?";
+        if (statusMsg) statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız.";
         return;
     }
 
@@ -9305,9 +9305,11 @@ async function handleCellClick(index) {
             const isFinalMove = (currentMoveNumber === 25);
 
             if (isFinalMove) {
+                // Joker hamlesinde harf yerel değişkenden (myFinalLetter) alınır
                 if (!myFinalLetter) throw new Error("25. Hamle için harf seçilmedi.");
                 letterToPlace = myFinalLetter;
             } else {
+                // Normal hamlelerde harf global değişkenden (data.currentLetter) alınır
                 if (!data.currentLetter) throw new Error("Harf verisi yok.");
                 letterToPlace = data.currentLetter;
             }
@@ -9324,7 +9326,7 @@ async function handleCellClick(index) {
             
             // --- TUR ATLAMA MANTIĞI ---
             
-            // SENARYO 1: TEK KİŞİLİK OYUN (Çalıştığı varsayılıyor)
+            // SENARYO 1: TEK KİŞİLİK OYUN
             if (isSinglePlayer) {
                 if (isFinalMove) {
                     updatePayload.status = 'finished';
@@ -9337,54 +9339,56 @@ async function handleCellClick(index) {
                 }
             }
             
-            // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM Eş Zamanlı Yerleştirme)
+            // SENARYO 2: ÇOK OYUNCULU
             else {
                 let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
                 const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
                 const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
 
-                // Tur Atlama Koşulu: İki oyuncunun da dolu hücre sayısı eşitlendiğinde tur tamamlanmıştır.
-                let shouldIncrementMove = (myNewFilledCount === oppFilledCount);
-                
-                // 1. TUR TAMAMLAMA (Sadece iki oyuncu da yerleşim yaptıysa çalışır)
-                if (shouldIncrementMove) {
+                // --- KRİTİK JOKER HAMLE BİTİŞ KONTROLÜ (25. Hamle) ---
+                if (currentMoveNumber === 25 && myNewFilledCount === 25) {
                     
-                    const nextMove = currentMoveNumber + 1;
-                    updatePayload.moveNumber = nextMove;
-                    
-                    // a) Klasik Mod (A-B-A-B... Harf Seçme Sırası)
-                    if (data.gameMode === 'CLASSIC') {
-                        // Yeni harf seçme hakkı, moveNumber'a göre atanır.
-                        if (nextMove % 2 !== 0) { // Tek Hamle: Kurucu A seçer
-                            updatePayload.turnOwner = 'PlayerA';
-                        } else { // Çift Hamle: Misafir B seçer
-                            updatePayload.turnOwner = 'PlayerB';
-                        }
-                        updatePayload.currentLetter = null; // Harf seçimine geri dönülür
-                        
-                    } 
-                    // b) Random Mod (Çözüldüğü varsayılan, fakat tekrar kontrol edildi)
-                    else if (data.gameMode === 'RANDOM') {
-                        // Sıra sahibi değişebilir (Skor tablosu vb. için) ama harf otomatik verilir.
-                        updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
-                        
-                        if (nextMove <= 24) { 
-                           // nextMove-1 dizinini kullanıyoruz (dizi 0'dan, moveNumber 1'den başlar)
-                           updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
-                        } else {
-                           updatePayload.currentLetter = null; 
-                        }
+                    // Eğer rakip de 25. hücresini doldurmuşsa (oppFilledCount == 25), oyunu bitir.
+                    if (oppFilledCount === 25) { 
+                        updatePayload.status = 'finished';
+                        updatePayload.currentLetter = null;
                     }
-                } 
-                // ÖNEMLİ: Eğer shouldIncrementMove false ise, hiçbir şey yapılmaz. 
-                // Bu, Harf seçimi yapan ilk oyuncu yerleştirdiğinde, diğer oyuncunun yerleştirme yapabilmesi için
-                // 'currentLetter' değerinin sabit kalmasını sağlar.
-            }
+                    // Eğer rakip henüz doldurmadıysa, sadece kendi gridini günceller ve biter.
+                    
+                } else { // Normal hamleler (1-24)
+                    
+                    // Tur Atlama Koşulu: İki oyuncunun da dolu hücre sayısı eşitlendiğinde tur tamamdır.
+                    let shouldIncrementMove = (myNewFilledCount === oppFilledCount);
+                    
+                    if (shouldIncrementMove) {
+                        
+                        const nextMove = currentMoveNumber + 1;
+                        updatePayload.moveNumber = nextMove;
+                        
+                        if (data.gameMode === 'CLASSIC') {
+                            // KLASİK MOD: Harf Seçme Sırası (A-B-A-B...)
+                            updatePayload.turnOwner = (nextMove % 2 !== 0) ? 'PlayerA' : 'PlayerB';
+                            updatePayload.currentLetter = null; // Yeni harf seçimi için sıfırla
+                            
+                        } else if (data.gameMode === 'RANDOM') {
+                            // RANDOM MOD: Harf otomatik verilir.
+                            updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
+                            
+                            if (nextMove <= 24) { 
+                               updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
+                            } else {
+                               updatePayload.currentLetter = null; 
+                            }
+                        }
+                    } 
+                    // Tur artmıyorsa (shouldIncrementMove = false) currentLetter ve turnOwner değişmez.
+                }
 
-            // Oyun Bitiş Kontrolü
-            if (updatePayload.moveNumber > 25 || currentMoveNumber >= 25) {
-                updatePayload.status = 'finished';
-                updatePayload.currentLetter = null;
+                // Oyun bitiş kontrolü (25. hamleden sonra moveNumber artarsa, ki bu mantık dışı)
+                if (updatePayload.moveNumber > 25) {
+                    updatePayload.status = 'finished';
+                    updatePayload.currentLetter = null;
+                }
             }
             
             transaction.update(gameRef, updatePayload);
@@ -9699,6 +9703,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
