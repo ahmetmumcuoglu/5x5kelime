@@ -9276,31 +9276,22 @@ async function handleCellClick(index) {
     }
 
     // --- ÇİFT TIKLAMA (ONAY) MEKANİZMASI ---
-    // Durum 1: İlk defa tıklanıyor veya farklı bir hücreye tıklandı (Seçim Aşaması)
     if (selectedDraftIndex !== index) {
-        selectedDraftIndex = index; // Yeni hücreyi seç
-        
-        // Grid'i tekrar çiz ki sarı renk görünsün
-        // Not: renderGrid'in selectedDraftIndex'e göre sarı rengi eklediğinden ve
-        // tıklama dinleyicilerini atadığından emin olun.
+        selectedDraftIndex = index;
         renderGrid(myGridData, 'myGrid'); 
-        
-        return; // İşlemi burada durdur ve ikinci tıklamayı bekle
-    }
-    
-    // Durum 2: Zaten seçili olan (Sarı) hücreye tekrar tıklandı -> İŞLEMİ YAP!
-    // Seçimi sıfırla (Transaction başarılı olursa sarı renk onSnapshot ile silinecek)
-    selectedDraftIndex = null; 
-
-    // Hücre dolu mu kontrolü (Global veriden)
-    if (myGridData[index] !== '') {
-        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
-        if (statusMsg) statusMsg.textContent = "Bu hücre zaten dolu.";
-        renderGrid(myGridData, 'myGrid'); // Seçim draft'ı iptal olduğu için yeniden çiz
         return;
     }
     
-    // Transaction Başlatılıyor
+    selectedDraftIndex = null; 
+
+    // Hücre dolu mu kontrolü
+    if (myGridData[index] !== '') {
+        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
+        if (statusMsg) statusMsg.textContent = "Bu hücre zaten dolu.";
+        renderGrid(myGridData, 'myGrid'); 
+        return;
+    }
+    
     const gameRef = db.collection('games').doc(currentGameId);
 
     try {
@@ -9320,7 +9311,7 @@ async function handleCellClick(index) {
                 if (!myFinalLetter) throw new Error("25. Hamle için harf seçilmedi.");
                 letterToPlace = myFinalLetter;
             } else {
-                if (!data.currentLetter) throw new Error("Harf verisi yok. Önce harf seçilmeli.");
+                if (!data.currentLetter) throw new Error("Harf verisi yok.");
                 letterToPlace = data.currentLetter;
             }
             
@@ -9328,15 +9319,12 @@ async function handleCellClick(index) {
             let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
             
             if (myCurrentGrid[index] !== '') throw new Error("Dolu hücre.");
-            myCurrentGrid[index] = letterToPlace;    // Harf yerleştirildi
+            myCurrentGrid[index] = letterToPlace;
             
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
             else updatePayload.gridB = myCurrentGrid;
             
-            // Oynayan oyuncunun yeni dolu hücre sayısı
-            const myNewFilledCount = myCurrentGrid.filter(c => c !== '').length;
-
             // --- TUR ATLAMA MANTIĞI ---
             
             // SENARYO 1: TEK KİŞİLİK OYUN (Çalıştığı varsayılıyor)
@@ -9347,60 +9335,48 @@ async function handleCellClick(index) {
                 } else {
                     const nextMove = currentMoveNumber + 1;
                     updatePayload.moveNumber = nextMove;
-                    
-                    if (nextMove === 25) {
-                         updatePayload.currentLetter = null;
-                    } else {
-                         updatePayload.currentLetter = data.letterSequence[currentMoveNumber];
-                    }
+                    if (nextMove === 25) updatePayload.currentLetter = null;
+                    else updatePayload.currentLetter = data.letterSequence[currentMoveNumber];
                 }
             }
             
-           // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM) Düzeltilmiş Mantık
+            // SENARYO 2: ÇOK OYUNCULU (KLASİK & RANDOM)
             else {
-                
-                // Rakip gridleri ve dolu hücre sayıları (kontrol amaçlı)
                 let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
                 const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
-                
-                // Oynayan oyuncunun yeni dolu hücre sayısı
                 const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
 
-                // MoveNumber artışını kontrol etmek için iki oyuncunun da yerleşim yapıp yapmadığını kontrol ediyoruz.
-                let shouldIncrementMove = (myNewFilledCount === oppFilledCount);
-                
-                // 1. SIRA GEÇİŞİ: Klasik modda her zaman rakibe geçer.
-                updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                // KOŞUL: İki oyuncunun dolu hücre sayısı eşitlendiğinde tur tamamlanmıştır.
+                if (myNewFilledCount === oppFilledCount) {
+                    
+                    // Turu/Hamleyi Artır
+                    const nextMove = currentMoveNumber + 1;
+                    updatePayload.moveNumber = nextMove;
+                    
+                    // Sırayı bir sonraki harfi seçecek/oynayacak oyuncuya devret
+                    updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
 
-                // 2. Harf ve Hamle Numarası Güncellemesi
-                if (data.gameMode === 'RANDOM') {
-                     // RANDOM MOD: Tur tamamlandıysa harfi belirle ve move'u artır.
-                     if (shouldIncrementMove) {
-                        const nextMove = currentMoveNumber + 1;
-                        updatePayload.moveNumber = nextMove;
-                        
+                    if (data.gameMode === 'RANDOM') {
+                        // RANDOM: Bir sonraki harfi veritabanına yaz
                         if (nextMove <= 24) { 
                            updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
                         } else {
                            updatePayload.currentLetter = null; 
                         }
+                    } else {
+                        // KLASİK: currentLetter'ı sıfırla ki yeni turnOwner harfi seçsin.
+                        updatePayload.currentLetter = null; 
                     }
-                    // NOT: Random modda move artmasa bile currentLetter harfi zaten belirlidir.
-                
-                } else { 
-                    // KLASİK MOD: Harfi sıfırla, move'u sadece iki oyuncu da oynadıysa artır.
-                    updatePayload.currentLetter = null; // Bir sonraki oyuncu yeniden seçecek.
-                    
-                    if (shouldIncrementMove) {
-                        updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                    }
-                }
-                
-                // Oyun Bitiş Kontrolü
-                if (updatePayload.moveNumber > 25 || currentMoveNumber >= 25) {
-                    updatePayload.status = 'finished';
-                    updatePayload.currentLetter = null;
-                }
+                } 
+                // ÖNEMLİ DÜZELTME: Eğer tur artmıyorsa (yani sadece bir oyuncu oynadıysa), 
+                // turnOwner ve currentLetter değerlerini updatePayload'a eklemiyoruz. 
+                // Böylece, bu değerler Firebase'deki mevcut durumunda kalır ve Misafir oyuncunun ekranı bozulmaz.
+            }
+            
+            // Oyun Bitiş Kontrolü
+            if (updatePayload.moveNumber > 25 || currentMoveNumber >= 25) {
+                updatePayload.status = 'finished';
+                updatePayload.currentLetter = null;
             }
             
             transaction.update(gameRef, updatePayload);
@@ -9414,7 +9390,6 @@ async function handleCellClick(index) {
         const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
         if (statusMsg) statusMsg.textContent = "Hata: " + e.message;
         
-        // Hata durumunda seçili draft'ı iptal et ve tahtayı yeniden çiz
         selectedDraftIndex = null;
         renderGrid(myGridData, 'myGrid');
     }
@@ -9716,6 +9691,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
