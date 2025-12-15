@@ -8666,6 +8666,7 @@ let myPlayerId = null;        // Oyuncunun rolü ('PlayerA' veya 'PlayerB')
 let placementMode = false;    // Hücrelere tıklamaya izin var mı? (Boolean)
 let myFinalLetter = null;     // 25. hamle için yerel olarak seçilen harf (Sadece 25. hamlede kullanılır)
 let unsubscribe = null;       // Firebase anlık dinleyicisini kapatmak için kullanılır.
+let selectedDraftIndex = null; // Seçili hücrenin indeksini tutar (Onay mekanizması için)
 
 // ==========================================
 // 3. DOM ELEMENTLERİ
@@ -9191,7 +9192,36 @@ async function handleCellClick(index) {
         statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız.";
         return;
     }
+
+  // --- YENİ: İKİ AŞAMALI ONAY MEKANİZMASI ---
     
+    // Durum 1: İlk defa tıklanıyor veya farklı bir hücreye tıklandı
+    if (selectedDraftIndex !== index) {
+        selectedDraftIndex = index; // Yeni hücreyi seç
+        
+        // Grid'i tekrar çiz ki sarı renk görünsün
+        // myGridData global değişkenini kullanıyoruz (Firebase'den en son gelen veri)
+        renderGrid(myGridData, 'myGrid'); 
+        
+        statusMsg.textContent = "ONAYLAMAK İÇİN AYNI HÜCREYE TEKRAR TIKLAYIN.";
+        statusMsg.style.color = "#f39c12"; // Sarı uyarı rengi
+        
+        return; // Fonksiyondan çık, veritabanına yazma!
+    }
+    
+    // Durum 2: Zaten seçili olan (Sarı) hücreye tekrar tıklandı -> İŞLEMİ YAP!
+    // Seçimi sıfırla
+    selectedDraftIndex = null;
+    
+    // ... (AŞAĞIDAKİ KODLAR ESKİSİ GİBİ DEVAM EDER) ...
+    
+    // Gerekli Global Değişken Kontrolleri
+    if (myGridData[index] !== '') return; 
+    
+    const gameRef = db.collection('games').doc(currentGameId);
+    
+    // ... (Buradan sonrası mevcut kodunuzdaki transaction bloğu ile aynıdır)
+
     // 25. Hamle yerel kontrolü (myFinalLetter)
     if (myPlayerId === 'PlayerA' && window.myFinalLetterA) {/*OK*/} // Global kontrol gerekebilir ama şimdilik basit tutalım
     
@@ -9518,42 +9548,41 @@ function showResults(data) {
 }
 
 // ==========================================
-// GRID (IZGARA) ÇİZİM FONKSİYONU
+// GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
 // ==========================================
 
-/**
- * Verilen grid verilerini (25 elemanlı dizi) HTML'deki belirtilen alana çizer.
- * @param {Array<string>} gridData - Harfleri içeren 25 elemanlı dizi (örn: ['A', 'B', '', ...])
- * @param {string} elementId - Çizimin yapılacağı HTML elementinin ID'si (örn: 'myGrid', 'opponentGrid')
- */
 function renderGrid(gridData, elementId) {
     const gridElement = document.getElementById(elementId);
     if (!gridElement) return;
 
-    gridElement.innerHTML = ''; // Önceki içeriği temizle
+    gridElement.innerHTML = ''; 
     
-    // Gridlerin clickable olup olmayacağını belirleyen koşullar:
     const isMyGrid = (elementId === 'myGrid');
-    
-    // PlacementMode: Harf seçilmiş ve yerleştirmeye hazırız demektir.
     const isClickable = isMyGrid && placementMode; 
 
     gridData.forEach((letter, index) => {
         const cell = document.createElement('div');
         cell.classList.add('cell');
-        
-        // Hücre içeriğini ayarla (Boşsa boş, doluyusa harf)
         cell.textContent = letter || ''; 
         
-        // Tıklama mantığı: Sadece kendi gridimiz ve boş hücreler için
+        // --- YENİ EKLENTİ: SEÇİM GÖRSELLİĞİ ---
+        // Eğer bu hücre benim gridimde seçtiğim hücre ise 'selected-draft' sınıfını ekle
+        if (isMyGrid && index === selectedDraftIndex) {
+            cell.classList.add('selected-draft');
+            
+            // Seçili hücrede, o anki yerleştirilecek harfi geçici olarak göster (Hayalet Harf)
+            // Bu kullanıcıya harfin orada nasıl duracağını gösterir
+            const currentMoveData = document.getElementById('randomLetterDisplay').textContent; // Random harfi al
+            // Veya manuel moddaysa inputtaki/db'deki harfi al
+            // Basitlik için: Sadece sarı kalsın, harf koymak karışıklık yaratabilir.
+        }
+
         if (isClickable && letter === '') {
              cell.classList.add('clickable');
-             
-             // Hücreye tıklandığında handleCellClick fonksiyonunu çağır
              cell.onclick = () => handleCellClick(index);
         } else {
              cell.classList.remove('clickable');
-             cell.onclick = null; // Tıklama olayını kaldır
+             cell.onclick = null;
         }
 
         gridElement.appendChild(cell);
@@ -9590,6 +9619,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
