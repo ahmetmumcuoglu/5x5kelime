@@ -9184,16 +9184,17 @@ async function submitLetter() {
 }
 
 // ==========================================
-// HÜCRE TIKLAMA (TEK VE ÇOK KİŞİLİK DESTEKLİ)
+// HÜCRE TIKLAMA (TEK VE ÇOK KİŞİLİK + ÇİFT TIKLAMA ONAYLI)
 // ==========================================
 
 async function handleCellClick(index) {
+    // 1. Kontrol: Yerleştirme modunda mıyız?
     if (!placementMode) {
         statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız.";
         return;
     }
 
-  // --- YENİ: İKİ AŞAMALI ONAY MEKANİZMASI ---
+    // --- YENİ: İKİ AŞAMALI ONAY MEKANİZMASI ---
     
     // Durum 1: İlk defa tıklanıyor veya farklı bir hücreye tıklandı
     if (selectedDraftIndex !== index) {
@@ -9212,17 +9213,18 @@ async function handleCellClick(index) {
     // Durum 2: Zaten seçili olan (Sarı) hücreye tekrar tıklandı -> İŞLEMİ YAP!
     // Seçimi sıfırla
     selectedDraftIndex = null;
-    
-    // ... (AŞAĞIDAKİ KODLAR ESKİSİ GİBİ DEVAM EDER) ...
-    
+
     // Gerekli Global Değişken Kontrolleri
-    if (myGridData[index] !== '') return; 
-    
-    // ... (Buradan sonrası mevcut kodunuzdaki transaction bloğu ile aynıdır)
+    // myGridData'nın listenToGame içinde güncellendiğinden emin olun.
+    if (myGridData[index] !== '') {
+        statusMsg.textContent = "Bu hücre zaten dolu.";
+        return;
+    }
 
     // 25. Hamle yerel kontrolü (myFinalLetter)
-    if (myPlayerId === 'PlayerA' && window.myFinalLetterA) {/*OK*/} // Global kontrol gerekebilir ama şimdilik basit tutalım
+    if (myPlayerId === 'PlayerA' && window.myFinalLetterA) { /*OK*/ } 
     
+    // Transaction Başlatılıyor
     const gameRef = db.collection('games').doc(currentGameId);
 
     try {
@@ -9274,10 +9276,6 @@ async function handleCellClick(index) {
                          updatePayload.currentLetter = null; // Manuel seçim için sıfırla
                     } else {
                          // Diziden sıradaki harfi al
-                         // Dizi indexi 0'dan başlar, moveNumber 1'den.
-                         // moveNumber 1 iken index 0 kullanıldı. moveNumber 2'ye geçerken index 1 kullanılmalı.
-                         // Yani yeni moveNumber - 1 bize yeni harfi verir mi? Hayır.
-                         // moveNumber şu an 1. Bir sonraki harf index 1'de.
                          updatePayload.currentLetter = data.letterSequence[currentMoveNumber]; 
                     }
                 }
@@ -9315,6 +9313,9 @@ async function handleCellClick(index) {
     } catch (e) {
         console.error("Hücre tıklama hatası:", e);
         statusMsg.textContent = "Hata: " + e.message;
+        // Hata durumunda seçimi sıfırlamak iyi olabilir
+        selectedDraftIndex = null;
+        renderGrid(myGridData, 'myGrid');
     }
 }
 
@@ -9617,6 +9618,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
