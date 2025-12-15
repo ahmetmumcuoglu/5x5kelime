@@ -503,27 +503,41 @@ button:disabled {
     border: none; /* Kenarlığı kaldır */
     font-weight: bold;
     font-size: 1.3em; /* Puanları daha büyük göster */
-    /* Gölge veya kenarlık eklemek isterseniz burayı kullanın */
 }
 
-/* RENK KODLAMASI */
+/* ================================================= */
+/* RENK KODLAMASI (ARKA PLAN TEMELLİ) */
+/* ================================================= */
+
+/* Tüm puanlar için varsayılan yazı rengini (siyah/koyu) zorla */
+.score-10, .score-6, .score-5, .score-4, .score-3, .score-2, .score-1, .score-0 {
+    color: #333 !important; /* Yazıyı siyah/koyu yap */
+    font-weight: bold;
+}
+
+/* 10 Puan için Mavi Arka Plan */
 .score-10 {
-    color: #3498db; /* Mavi */
+    background-color: #3498db !important; 
 }
+/* 6 Puan için Yeşil Arka Plan */
 .score-6 {
-    color: #2ecc71; /* Yeşil */
+    background-color: #2ecc71 !important; 
 }
+/* 5 Puan için Mor Arka Plan */
 .score-5 {
-    color: #9b59b6; /* Mor */
+    background-color: #9b59b6 !important; 
 }
+/* 4 Puan için Turuncu Arka Plan */
 .score-4 {
-    color: #e67e22; /* Turuncu */
+    background-color: #e67e22 !important; 
 }
+/* 3 Puan için Koyu Sarı Arka Plan */
 .score-3 {
-    color: #f1c40f; /* Koyu Sarı */
+    background-color: #f1c40f !important; 
 }
+/* 2 Puan için Kırmızı Arka Plan */
 .score-2 {
-    color: #e74c3c; /* Kırmızı */
+    background-color: #e74c3c !important; 
 }
 
 /* Köşe hücresi için şeffaflık (isteğe bağlı) */
@@ -531,5 +545,6 @@ button:disabled {
     background-color: transparent;
     border: none;
 }
+
 
 
