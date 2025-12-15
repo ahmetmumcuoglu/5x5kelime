@@ -9114,7 +9114,7 @@ function handleTurnLogic(data, myGridData) {
         }
 
         // B) Normal Hamleler (1-24) - Random
-    const myFilledCount = myGridData.filter(c => c !== '').length;
+    myFilledCount = myGridData.filter(c => c !== '').length;
     
     // actionArea ve randomLetterDisplay gizlenip/gösteriliyor...
     
@@ -9134,7 +9134,7 @@ function handleTurnLogic(data, myGridData) {
     
     const isMyTurn = (data.turnOwner === myPlayerId);
     const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-    const myFilledCount = myGridData.filter(c => c !== '').length;
+    myFilledCount = myGridData.filter(c => c !== '').length;
     // oppFilledCount burada kullanılmıyor ama mantık takibi için kalabilir.
     
     // 25. Hamle Kontrolü (Çok Oyunculu)
@@ -9706,6 +9706,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
