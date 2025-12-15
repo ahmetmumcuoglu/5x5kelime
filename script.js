@@ -8810,6 +8810,62 @@ async function joinGame() {
 }
 
 // ==========================================
+// TEK KİŞİLİK OYUN BAŞLATMA
+// ==========================================
+
+async function startSinglePlayerGame() {
+    // 1. Rastgele Kod Üret (Yine de bir ID lazım)
+    const code = Math.random().toString(36).substring(2, 6).toUpperCase();
+    myPlayerId = 'PlayerA';
+    currentGameId = code;
+    
+    document.getElementById('lobbyStatus').textContent = "Tek kişilik oyun hazırlanıyor...";
+
+    // 2. Harf Dizisini Oluştur
+    let sequence = null;
+    let initialLetter = null;
+    
+    try {
+        sequence = generateGameSequence(); // 24 harflik dizi
+        initialLetter = sequence[0];
+    } catch (e) {
+        console.error("Harf dizisi hatası:", e);
+        return;
+    }
+
+    // 3. Firestore'a Yaz (Rakip beklemeden direkt ACTIVE)
+    try {
+        await db.collection('games').doc(code).set({
+            status: 'active',       // Bekleme yok, direkt başla
+            isSinglePlayer: true,   // TEK KİŞİLİK OLDUĞUNU BELİRTİYORUZ
+            turnOwner: 'PlayerA',
+            moveNumber: 1,
+            
+            gameMode: 'RANDOM',     // Tek kişilik mod her zaman Random'dır
+            letterSequence: sequence,
+            currentLetter: initialLetter,
+            
+            gridA: Array(25).fill(''),
+            gridB: Array(25).fill(''), // Boş kalacak ama hata vermemesi için dursun
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Arayüzü Kur ve Dinlemeyi Başlat
+        setupGameUI(code);
+        
+        // Tek kişilik modda rakip gridi başlığını gizleyelim veya değiştirelim
+        const oppGridHeader = document.querySelector('#opponentGrid').parentElement.querySelector('h4');
+        if(oppGridHeader) oppGridHeader.style.display = 'none';
+
+        listenToGame();
+
+    } catch (error) {
+        console.error("Tek kişilik oyun hatası:", error);
+        document.getElementById('lobbyStatus').textContent = "Oyun başlatılamadı.";
+    }
+}
+
+// ==========================================
 // ARAYÜZ KURULUMU (LOBİ -> OYUN ALANI GEÇİŞİ)
 // ==========================================
 
@@ -8925,6 +8981,47 @@ function handleTurnLogic(data, myGridData) {
     const isMyTurn = (data.turnOwner === myPlayerId);
     const currentLetter = data.currentLetter;
     const moveNumber = data.moveNumber; 
+
+  if (data.isSinglePlayer) {
+        const myFilledCount = myGridData.filter(c => c !== '').length;
+        
+        // 25. Hamle (Manuel Seçim)
+        if (moveNumber === 25) {
+             actionArea.classList.remove('hidden'); 
+             randomLetterDisplay.classList.add('hidden');
+             
+             if (myFilledCount >= 25) {
+                 statusMsg.textContent = "Oyun Bitti. Sonuçlar hesaplanıyor...";
+                 disableControls();
+             } else {
+                 if (!myFinalLetter) {
+                     statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
+                     enableControls(true);
+                     placementMode = false;
+                 } else {
+                     statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
+                     disableControls();
+                     placementMode = true;
+                 }
+             }
+             return;
+        }
+
+        // Normal Hamleler (1-24) - Random
+        actionArea.classList.add('hidden');
+        randomLetterDisplay.classList.remove('hidden');
+        randomLetterDisplay.textContent = currentLetter || "?";
+        
+        if (myFilledCount < moveNumber) {
+            statusMsg.textContent = `HARF: ${currentLetter} - Yerleştir!`;
+            placementMode = true;
+        } else {
+            // Transaction gridi güncelleyip moveNumber'ı artırana kadar bekleme
+            statusMsg.textContent = "Kaydediliyor...";
+            placementMode = false;
+        }
+        return; // Tek kişilik mod mantığı burada biter
+    }
 
     // Gridin kaç hücresini doldurduğumuzu sayar
     const myFilledCount = myGridData.filter(c => c !== '').length;
@@ -9086,116 +9183,110 @@ async function submitLetter() {
 }
 
 // ==========================================
-// HÜCRE TIKLAMA VE YERLEŞTİRME MANTIĞI
+// HÜCRE TIKLAMA (TEK VE ÇOK KİŞİLİK DESTEKLİ)
 // ==========================================
 
 async function handleCellClick(index) {
-    // 1. Kontrol: Yerleştirme modunda mıyız?
     if (!placementMode) {
-        statusMsg.textContent = "HATA: Şu anda harf yerleştirme sırası sizde değil veya yerleştirme modu kapalı.";
+        statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız.";
         return;
     }
     
-    // 2. İşlemi Transaction ile Güvenli Hale Getir
+    // 25. Hamle yerel kontrolü (myFinalLetter)
+    if (myPlayerId === 'PlayerA' && window.myFinalLetterA) {/*OK*/} // Global kontrol gerekebilir ama şimdilik basit tutalım
+    
     const gameRef = db.collection('games').doc(currentGameId);
 
     try {
         await db.runTransaction(async (transaction) => {
             const doc = await transaction.get(gameRef);
-            if (!doc.exists) throw new Error("Oyun veritabanında bulunamadı.");
+            if (!doc.exists) throw new Error("Oyun bulunamadı.");
             
             const data = doc.data();
             const currentMoveNumber = data.moveNumber;
-            const currentTurnOwner = data.turnOwner;
-            const mode = data.gameMode || 'MANUAL';
+            const isSinglePlayer = data.isSinglePlayer || false; // Tek kişilik mi?
             
-            const isFinalMove = (currentMoveNumber === 25);
-            
-            // 3. YERLEŞTİRİLECEK HARFİ BELİRLE
+            // --- HARF BELİRLEME ---
             let letterToPlace;
-            
+            const isFinalMove = (currentMoveNumber === 25);
+
             if (isFinalMove) {
-                // 25. Son Hamlede: Yerel seçilen harfi kullan
                 if (!myFinalLetter) throw new Error("25. Hamle için harf seçilmedi.");
                 letterToPlace = myFinalLetter;
             } else {
-                // Normal Hamlede (1-24): Veritabanındaki harfi kullan
-                if (!data.currentLetter) throw new Error("Veritabanında yerleştirilecek harf bulunamadı.");
+                if (!data.currentLetter) throw new Error("Harf verisi yok.");
                 letterToPlace = data.currentLetter;
             }
             
-            // 4. Grid Verilerini Hazırla ve Yerleştirme Kontrolü Yap
+            // --- GRID GÜNCELLEME ---
             let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
-            let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
             
-            // Hücre boş mu?
-            if (myCurrentGrid[index] !== '') throw new Error("Dolu hücreye yerleştirme yapılamaz.");
-            
-            // Harfi Grid'e yerleştir
+            if (myCurrentGrid[index] !== '') throw new Error("Dolu hücre.");
             myCurrentGrid[index] = letterToPlace; 
 
-            // 5. Payload'u Hazırla (Güncellenecek veriler)
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
             else updatePayload.gridB = myCurrentGrid;
 
-            // 6. TUR BİTİŞ KONTROLÜ VE İLERLEME MANTIĞI
+            // --- TUR ATLAMA MANTIĞI ---
             
-            const oppFilledCount = oppCurrentGrid.filter(c => c !== '').length;
-            
-            // Eğer rakip de benimle aynı sayıda hamle yapmışsa (yani bu turda ikimiz de koyduysak)
-            if (oppFilledCount === currentMoveNumber) {
-                
-                // Oyuncu B (Katılımcı) için rakibin hamlesi: B'nin 1. hamlesi A'nın 1. hamlesine eşit olmalı.
-                
-                // --- SON DURUM (25. Hamlenin Tamamlanması) ---
-                if (currentMoveNumber >= 25) {
-                     updatePayload.status = 'finished';
-                     updatePayload.turnOwner = null;
-                     updatePayload.currentLetter = null;
-                } 
-                // --- GEÇİŞ DURUMU (24. Hamlenin Tamamlanması) ---
-                else if (currentMoveNumber === 24) {
-                     // 25. hamleye (Son Hamle Moduna) geçiş
-                     updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1); // 25 olur
-                     updatePayload.currentLetter = null; // Harf sıfırlanır (Herkes kendisi seçecek)
-                     updatePayload.turnOwner = null; // Sıra sahibi sıfırlanır (Herkes serbest)
-                     // NOT: Yerel myFinalLetter temizliği transaction dışında yapılır.
+            // SENARYO 1: TEK KİŞİLİK OYUN
+            if (isSinglePlayer) {
+                if (isFinalMove) {
+                    // Oyun Bitti
+                    updatePayload.status = 'finished';
+                    updatePayload.currentLetter = null;
+                } else {
+                    // Sonraki tura geç
+                    const nextMove = currentMoveNumber + 1;
+                    updatePayload.moveNumber = nextMove;
+                    
+                    // 25. Hamleye geçiş mi?
+                    if (nextMove === 25) {
+                         updatePayload.currentLetter = null; // Manuel seçim için sıfırla
+                    } else {
+                         // Diziden sıradaki harfi al
+                         // Dizi indexi 0'dan başlar, moveNumber 1'den.
+                         // moveNumber 1 iken index 0 kullanıldı. moveNumber 2'ye geçerken index 1 kullanılmalı.
+                         // Yani yeni moveNumber - 1 bize yeni harfi verir mi? Hayır.
+                         // moveNumber şu an 1. Bir sonraki harf index 1'de.
+                         updatePayload.currentLetter = data.letterSequence[currentMoveNumber]; 
+                    }
                 }
-                // --- NORMAL TUR İLERLEMESİ (1-23) ---
-                else {
-                     updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                     
-                     if (mode === 'RANDOM') {
-                         // Rastgele Mod: Harf dizisinden sıradaki harfi al (currentMoveNumber yeni index'tir)
-                         const nextLetter = data.letterSequence[currentMoveNumber];
-                         updatePayload.currentLetter = nextLetter;
-                         updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
-                     } else {
-                         // Klasik Mod: Harfi sıfırla, sırayı devret
+            } 
+            // SENARYO 2: ÇOK OYUNCULU (Klasik Mantık)
+            else {
+                let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
+                const oppFilledCount = oppCurrentGrid.filter(c => c !== '').length;
+
+                // Rakip de oynamışsa tur atla
+                if (oppFilledCount === currentMoveNumber) {
+                    if (currentMoveNumber >= 25) {
+                         updatePayload.status = 'finished';
+                    } else if (currentMoveNumber === 24) {
+                         updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
                          updatePayload.currentLetter = null; 
-                         updatePayload.turnOwner = (currentTurnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
-                     }
+                    } else {
+                         updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
+                         // Random mod ise harfi güncelle
+                         if (data.gameMode === 'RANDOM') {
+                             updatePayload.currentLetter = data.letterSequence[currentMoveNumber];
+                         } else {
+                             updatePayload.currentLetter = null;
+                         }
+                         updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                    }
                 }
             }
             
-            // 7. Transaction'ı Tamamla
             transaction.update(gameRef, updatePayload);
         });
         
-        // 8. Transaction başarılı olduktan sonra yerel temizlik
-        if (isFinalMove) {
-             myFinalLetter = null; // 25. hamle için kullanılan yerel harfi temizle
-        }
+        if (placementMode && myFinalLetter) myFinalLetter = null; 
 
     } catch (e) {
-        // Hata yakalama ve kullanıcıya bildirme
-        if (e.message.startsWith("Dolu hücreye") || e.message.startsWith("Harf seçilmedi")) {
-            statusMsg.textContent = `HATA: ${e.message}`;
-        } else {
-            console.error("Hücre tıklama hatası:", e);
-            statusMsg.textContent = "HATA: Yerleştirme yapılamadı. Konsolu kontrol edin.";
-        }
+        console.error("Hücre tıklama hatası:", e);
+        statusMsg.textContent = "Hata: " + e.message;
     }
 }
 
@@ -9499,6 +9590,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
