@@ -8868,50 +8868,49 @@ async function startSinglePlayerGame() {
 }
 
 // ==========================================
-// ARAYÜZ KURULUMU (LOBİ -> OYUN ALANI GEÇİŞİ)
+// ARAYÜZ HAZIRLAMA (GÜVENLİ VERSİYON)
 // ==========================================
 
-function setupGameUI(code) {
-    // 1. Tüm ana panelleri gizle (Global DOM değişkenlerini kullanıyoruz)
-    lobbyPanel.classList.add('hidden');
-    gameOverPanel.classList.add('hidden');
+function setupGameUI(gameId) {
+    // 1. Panelleri Tanımla
+    const lobbyPanel = document.getElementById('lobbyPanel');
+    const gamePanel = document.getElementById('gamePanel');
+    const gameOverPanel = document.getElementById('gameOverPanel');
+    const displayCode = document.getElementById('displayGameCode');
     
-    // 2. Oyun panelini göster
-    gamePanel.classList.remove('hidden');
+    // 2. Panelleri Değiştir (Kontrollü)
+    // Eğer element HTML'de varsa işlem yap, yoksa hata verme.
+    if (lobbyPanel) lobbyPanel.classList.add('hidden');
+    if (gameOverPanel) gameOverPanel.classList.add('hidden');
+    
+    if (gamePanel) {
+        gamePanel.classList.remove('hidden');
+    } else {
+        console.error("HATA: gamePanel HTML'de bulunamadı!");
+        return; // Oyun paneli yoksa dur.
+    }
 
-    // 3. Bilgi Çubuğunu ve Durumları Güncelle
-    
-    // Oda kodunu göster
-    gameCodeDisplay.textContent = code; 
-    
-    // Rol bilgisini göster (myPlayerRoleEl global DOM değişkenidir)
-    const myRole = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
-    myPlayerRoleEl.textContent = myRole;
+    // 3. Oyun Kodunu Ekrana Yaz
+    if (displayCode) {
+        displayCode.textContent = gameId;
+    }
 
-    // Hamle sayısı gösterimini başlangıç değerine ayarla
-    moveNumberDisplayEl.textContent = "1/25";
+    // 4. Diğer Elementleri Sıfırla
+    const statusMsg = document.getElementById('statusMsg');
+    if (statusMsg) {
+        statusMsg.textContent = "Oyun Yükleniyor...";
+        statusMsg.className = "status-msg"; // Renkleri sıfırla
+    }
 
-    // Durum mesajını başlangıçta bekleme olarak ayarla (listenToGame bunu hemen güncelleyecektir)
-    statusMsg.textContent = "Rakibin Katılması Bekleniyor..."; 
+    // Action Area ve Random Harf Ekranını Sıfırla
+    const actionArea = document.getElementById('actionArea');
+    const randomLetterDisplay = document.getElementById('randomLetterDisplay');
     
-    // 4. Gridleri Temizle
-    myGridEl.innerHTML = '';
-    oppGridEl.innerHTML = '';
-
-    // 5. Kontrolleri Başlangıç Durumuna Getir
+    if (actionArea) actionArea.classList.add('hidden');
+    if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
     
-    // Harf inputunu temizle
-    letterInput.value = ''; 
-    
-    // Rastgele harf gösterimini gizle ve varsayılan metni ayarla
-    randomLetterDisplay.classList.add('hidden');
-    randomLetterDisplay.textContent = "?";
-
-    // Tur durumuna ve moda göre kontrolleri yöneten disableControls'u çağır
-    disableControls(); 
-    
-    // 25. hamle için yerel değişkeni temizle
-    myFinalLetter = null; 
+    // Eğer Tek Kişilik Oyun ise "Rakip Bekleniyor" kısmını gizle (Varsa)
+    // Bu kontrolü listenToGame içinde yapıyoruz ama burada temizlik yapmak iyidir.
 }
 
 // ==========================================
@@ -9616,6 +9615,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
