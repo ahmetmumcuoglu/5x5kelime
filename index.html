@@ -28,6 +28,19 @@
             <input type="text" id="gameCodeInput" placeholder="Oda Kodu Gir" maxlength="4">
             <button class="btn-secondary" onclick="joinGame()">Oyuna Katıl</button>
             <p id="lobbyStatus" class="status-text"></p>
+
+            <div class="lobby-controls">
+    <button id="createGameBtn" onclick="createNewGame()">Yeni Oyun Kur</button>
+    
+    <button id="singlePlayerBtn" onclick="startSinglePlayerGame()" style="background-color: #9b59b6;">
+        Tek Başına Oyna (Random)
+    </button>
+    
+    <div class="join-area">
+        <input type="text" id="gameCodeInput" placeholder="Oda Kodu" maxlength="4">
+        <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
+    </div>
+</div>
         
         </div>
 
@@ -114,6 +127,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
