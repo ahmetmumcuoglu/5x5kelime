@@ -8689,7 +8689,7 @@ const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
 const randomLetterDisplay = document.getElementById('randomLetterDisplay');
 
 // ==========================================
-// YENİ OYUN KURMA FONKSİYONU
+// YENİ OYUN KURMA (DÜZELTİLMİŞ)
 // ==========================================
 
 async function createNewGame() {
@@ -8700,31 +8700,30 @@ async function createNewGame() {
     
     // 2. Mod Seçimini Al
     const gameModeSelect = document.getElementById('gameModeSelect');
-    const selectedMode = gameModeSelect ? gameModeSelect.value : 'MANUAL'; // Varsayılan MANUAL
+    // HTML'de value="CLASSIC" demiştik, o yüzden varsayılanı CLASSIC yapıyoruz
+    const selectedMode = gameModeSelect ? gameModeSelect.value : 'CLASSIC'; 
     
     let sequence = null;
     let initialLetter = null;
 
-    // Lobi durumunu güncelle
     document.getElementById('lobbyStatus').textContent = "Oyun kuruluyor...";
 
     // 3. Rastgele Mod İçin Harf Dizisini Oluştur
     if (selectedMode === 'RANDOM') {
         try {
-            // generateGameSequence fonksiyonu 24 harflik diziyi döndürür.
             sequence = generateGameSequence(); 
             
-            if (!sequence || sequence.length !== 24) {
-                 throw new Error("Rastgele harf dizisi 24 elemanlı olmalıdır.");
+            // DÜZELTME 1: Uzunluk kontrolünü esnettik (24'ten büyükse sorun yok)
+            if (!sequence || sequence.length < 24) {
+                 throw new Error("Rastgele harf dizisi yetersiz.");
             }
             
-            // İlk harfi hemen belirle (Dizinin 0. elemanı)
             initialLetter = sequence[0]; 
             
         } catch (e) {
-            document.getElementById('lobbyStatus').textContent = `HATA: Harf dizisi oluşturulamadı. Lütfen konsolu kontrol edin.`;
-            console.error("Harf Dizisi Oluşturma Hatası:", e);
-            currentGameId = null; // Başarısız olursa kodu temizle
+            document.getElementById('lobbyStatus').textContent = `HATA: ${e.message}`;
+            console.error("Harf Hatası:", e);
+            currentGameId = null; 
             return; 
         }
     }
@@ -8732,34 +8731,48 @@ async function createNewGame() {
     // 4. Firestore'a Veri Yazma
     try {
         await db.collection('games').doc(code).set({
-            status: 'waiting',      // Başlangıçta rakip beklenir
-            turnOwner: 'PlayerA',   // İlk tur sahibi her zaman kurucu (A)
-            moveNumber: 1,          // 1. hamleden başlar
+            status: 'waiting',      
+            turnOwner: 'PlayerA',   
+            moveNumber: 1,  
+            isSinglePlayer: false, // DÜZELTME 2: Çok oyunculu olduğunu belirtiyoruz
             
-            // Oyun Modu Verileri
             gameMode: selectedMode, 
-            letterSequence: sequence,     // Random ise 24 harflik dizi, Manual ise null
-            currentLetter: initialLetter, // Random ise ilk harf, Manual ise null
+            letterSequence: sequence,     
+            currentLetter: initialLetter, 
             
-            // Gridler
             gridA: Array(25).fill(''),
             gridB: Array(25).fill(''),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 5. Başarılıysa Arayüzü Güncelle ve Dinlemeyi Başlat
+        // 5. Arayüzü Güncelle
         setupGameUI(code);
+
+        // DÜZELTME 3: Tek kişilik oyundan gelindiyse gizlenen alanları geri aç
+        const oppSection = document.getElementById('opponentSection');
+        if(oppSection) oppSection.style.display = 'block'; // Rakip alanını geri getir
+
+        const turnIndicator = document.getElementById('turnIndicator');
+        if(turnIndicator) turnIndicator.style.display = 'block'; // Sıra bilgisini geri getir
+
+        // Oda kodunu ve rolü görünür yap (Tek kişilikte gizlemiştik)
+        const codeDisplay = document.getElementById('gameCodeDisplay');
+        if (codeDisplay && codeDisplay.parentElement) codeDisplay.parentElement.style.display = 'block';
+        
+        const roleDisplay = document.getElementById('myPlayerRole');
+        if (roleDisplay && roleDisplay.parentElement) roleDisplay.parentElement.style.display = 'block';
+
+        // Dinlemeyi Başlat
         listenToGame();
 
     } catch (error) {
-        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı! Firebase Hatası.";
+        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı! Hata oluştu.";
         console.error("Firebase Yazma Hatası:", error);
         currentGameId = null; 
     }
 }
-
 // ==========================================
-// OYUNA KATILMA FONKSİYONU
+// OYUNA KATILMA FONKSİYONU (DÜZELTİLMİŞ)
 // ==========================================
 
 async function joinGame() {
@@ -8785,8 +8798,9 @@ async function joinGame() {
 
         const data = doc.data();
 
+        // Oyun zaten başladıysa veya bittiyse (Veya Tek kişilik oyunsa - çünkü o da 'active' başlar)
         if (data.status === 'active' || data.status === 'finished') {
-            document.getElementById('lobbyStatus').textContent = "HATA: Oyun zaten başladı veya bitti.";
+            document.getElementById('lobbyStatus').textContent = "HATA: Oyun zaten başladı veya doldu.";
             return;
         }
         
@@ -8796,12 +8810,27 @@ async function joinGame() {
 
         // 3. Oyun durumunu "waiting" -> "active" olarak güncelle
         await gameRef.update({
-            status: 'active',
-            // turnOwner, gameMode ve letterSequence (Random ise) A tarafından belirlenmiştir.
+            status: 'active'
         });
 
-        // 4. Arayüzü oyun paneline geçir ve dinlemeye başla
+        // 4. Arayüzü oyun paneline geçir
         setupGameUI(code);
+
+        // --- KRİTİK DÜZELTME: GİZLENEN ALANLARI GERİ AÇ ---
+        // Tek kişilik oyundan gelindiyse bu alanlar 'display: none' kalmış olabilir.
+        const oppSection = document.getElementById('opponentSection');
+        if(oppSection) oppSection.style.display = 'block'; 
+
+        const turnIndicator = document.getElementById('turnIndicator');
+        if(turnIndicator) turnIndicator.style.display = 'block'; 
+
+        const codeDisplay = document.getElementById('gameCodeDisplay');
+        if (codeDisplay && codeDisplay.parentElement) codeDisplay.parentElement.style.display = 'block';
+        
+        const roleDisplay = document.getElementById('myPlayerRole');
+        if (roleDisplay && roleDisplay.parentElement) roleDisplay.parentElement.style.display = 'block';
+
+        // 5. Dinlemeyi Başlat
         listenToGame();
 
     } catch (error) {
@@ -8887,7 +8916,7 @@ async function startSinglePlayerGame() {
 }
 
 // ==========================================
-// ARAYÜZ HAZIRLAMA (GÜVENLİ VERSİYON)
+// ARAYÜZ HAZIRLAMA (DÜZELTİLMİŞ)
 // ==========================================
 
 function setupGameUI(gameId) {
@@ -8895,10 +8924,11 @@ function setupGameUI(gameId) {
     const lobbyPanel = document.getElementById('lobbyPanel');
     const gamePanel = document.getElementById('gamePanel');
     const gameOverPanel = document.getElementById('gameOverPanel');
-    const displayCode = document.getElementById('displayGameCode');
     
-    // 2. Panelleri Değiştir (Kontrollü)
-    // Eğer element HTML'de varsa işlem yap, yoksa hata verme.
+    // DÜZELTME 1: HTML'deki ID 'gameCodeDisplay' olduğu için bunu kullanmalıyız
+    const displayCode = document.getElementById('gameCodeDisplay');
+    
+    // 2. Panelleri Değiştir
     if (lobbyPanel) lobbyPanel.classList.add('hidden');
     if (gameOverPanel) gameOverPanel.classList.add('hidden');
     
@@ -8906,7 +8936,7 @@ function setupGameUI(gameId) {
         gamePanel.classList.remove('hidden');
     } else {
         console.error("HATA: gamePanel HTML'de bulunamadı!");
-        return; // Oyun paneli yoksa dur.
+        return; 
     }
 
     // 3. Oyun Kodunu Ekrana Yaz
@@ -8914,24 +8944,21 @@ function setupGameUI(gameId) {
         displayCode.textContent = gameId;
     }
 
-    // 4. Diğer Elementleri Sıfırla
-    const statusMsg = document.getElementById('statusMsg');
+    // 4. Durum Mesajını Sıfırla
+    // DÜZELTME 2: HTML'deki ID 'gameStatusMsg'
+    const statusMsg = document.getElementById('gameStatusMsg');
     if (statusMsg) {
         statusMsg.textContent = "Oyun Yükleniyor...";
-        statusMsg.className = "status-msg"; // Renkleri sıfırla
+        statusMsg.className = "status-msg"; 
     }
 
-    // Action Area ve Random Harf Ekranını Sıfırla
+    // 5. Action Area ve Random Harf Ekranını Sıfırla
     const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
     
     if (actionArea) actionArea.classList.add('hidden');
     if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
-    
-    // Eğer Tek Kişilik Oyun ise "Rakip Bekleniyor" kısmını gizle (Varsa)
-    // Bu kontrolü listenToGame içinde yapıyoruz ama burada temizlik yapmak iyidir.
 }
-
 // ==========================================
 // OYUNU DİNLEME (GÜNCELLENMİŞ - TEK KİŞİLİK SKOR EKRANI DÜZELTİLDİ)
 // ==========================================
@@ -9043,53 +9070,59 @@ function listenToGame() {
 }
 
 // ==========================================
-// HAMLE VE SIRA MANTIĞI (TEK KİŞİLİK DESTEKLİ)
+// HAMLE VE SIRA MANTIĞI (DÜZELTİLMİŞ)
 // ==========================================
 
 function handleTurnLogic(data, myGridData) {
     const moveNumber = data.moveNumber; 
     const currentLetter = data.currentLetter;
-    
+
+    // --- DOM ELEMENTLERİNİ GÜVENLİ ŞEKİLDE SEÇ ---
+    // Bu değişkenler globalde olmayabilir, burada tanımlamak hayat kurtarır.
+    const actionArea = document.getElementById('actionArea');
+    const randomLetterDisplay = document.getElementById('randomLetterDisplay');
+    // Globalde statusMsg tanımlıydı ama burada tekrar çağırmak garanti olur.
+    const statusMsg = document.getElementById('gameStatusMsg'); 
+
     // --- ÖNCELİKLİ KONTROL: TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
-        // Tek kişilik modda sıra her zaman bizdedir, rakip kontrolü yapılmaz.
+        // Tek kişilik modda sıra her zaman bizdedir.
         
         const myFilledCount = myGridData.filter(c => c !== '').length;
         
         // A) 25. Hamle (Manuel Seçim)
         if (moveNumber === 25) {
-             actionArea.classList.remove('hidden'); 
-             randomLetterDisplay.classList.add('hidden');
+             if(actionArea) actionArea.classList.remove('hidden'); 
+             if(randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
              
              if (myFilledCount >= 25) {
                  statusMsg.textContent = "Oyun Bitti. Sonuçlar hesaplanıyor...";
                  placementMode = false;
-                 disableControls();
+                 disableControls(); // Bu fonksiyonu aşağıda tanımlayacağız
              } else {
                  if (!myFinalLetter) {
                      statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
-                     enableControls(true);
-                     placementMode = false; // Harf seçilene kadar grid kilitli
+                     enableControls(true); // Bu fonksiyonu aşağıda tanımlayacağız
+                     placementMode = false; 
                  } else {
                      statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
                      disableControls();
-                     placementMode = true; // Harf seçildi, yerleştirmeye izin ver
+                     placementMode = true; 
                  }
              }
-             return; // Tek kişilik mantığı burada biter
+             return; 
         }
 
         // B) Normal Hamleler (1-24) - Random
-        actionArea.classList.add('hidden');
-        randomLetterDisplay.classList.remove('hidden');
-        randomLetterDisplay.textContent = currentLetter || "?";
+        if(actionArea) actionArea.classList.add('hidden');
+        if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
+        if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
         
         // Eğer gridimizdeki dolu sayısı, hamle sayısından azsa -> Henüz oynamadık demektir.
         if (myFilledCount < moveNumber) {
             statusMsg.textContent = `HARF: ${currentLetter} - Yerleştir!`;
-            placementMode = true; // <--- İŞTE BU SATIR SAYESİNDE TIKLAYABİLİRSİNİZ
+            placementMode = true; // <--- TEK KİŞİLİK MODDA TIKLAMAYI AÇAN KOD
         } else {
-            // Biz oynadık, veritabanının moveNumber'ı artırmasını bekliyoruz
             statusMsg.textContent = "Kaydediliyor...";
             placementMode = false;
         }
@@ -9101,12 +9134,12 @@ function handleTurnLogic(data, myGridData) {
     const isMyTurn = (data.turnOwner === myPlayerId);
     const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
     const myFilledCount = myGridData.filter(c => c !== '').length;
-    const oppFilledCount = oppGridData.filter(c => c !== '').length;
-
+    // oppFilledCount burada kullanılmıyor ama mantık takibi için kalabilir.
+    
     // 25. Hamle Kontrolü (Çok Oyunculu)
     if (moveNumber === 25) {
-        actionArea.classList.remove('hidden');
-        randomLetterDisplay.classList.add('hidden');
+        if(actionArea) actionArea.classList.remove('hidden');
+        if(randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
         
         if (myFilledCount >= 25) {
             statusMsg.textContent = "Oyunun bitmesi bekleniyor...";
@@ -9127,22 +9160,20 @@ function handleTurnLogic(data, myGridData) {
     }
 
     // Normal Hamleler (1-24)
-    actionArea.classList.add('hidden');
-    randomLetterDisplay.classList.remove('hidden');
+    if(actionArea) actionArea.classList.add('hidden');
+    if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
     
     // Klasik Modda Harf Gösterimi
     if (data.gameMode === 'CLASSIC') {
-         // ... (Klasik mod kodları aynen kalır) ...
-         // Basitleştirilmiş hali:
          if (data.currentLetter) {
-             randomLetterDisplay.textContent = data.currentLetter;
+             if(randomLetterDisplay) randomLetterDisplay.textContent = data.currentLetter;
          } else {
-             randomLetterDisplay.textContent = "?";
+             if(randomLetterDisplay) randomLetterDisplay.textContent = "?";
          }
     } 
     // Random Modda Harf Gösterimi
     else {
-        randomLetterDisplay.textContent = currentLetter || "?";
+        if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
     }
 
     // Yerleştirme İzni Kontrolü
@@ -9167,19 +9198,27 @@ function handleTurnLogic(data, myGridData) {
 // ==========================================
 
 async function submitLetter() {
-    let letter = letterInput.value.toLocaleUpperCase('tr-TR'); 
+    // Güvenlik için DOM elementlerini burada tekrar seçiyoruz
+    const letterInput = document.getElementById('letterInput');
+    const statusMsg = document.getElementById('gameStatusMsg');
     
+    let letter = letterInput.value.trim().toLocaleUpperCase('tr-TR'); 
+    const validLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ"; // Türkçe geçerli harfler
+
     // 1. Kontrol: Geçerli tek bir harf girildi mi?
     if (!letter || letter.length !== 1) {
         statusMsg.textContent = "HATA: Lütfen geçerli tek bir harf girin.";
         return;
     }
+    // DÜZELTME 1: Türkçe karakter geçerliliğini kontrol et
+    if (!validLetters.includes(letter)) {
+        statusMsg.textContent = "HATA: Geçersiz bir karakter girdiniz.";
+        return;
+    }
     
     const gameRef = db.collection('games').doc(currentGameId);
     
-    // --- ÖZEL DURUM KONTROLÜ: 25. HAMLE ---
-    
-    // Önce güncel moveNumber'ı tek bir okuma ile çekelim
+    // Harf seçme anındaki moveNumber'ı çekelim
     const doc = await gameRef.get();
     if (!doc.exists) {
         statusMsg.textContent = "HATA: Oyun verisi bulunamadı.";
@@ -9189,43 +9228,40 @@ async function submitLetter() {
     const isFinalMove = (data.moveNumber === 25);
     
     if (isFinalMove) {
-    // 25. Hamle: YEREL İŞLEM
-    myFinalLetter = letter; 
-    placementMode = true; 
-    
-    statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
-    disableControls(); 
+        // 25. Hamle: YEREL İŞLEM
+        myFinalLetter = letter; 
+        placementMode = true; 
+        
+        statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
+        disableControls(); 
 
-    // KRİTİK EKLENTİ: Hangi grid benim gridim?
-    const myCurrentGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
-    
-    // HATA DÜZELTİLDİ: Doğru değişkeni kullanıyoruz!
-    renderGrid(myCurrentGridData, 'myGrid'); 
-    
-    letterInput.value = '';
-    return; // İşlem bitti, buradan çık
-}
+        const myCurrentGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
+        renderGrid(myCurrentGridData, 'myGrid'); 
+        
+        letterInput.value = '';
+        return; 
+    }
     
     // --- NORMAL KLASİK MOD MANTIĞI (Transaction ile güvenli yazma) ---
     try {
         await db.runTransaction(async (transaction) => {
-            // Data zaten dışarıda çekildi ama Transaction için tekrar çekilmesi gerekir
             const doc_inner = await transaction.get(gameRef);
             const data_inner = doc_inner.data();
 
-            // Sıra bende mi ve harf daha önce seçilmiş mi?
             if (data_inner.currentLetter) {
                 throw new Error("Harf zaten seçilmiş.");
             }
             if (data_inner.turnOwner !== myPlayerId) {
                  throw new Error("Sıra sizde değil.");
             }
-
+            
             // Harfi veritabanına kaydet
             transaction.update(gameRef, {
                 currentLetter: letter,
             });
             
+            // Harf seçimi başarılıysa kontrolü devre dışı bırak
+            disableControls();
             letterInput.value = '';
         });
 
@@ -9240,42 +9276,40 @@ async function submitLetter() {
 }
 
 // ==========================================
-// HÜCRE TIKLAMA (TEK VE ÇOK KİŞİLİK + ÇİFT TIKLAMA ONAYLI)
+// HÜCRE TIKLAMA (TEK VE ÇOK KİŞİLİK UYUMLU)
 // ==========================================
 
 async function handleCellClick(index) {
     // 1. Kontrol: Yerleştirme modunda mıyız?
     if (!placementMode) {
-        statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız.";
+        // Bu mesajın gösterilmesi için HTML'de 'gameStatusMsg' veya 'statusMsg' elementinin olması gerekir.
+        // Hangi ID'yi kullanıyorsanız onu ayarlayın.
+        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
+        if (statusMsg) statusMsg.textContent = "HATA: Şu anda yerleştirme yapamazsınız."; 
         return;
     }
 
-    // --- YENİ: İKİ AŞAMALI ONAY MEKANİZMASI ---
-    
+    // --- ÇİFT TIKLAMA (ONAY) MEKANİZMASI ---
     // Durum 1: İlk defa tıklanıyor veya farklı bir hücreye tıklandı
     if (selectedDraftIndex !== index) {
         selectedDraftIndex = index; // Yeni hücreyi seç
         
         // Grid'i tekrar çiz ki sarı renk görünsün
-        // myGridData global değişkenini kullanıyoruz (Firebase'den en son gelen veri)
         renderGrid(myGridData, 'myGrid'); 
         
-        return; // Fonksiyondan çık, veritabanına yazma!
+        return; // İşlemi burada durdur ve ikinci tıklamayı bekle
     }
     
     // Durum 2: Zaten seçili olan (Sarı) hücreye tekrar tıklandı -> İŞLEMİ YAP!
     // Seçimi sıfırla
     selectedDraftIndex = null;
 
-    // Gerekli Global Değişken Kontrolleri
-    // myGridData'nın listenToGame içinde güncellendiğinden emin olun.
+    // Hücre dolu mu kontrolü (Global veriden)
     if (myGridData[index] !== '') {
-        statusMsg.textContent = "Bu hücre zaten dolu.";
+        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
+        if (statusMsg) statusMsg.textContent = "Bu hücre zaten dolu.";
         return;
     }
-
-    // 25. Hamle yerel kontrolü (myFinalLetter)
-    if (myPlayerId === 'PlayerA' && window.myFinalLetterA) { /*OK*/ } 
     
     // Transaction Başlatılıyor
     const gameRef = db.collection('games').doc(currentGameId);
@@ -9287,7 +9321,7 @@ async function handleCellClick(index) {
             
             const data = doc.data();
             const currentMoveNumber = data.moveNumber;
-            const isSinglePlayer = data.isSinglePlayer || false; // Tek kişilik mi?
+            const isSinglePlayer = data.isSinglePlayer || false;
             
             // --- HARF BELİRLEME ---
             let letterToPlace;
@@ -9324,11 +9358,10 @@ async function handleCellClick(index) {
                     const nextMove = currentMoveNumber + 1;
                     updatePayload.moveNumber = nextMove;
                     
-                    // 25. Hamleye geçiş mi?
                     if (nextMove === 25) {
-                         updatePayload.currentLetter = null; // Manuel seçim için sıfırla
+                         updatePayload.currentLetter = null; 
                     } else {
-                         // Diziden sıradaki harfi al
+                         // Diziden sıradaki harfi al (currentMoveNumber, dizideki bir sonraki harfin indexidir)
                          updatePayload.currentLetter = data.letterSequence[currentMoveNumber]; 
                     }
                 }
@@ -9347,7 +9380,7 @@ async function handleCellClick(index) {
                          updatePayload.currentLetter = null; 
                     } else {
                          updatePayload.moveNumber = firebase.firestore.FieldValue.increment(1);
-                         // Random mod ise harfi güncelle
+                         
                          if (data.gameMode === 'RANDOM') {
                              updatePayload.currentLetter = data.letterSequence[currentMoveNumber];
                          } else {
@@ -9365,8 +9398,9 @@ async function handleCellClick(index) {
 
     } catch (e) {
         console.error("Hücre tıklama hatası:", e);
-        statusMsg.textContent = "Hata: " + e.message;
-        // Hata durumunda seçimi sıfırlamak iyi olabilir
+        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
+        if (statusMsg) statusMsg.textContent = "Hata: " + e.message;
+        
         selectedDraftIndex = null;
         renderGrid(myGridData, 'myGrid');
     }
@@ -9671,6 +9705,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
