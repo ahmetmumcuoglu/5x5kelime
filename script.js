@@ -9015,10 +9015,6 @@ function listenToGame() {
                 document.getElementById('scoreA').textContent = resultA.score;
                 document.getElementById('scoreB').textContent = resultB.score;
 
-                // Sonuç Gridlerini Çiz (Küçük Gridler)
-                renderGrid(data.gridA, 'finalGridA');
-                renderGrid(data.gridB, 'finalGridB');
-
                 // Kelime Listelerini Doldur
                 const listA = document.getElementById('wordsListA');
                 const listB = document.getElementById('wordsListB');
@@ -9026,6 +9022,10 @@ function listenToGame() {
                 listA.innerHTML = resultA.words.map(w => `<li>${w}</li>`).join('');
                 listB.innerHTML = resultB.words.map(w => `<li>${w}</li>`).join('');
 
+              // --- KRİTİK DEĞİŞİKLİK: YENİ PUAN GRIDİNİ ÇİZ ---
+                renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
+                renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
+                
                 // --- YENİ EKLENEN KISIM: TEK KİŞİLİK / ÇOK KİŞİLİK AYRIMI ---
                 const finalMsgElement = document.getElementById('finalResultMsg');
                 const resultCards = document.querySelectorAll('.result-card'); // Kartları bul (0: A, 1: B)
@@ -9408,52 +9408,41 @@ async function handleCellClick(index) {
 }
 
 // ==========================================
-// PUAN HESAPLAMA (HIYERARŞİK VE KOMBİNASYONLU)
+// PUAN HESAPLAMA (GÜNCELLENMİŞ - Satır/Sütun Puanlarını Döndürür)
 // ==========================================
 
 function calculateScore(gridData) {
     const GRID_SIZE = 5;
     let totalScore = 0;
-    let foundWords = new Set(); // Puanlanan kelimeleri listelemek için
-
-    // Puan Kuralları
+    let foundWords = new Set();
+    
+    // YENİ EKLENEN: Satır ve Sütun bazlı puanları tutar
+    const rowScores = Array(5).fill(0);
+    const colScores = Array(5).fill(0);
+    
     const SCORE_RULES = { 2: 2, 3: 3, 4: 6, 5: 10 };
 
-    /**
-     * Bir segment (örn: "TATOK" veya "OALEL") içindeki en yüksek puanı hesaplar.
-     * Kurallar:
-     * 1. 5 veya 4 harfli kelime varsa, SADECE o puanı al ve bitir.
-     * 2. Yoksa, çakışmayan 3 ve 2 harfli kelimelerin en yüksek toplamını bul.
-     */
     const getSegmentMaxScore = (text) => {
         // --- ADIM 1: BASKIN KELİME KONTROLÜ (4 ve 5 Harfliler) ---
-        
-        // 5 Harfli Kontrolü
         if (text.length === 5 && isValidWord(text)) {
             foundWords.add(text);
-            return SCORE_RULES[5]; // 10 Puan, başka şeye bakma.
+            return SCORE_RULES[5];
         }
 
-        // 4 Harfli Kontrolü (0-3 veya 1-4 aralığı)
-        // Eğer 4 harfli kelime bulunursa, kalan 1 harf kelime olamayacağı için direkt döneriz.
         for (let i = 0; i <= text.length - 4; i++) {
             const sub = text.substring(i, i + 4);
             if (isValidWord(sub)) {
                 foundWords.add(sub);
-                return SCORE_RULES[4]; // 6 Puan, başka şeye bakma.
+                return SCORE_RULES[4];
             }
         }
 
         // --- ADIM 2: KOMBİNASYON KONTROLÜ (3 ve 2 Harfliler) ---
-        // Eğer buraya geldiysek, 4 veya 5 harfli kelime YOKTUR.
-        // Şimdi çakışmayan (overlap olmayan) en iyi 3 ve 2'lileri bulacağız.
-        
         let maxComboScore = 0;
-        let bestWords = []; // En iyi senaryodaki kelimeleri tutmak için
-
-        // Olası tüm geçerli alt kelimeleri bul: {word: "TAT", start: 0, end: 3, score: 3}
+        let bestWords = []; 
         let validSubWords = [];
-        for (let len = 3; len >= 2; len--) { // Önce 3'lüler, sonra 2'liler
+        
+        for (let len = 3; len >= 2; len--) {
             for (let i = 0; i <= text.length - len; i++) {
                 const sub = text.substring(i, i + len);
                 if (isValidWord(sub)) {
@@ -9467,10 +9456,6 @@ function calculateScore(gridData) {
             }
         }
 
-        // Çakışmayan kelimelerden maksimum puanı hesapla.
-        // Grid boyutu 5 olduğu için olasılıklar sınırlıdır, basit bir iterasyon yeterli.
-        
-        // Senaryo A: Tek Kelimeler (Sadece bir tane 3'lü veya 2'li varsa)
         validSubWords.forEach(item => {
             if (item.score > maxComboScore) {
                 maxComboScore = item.score;
@@ -9478,15 +9463,10 @@ function calculateScore(gridData) {
             }
         });
 
-        // Senaryo B: İki Kelime (Çakışmayan)
-        // Birinci kelimeyi al, ikincisiyle çakışıyor mu kontrol et.
         for (let i = 0; i < validSubWords.length; i++) {
             for (let j = i + 1; j < validSubWords.length; j++) {
                 const w1 = validSubWords[i];
                 const w2 = validSubWords[j];
-
-                // Çakışma Kontrolü: w1 bitişi w2 başlangıcından küçük veya eşit olmalı (veya tam tersi)
-                // Ancak döngümüz sıralı gitmeyebilir, garantiye alalım:
                 const isOverlapping = (w1.start < w2.end && w2.start < w1.end);
 
                 if (!isOverlapping) {
@@ -9498,38 +9478,32 @@ function calculateScore(gridData) {
                 }
             }
         }
-
-        // En iyi senaryodaki kelimeleri sonuç listesine ekle
-        bestWords.forEach(w => foundWords.add(w));
         
+        bestWords.forEach(w => foundWords.add(w));
         return maxComboScore;
     }
 
-    // Yardımıcı fonksiyon: Grid verisinden satır/sütun stringi oluşturur
     const getLineString = (indices) => {
-        // null/undefined olanları boşluk yap
         return indices.map(index => gridData[index] || ' ').join('');
     };
 
-    // --- ANA DÖNGÜ: SATIR VE SÜTUNLARI TARA ---
-
-    // 1. Yatay (Satır) Tarama
+    // --- Satır Tarama ---
     for (let row = 0; row < GRID_SIZE; row++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => row * GRID_SIZE + i);
         const lineStr = getLineString(indices);
         
-        // Satırı boşluklardan ayırarak segmentleri bul (örn: "A B" -> ["A", "B"])
-        // "OALEL" -> ["OALEL"]
         const segments = lineStr.replace(/\s+/g, ' ').split(' ');
         
         segments.forEach(segment => {
-            if (segment.length >= 2) { // En az 2 harf varsa puanlamaya değer
-                totalScore += getSegmentMaxScore(segment);
+            if (segment.length >= 2) { 
+                const segmentScore = getSegmentMaxScore(segment);
+                totalScore += segmentScore;
+                rowScores[row] += segmentScore; // <--- PUANI KAYDET
             }
         });
     }
 
-    // 2. Dikey (Sütun) Tarama
+    // --- Sütun Tarama ---
     for (let col = 0; col < GRID_SIZE; col++) {
         const indices = Array.from({ length: GRID_SIZE }, (_, i) => i * GRID_SIZE + col);
         const lineStr = getLineString(indices);
@@ -9538,23 +9512,22 @@ function calculateScore(gridData) {
         
         segments.forEach(segment => {
             if (segment.length >= 2) {
-                totalScore += getSegmentMaxScore(segment);
+                const segmentScore = getSegmentMaxScore(segment);
+                totalScore += segmentScore;
+                colScores[col] += segmentScore; // <--- PUANI KAYDET
             }
         });
     }
 
-   // Sonuçları döndür (SIRALAMA MANTIĞI GÜNCELLENDİ)
+    // SONUÇLARI YENİ YAPIDA DÖNDÜR
     return {
         score: totalScore,
-        // Kelimeleri Set'ten Diziye çevir ve sırala
         words: Array.from(foundWords).sort((a, b) => {
-            // 1. Kriter: Uzunluk (Büyükten küçüğe)
-            if (b.length !== a.length) {
-                return b.length - a.length;
-            }
-            // 2. Kriter: Eğer uzunluk aynıysa Alfabetik (A-Z)
+            if (b.length !== a.length) return b.length - a.length;
             return a.localeCompare(b, 'tr');
-        })
+        }),
+        rowScores: rowScores,
+        colScores: colScores
     };
 }
 
@@ -9588,11 +9561,11 @@ function showResults(data) {
     scoreAEl.textContent = resultA.score;
     scoreBEl.textContent = resultB.score;
 
-    // Sonuç ekranına gridleri çiz
-    renderGrid(data.gridA, 'finalGridA');
-    renderGrid(data.gridB, 'finalGridB');
+    // 5. Gridleri YENİ FONKSİYONLA Çiz
+    renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
+    renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
 
-    // 5. Kelime Listelerini Doldur
+    // 6. Kelime Listelerini Doldur
     const populateWordList = (words, element) => {
         element.innerHTML = '';
         if (words.length === 0) {
@@ -9609,7 +9582,7 @@ function showResults(data) {
     populateWordList(resultA.words, wordsListAEl);
     populateWordList(resultB.words, wordsListBEl);
 
-    // 6. Sonuç Mesajını Belirle
+    // 7. Sonuç Mesajını Belirle
     let message = '';
     let color = '';
 
@@ -9676,6 +9649,66 @@ function renderGrid(gridData, elementId) {
     });
 }
 
+// ==========================================
+// YENİ FONKSİYON: SONUÇ GRIDINI ÇİZME (RENK KODLAMALI)
+// ==========================================
+
+function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
+    const gridElement = document.getElementById(elementId);
+    if (!gridElement) return;
+
+    // Grid yapısını 6x6 olarak ayarla
+    gridElement.style.gridTemplateColumns = 'repeat(6, 1fr)';
+    gridElement.style.gridTemplateRows = 'repeat(6, 1fr)';
+
+    // İçeriği temizle
+    gridElement.innerHTML = '';
+    
+    // Yardımcı fonksiyon: Puana göre CSS sınıfı döndürür (Bkz. CSS adımı)
+    const getScoreClass = (score) => {
+        if (score >= 10) return 'score-10';
+        if (score >= 6) return 'score-6';
+        if (score >= 5) return 'score-5';
+        if (score >= 4) return 'score-4';
+        if (score >= 3) return 'score-3';
+        if (score >= 2) return 'score-2';
+        return ''; 
+    };
+
+    // 5x5 harf hücresi ve 5x1 satır puanı hücresi oluştur
+    for (let i = 0; i < 25; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.textContent = gridData[i] || '';
+        gridElement.appendChild(cell);
+
+        // Satır sonu (i=4, 9, 14, 19, 24)
+        if ((i + 1) % 5 === 0) {
+            const rowIndex = Math.floor(i / 5);
+            const scoreCell = document.createElement('div');
+            const score = rowScores[rowIndex];
+            
+            // Satır puanı kutusuna renk sınıfını ekle
+            scoreCell.classList.add('cell', 'score-cell-row', getScoreClass(score));
+            scoreCell.textContent = score;
+            gridElement.appendChild(scoreCell);
+        }
+    }
+    
+    // 5x1 kolon puanı hücresi oluştur
+    colScores.forEach(score => {
+        const scoreCell = document.createElement('div');
+        // Kolon puanı kutusuna renk sınıfını ekle
+        scoreCell.classList.add('cell', 'score-cell-col', getScoreClass(score));
+        scoreCell.textContent = score;
+        gridElement.appendChild(scoreCell);
+    });
+
+    // Köşe hücresi (Boş ve şeffaf kalacak)
+    const cornerCell = document.createElement('div');
+    cornerCell.classList.add('cell', 'empty-corner');
+    gridElement.appendChild(cornerCell);
+}
 
 // ==========================================
 // KONTROL FONKSİYONLARI
@@ -9703,6 +9736,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
