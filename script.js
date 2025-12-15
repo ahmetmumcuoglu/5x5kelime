@@ -9086,7 +9086,7 @@ function handleTurnLogic(data, myGridData) {
     // --- TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
         if (moveNumber === 25) {
-            // 25. hamle
+            // 25. hamle (Son harf girişi)
             if (actionArea) actionArea.classList.remove('hidden');
             if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
             
@@ -9105,7 +9105,6 @@ function handleTurnLogic(data, myGridData) {
                 statusMsg.style.color = "#3498db";
                 disableControls();
                 placementMode = true;
-              renderGrid(myGridData, 'myGrid');
             }
         } else {
             // Normal hamleler (1-24)
@@ -9121,7 +9120,8 @@ function handleTurnLogic(data, myGridData) {
                 statusMsg.textContent = `Harf: ${currentLetter} - Yerleştirmek için bir hücreye tıkla!`;
                 statusMsg.style.color = "#3498db";
                 placementMode = true;
-              renderGrid(myGridData, 'myGrid');
+                // Tek kişilik modda yerleştirme izni açıldığında hemen render et
+                renderGrid(myGridData, 'myGrid'); // EKLENEN KRİTİK ÇAĞRI
             } else {
                 statusMsg.textContent = "Kaydediliyor, lütfen bekleyin...";
                 statusMsg.style.color = "#7f8c8d";
@@ -9139,22 +9139,21 @@ function handleTurnLogic(data, myGridData) {
     if (moveNumber === 25) {
          if(actionArea) actionArea.classList.remove('hidden');
          if(randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
-        
+         
          if (myFilledCount >= 25) {
             statusMsg.textContent = "Oyunun bitmesi bekleniyor...";
             disableControls();
             placementMode = false;
          } else {
-            if (!myFinalLetter) {
-                statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
-                enableControls(true);
-                placementMode = false;
-            } else {
-                statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
-                disableControls();
-                placementMode = true;
-              renderGrid(myGridData, 'myGrid');
-            }
+             if (!myFinalLetter) {
+                 statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
+                 enableControls(true);
+                 placementMode = false;
+             } else {
+                 statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
+                 disableControls();
+                 placementMode = true;
+             }
          }
          return;
     }
@@ -9163,38 +9162,58 @@ function handleTurnLogic(data, myGridData) {
     if(actionArea) actionArea.classList.add('hidden');
     if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
     
-    // Harf Gösterimi
+    // Harf Gösterimi / Seçimi
     if (data.gameMode === 'CLASSIC') {
-         if (data.currentLetter) {
-             if(randomLetterDisplay) randomLetterDisplay.textContent = data.currentLetter;
-         } else {
-             if(randomLetterDisplay) randomLetterDisplay.textContent = "?";
-         }
-         
-         // Klasik Modda harf seçilmediyse yerleştirmeye izin verme!
-         if (!data.currentLetter && isMyTurn) {
-             statusMsg.textContent = "Önce harfi seçmelisin!";
-             enableControls(true); 
-             placementMode = false; 
-             return; 
-         }
-         
+          // --- KLASİK MOD ---
+          if (!data.currentLetter) { 
+              // Harf daha seçilmemiş
+              if (isMyTurn) {
+                  statusMsg.textContent = "Önce harfi seçmelisin!";
+                  enableControls(true); // Harf girişini ve butonu aç
+                  if(randomLetterDisplay) randomLetterDisplay.textContent = "?";
+                  if(actionArea) actionArea.classList.remove('hidden'); // Action Area'yı göster
+                  placementMode = false;
+              } else {
+                  statusMsg.textContent = "Rakibin harf seçmesi bekleniyor...";
+                  disableControls();
+                  if(randomLetterDisplay) randomLetterDisplay.textContent = "?";
+                  if(actionArea) actionArea.classList.add('hidden');
+                  placementMode = false;
+              }
+              return; // Harf seçimi bekleniyorsa buradan çık.
+          } else {
+              // Harf seçilmiş (data.currentLetter dolu)
+              if(actionArea) actionArea.classList.add('hidden'); // Action Area'yı gizle
+              if(randomLetterDisplay) randomLetterDisplay.textContent = data.currentLetter;
+              disableControls(); // Harf seçimi bittiği için kontrolleri kapat
+          }
+          
     } else {
+        // --- RANDOM MOD ---
         if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
+        if(actionArea) actionArea.classList.add('hidden');
+        disableControls(); // Random modda harf seçilmez
     }
 
-    // Yerleştirme İzni Kontrolü
+    // Yerleştirme İzni Kontrolü (Sıra Kontrolü)
     if (isMyTurn) {
         if (myFilledCount < moveNumber) {
+            // Harf seçilmiş VE sıra bende: Yerleştirme Modu
             statusMsg.textContent = `Sıra Sende! Harf: ${randomLetterDisplay.textContent}`;
+            statusMsg.style.color = "#3498db";
             placementMode = true;
-          renderGrid(myGridData, 'myGrid');
+            // !!! KRİTİK DÜZELTME !!!
+            renderGrid(myGridData, 'myGrid'); // Yerleştirme modu açılınca hemen render et
         } else {
+            // Harfi yerleştirdim, rakibi bekliyorum
             statusMsg.textContent = "Rakibin oynaması bekleniyor...";
+            statusMsg.style.color = "#7f8c8d";
             placementMode = false;
         }
     } else {
+        // Rakibin sırası
         statusMsg.textContent = "Rakibin oynaması bekleniyor...";
+        statusMsg.style.color = "#7f8c8d";
         placementMode = false;
     }
 }
@@ -9708,4 +9727,5 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
