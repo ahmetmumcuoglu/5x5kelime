@@ -9,39 +9,39 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
-    <div class="main-wrapper">
-        <h1>Kelimelik 5x5 (Online)</h1>
-
-     <div class="lobby-controls">
     
-    <div class="control-group">
-        <label for="gameModeSelect" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Oyun Modu:</label>
-        <select id="gameModeSelect">
-            <option value="CLASSIC">KLASİK (SIRAYLA SEÇMELİ)</option>
-            <option value="RANDOM">RANDOM (RASTGELE HARF)</option>
-        </select>
-        <button id="createGameBtn" onclick="createNewGame()">Yeni Oyun Kur</button>
+<div id="lobbyPanel" class="panel">
+    <h2 class="panel-title">Kelime Oyunu</h2>
+    
+    <div class="lobby-controls">
+        
+        <div class="control-group">
+            <label for="gameModeSelect" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Oyun Modu:</label>
+            <select id="gameModeSelect">
+                <option value="CLASSIC">KLASİK (SIRAYLA SEÇMELİ)</option>
+                <option value="RANDOM">RANDOM (RASTGELE HARF)</option>
+            </select>
+            <button id="createGameBtn" onclick="createNewGame()">Yeni Oyun Kur</button>
+        </div>
+
+        <div class="lobby-divider">- VEYA -</div>
+        
+        <div class="control-group">
+            <button id="singlePlayerBtn" onclick="startSinglePlayerGame()">
+                Tek Başına Oyna (Random)
+            </button>
+        </div>
+
+        <div class="lobby-divider">- VEYA -</div>
+        
+        <div class="join-area">
+            <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
+            <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
+        </div>
+
     </div>
 
-    <div class="lobby-divider">- VEYA -</div>
-    
-    <div class="control-group">
-        <button id="singlePlayerBtn" onclick="startSinglePlayerGame()" style="background-color: #9b59b6;">
-            Tek Başına Oyna (Random)
-        </button>
-    </div>
-
-    <div class="lobby-divider">- VEYA -</div>
-    
-    <div class="join-area">
-        <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
-        <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
-    </div>
-
-</div>
-
-        <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
-
+    <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
 </div>
         
         <div id="gamePanel" class="panel hidden">
@@ -127,6 +127,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
