@@ -9662,14 +9662,11 @@ function renderGrid(gridData, elementId) {
         if (isMyGrid && index === selectedDraftIndex) {
             cell.classList.add('selected-draft');
             
-            // Seçili hücrede, o anki yerleştirilecek harfi geçici olarak göster (Hayalet Harf)
-            // Bu kullanıcıya harfin orada nasıl duracağını gösterir
-            const currentMoveData = document.getElementById('randomLetterDisplay').textContent; // Random harfi al
-            // Veya manuel moddaysa inputtaki/db'deki harfi al
-            // Basitlik için: Sadece sarı kalsın, harf koymak karışıklık yaratabilir.
-        }
-
-        if (isClickable && letter === '') {
+            // DÜZELTME: Tıklanabilirlik kontrolü güncellendi
+        // Eğer yerleştirme modu açıksa VE (hücre boşsa VEYA hücre zaten seçiliyse) tıklanabilir olmalı.
+        const shouldBeClickable = isClickable && (letter === '' || index === selectedDraftIndex);
+        
+        if (shouldBeClickable) {
              cell.classList.add('clickable');
              cell.onclick = () => handleCellClick(index);
         } else {
@@ -9711,6 +9708,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.disabled = true;
     }
 }
+
 
 
 
