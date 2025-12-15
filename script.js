@@ -9069,68 +9069,66 @@ function listenToGame() {
         });
 }
 
-// ==========================================
-// HAMLE VE SIRA MANTIĞI (SON VE KESİN DÜZELTME)
-// ==========================================
-
 function handleTurnLogic(data, myGridData) {
-    // DOM Elementlerini Güvenli Şekilde Seç
     const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
-    const statusMsg = document.getElementById('gameStatusMsg'); 
-
-    const moveNumber = data.moveNumber; 
-    const currentLetter = data.currentLetter;
+    const statusMsg = document.getElementById('gameStatusMsg');
     
-    // myFilledCount'ı fonksiyonun en başında tanımlıyoruz.
-    const myFilledCount = myGridData.filter(c => c !== '').length;
-
-    // --- ÖNCELİKLİ KONTROL: TEK KİŞİLİK MOD ---
+    const moveNumber = data.moveNumber || 1;
+    const currentLetter = data.currentLetter || "";
+    
+    // Dolu hücre sayısını hesapla
+    const myFilledCount = myGridData.filter(cell => cell !== '' && cell !== null).length;
+    
+    // Durum mesajını sıfırla
+    if (statusMsg) {
+        statusMsg.className = "status-msg";
+    }
+    
+    // --- TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
-        
-        // KRİTİK EK: Harf gelmediyse bekle!
-        if (!currentLetter && moveNumber < 25) {
-             statusMsg.textContent = "Harf verisi bekleniyor...";
-             placementMode = false;
-             return; 
-        }
-
-        // A) 25. Hamle (Manuel Seçim)
         if (moveNumber === 25) {
-             if(actionArea) actionArea.classList.remove('hidden'); 
-             if(randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
-             
-             if (myFilledCount >= 25) {
-                 statusMsg.textContent = "Oyun Bitti. Sonuçlar hesaplanıyor...";
-                 placementMode = false;
-                 disableControls(); 
-             } else {
-                 if (!myFinalLetter) {
-                     statusMsg.textContent = "SON HAMLE! İstediğin harfi seç.";
-                     enableControls(true); 
-                     placementMode = false; 
-                 } else {
-                     statusMsg.textContent = `SEÇİLEN: "${myFinalLetter}" - Yerleştir!`;
-                     disableControls();
-                     placementMode = true; 
-                 }
-             }
-             return; 
-        }
-
-        // B) Normal Hamleler (1-24) - Random
-        if(actionArea) actionArea.classList.add('hidden');
-        if(randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
-        if(randomLetterDisplay) randomLetterDisplay.textContent = currentLetter || "?";
-        
-        if (myFilledCount < moveNumber) {
-            statusMsg.textContent = `HARF: ${currentLetter} - Yerleştir!`;
-            placementMode = true; 
+            // 25. hamle
+            if (actionArea) actionArea.classList.remove('hidden');
+            if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
+            
+            if (myFilledCount >= 25) {
+                statusMsg.textContent = "Tüm hücreler dolu. Oyun bitiyor...";
+                statusMsg.style.color = "#27ae60";
+                placementMode = false;
+                disableControls();
+            } else if (!myFinalLetter) {
+                statusMsg.textContent = "SON HAMLE! İstediğin harfi seç:";
+                statusMsg.style.color = "#e74c3c";
+                enableControls(true);
+                placementMode = false;
+            } else {
+                statusMsg.textContent = `Seçilen harf: "${myFinalLetter}" - Şimdi bir hücreye tıkla!`;
+                statusMsg.style.color = "#3498db";
+                disableControls();
+                placementMode = true;
+            }
         } else {
-            statusMsg.textContent = "Kaydediliyor...";
-            placementMode = false;
+            // Normal hamleler (1-24)
+            if (actionArea) actionArea.classList.add('hidden');
+            if (randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
+            
+            if (randomLetterDisplay && currentLetter) {
+                randomLetterDisplay.textContent = currentLetter;
+                randomLetterDisplay.style.color = "#e67e22";
+            }
+            
+            if (myFilledCount < moveNumber) {
+                statusMsg.textContent = `Harf: ${currentLetter} - Yerleştirmek için bir hücreye tıkla!`;
+                statusMsg.style.color = "#3498db";
+                placementMode = true;
+            } else {
+                statusMsg.textContent = "Kaydediliyor, lütfen bekleyin...";
+                statusMsg.style.color = "#7f8c8d";
+                placementMode = false;
+            }
         }
-        return; 
+        return;
     }
 
     // --- BURADAN AŞAĞISI ÇOK OYUNCULU MOD ---
@@ -9643,6 +9641,10 @@ function showResults(data) {
 // GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
 // ==========================================
 
+// ==========================================
+// GRID ÇİZİM FONKSİYONU (DÜZELTİLMİŞ)
+// ==========================================
+
 function renderGrid(gridData, elementId) {
     const gridElement = document.getElementById(elementId);
     if (!gridElement) return;
@@ -9657,21 +9659,20 @@ function renderGrid(gridData, elementId) {
         cell.classList.add('cell');
         cell.textContent = letter || ''; 
         
-        // --- YENİ EKLENTİ: SEÇİM GÖRSELLİĞİ ---
-        // Eğer bu hücre benim gridimde seçtiğim hücre ise 'selected-draft' sınıfını ekle
+        // Seçim görselleştirmesi
         if (isMyGrid && index === selectedDraftIndex) {
             cell.classList.add('selected-draft');
-            
-            // DÜZELTME: Tıklanabilirlik kontrolü güncellendi
-        // Eğer yerleştirme modu açıksa VE (hücre boşsa VEYA hücre zaten seçiliyse) tıklanabilir olmalı.
+        }
+        
+        // Tıklanabilirlik kontrolü
         const shouldBeClickable = isClickable && (letter === '' || index === selectedDraftIndex);
         
         if (shouldBeClickable) {
-             cell.classList.add('clickable');
-             cell.onclick = () => handleCellClick(index);
+            cell.classList.add('clickable');
+            cell.onclick = () => handleCellClick(index);
         } else {
-             cell.classList.remove('clickable');
-             cell.onclick = null;
+            cell.classList.remove('clickable');
+            cell.onclick = null;
         }
 
         gridElement.appendChild(cell);
@@ -9709,6 +9710,32 @@ function enableControls(isLetterSelectionMode = true) {
     }
 }
 
+// ==========================================
+// KONTROL FONKSİYONLARI
+// ==========================================
+
+function disableControls() {
+    const letterInput = document.getElementById('letterInput');
+    const actionButton = document.getElementById('submitLetterButton');
+    if (letterInput) letterInput.disabled = true;
+    if (actionButton) actionButton.disabled = true;
+}
+
+function enableControls(isLetterSelectionMode = true) {
+    const letterInput = document.getElementById('letterInput');
+    const actionButton = document.getElementById('submitLetterButton');
+    
+    if (letterInput) {
+        letterInput.disabled = !isLetterSelectionMode;
+        if (isLetterSelectionMode) {
+            letterInput.focus();
+        }
+    }
+    if (actionButton) {
+        actionButton.disabled = false;
+        actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
+    }
+}
 
 
 
