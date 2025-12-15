@@ -2,7 +2,9 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kelimelik 5x5 Online</title>
+    
     <link rel="stylesheet" href="style.css"> 
     
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -10,130 +12,124 @@
 </head>
 <body>
     
-<div id="lobbyPanel" class="panel">
-    <h2 class="panel-title">Kelime Oyunu</h2>
-    
-    <div class="lobby-controls">
+    <div id="lobbyPanel" class="panel">
+        <h2 class="panel-title">Kelime Oyunu</h2>
         
-        <div class="control-group">
-            <label for="gameModeSelect" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Oyun Modu:</label>
-            <select id="gameModeSelect">
-                <option value="CLASSIC">KLASİK (SIRAYLA SEÇMELİ)</option>
-                <option value="RANDOM">RANDOM (RASTGELE HARF)</option>
-            </select>
-            <button id="createGameBtn" onclick="createNewGame()">Yeni Oyun Kur</button>
-        </div>
-
-        <div class="lobby-divider">- VEYA -</div>
-        
-        <div class="control-group">
-            <button id="singlePlayerBtn" onclick="startSinglePlayerGame()">
-                Tek Başına Oyna (Random)
-            </button>
-        </div>
-
-        <div class="lobby-divider">- VEYA -</div>
-        
-        <div class="join-area">
-            <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
-            <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
-        </div>
-
-    </div>
-
-    <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
-</div>
-        
-        <div id="gamePanel" class="panel hidden">
+        <div class="lobby-controls">
             
-            <div class="info-bar">
-                <span>Oda: <b id="gameCodeDisplay">--</b></span> 
+            <div class="control-group">
+                <label for="gameModeSelect" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Oyun Modu:</label>
+                <select id="gameModeSelect">
+                    <option value="CLASSIC">KLASİK (SIRAYLA SEÇMELİ)</option>
+                    <option value="RANDOM">RANDOM (RASTGELE HARF)</option>
+                </select>
+                <button id="createGameBtn" onclick="createNewGame()">Yeni Oyun Kur</button>
+            </div>
+
+            <div class="lobby-divider">- VEYA -</div>
+            
+            <div class="control-group">
+                <button id="singlePlayerBtn" onclick="startSinglePlayerGame()">
+                    Tek Başına Oyna (Random)
+                </button>
+            </div>
+
+            <div class="lobby-divider">- VEYA -</div>
+            
+            <div class="join-area">
+                <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
+                <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
+            </div>
+
+        </div>
+
+        <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
+    </div>
+        
+    <div id="gamePanel" class="panel hidden">
+        
+        <div class="game-header">
+            <div class="game-info">
+                <span>Oda: <b id="displayGameCode">--</b></span> 
                 <span>Hamle: <b id="moveNumberDisplay">1/25</b></span> 
                 <span>Rolün: <b id="myPlayerRole">--</b></span> 
             </div>
+            <div class="turn-indicator" id="turnIndicator">Sıra Bekleniyor...</div>
+        </div>
 
-            <div class="controls-top">
-                <p id="gameStatusMsg">Oyun Yükleniyor...</p>
+        <div class="game-container">
+            <div class="grid-section">
+                <h4>Senin Alanın (A)</h4>
+                <div id="myGrid" class="grid"></div>
+            </div>
+
+            <div class="controls-section">
                 
-                <div id="actionArea">
-                    <input type="text" id="letterInput" maxlength="1" placeholder="Harf?" 
+                <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
+
+                <div id="actionArea" class="hidden">
+                    <input type="text" id="letterInput" maxlength="1" placeholder="?" 
                            oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
-                    <button id="submitLetterButton" onclick="submitLetter()">Harfi Seç</button>
+                    <button id="submitLetterButton" onclick="submitMove()">SEÇ</button>
                 </div>
                 
-                <div id="randomLetterDisplay" class="hidden">?</div>
+                <div id="statusMsg" class="status-msg">Oyun Yükleniyor...</div>
             </div>
-            
-            <div class="grids-container">
-                <div class="grid-box">
-                    <h4>Senin Gridin</h4>
-                    <div id="myGrid" class="grid"></div>
-                </div>
 
-                <div class="grid-box hidden-during-game">
-                    <h4>Rakip Gridi</h4>
-                    <div id="opponentGrid" class="grid"></div> 
-                </div>
+            <div class="grid-section" id="opponentSection">
+                <h4>Rakip Alanı (B)</h4>
+                <div id="opponentGrid" class="grid locked"></div>
             </div>
         </div>
+    </div>
         
-     <div id="gameOverPanel" class="panel hidden">
-    <h2 class="panel-title">OYUN SONUCU</h2>
-    <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
-    
-    <div class="results-container">
-        <div class="result-card">
-            <div class="card-header">
-                <h4>Kurucu (A)</h4>
-                <div class="final-score" id="scoreA">0</div>
-            </div>
-            
-            <div class="card-body">
-                <div class="mini-grid-wrapper">
-                    <div id="finalGridA" class="grid mini-grid"></div>
+    <div id="gameOverPanel" class="panel hidden">
+        <h2 class="panel-title">OYUN SONUCU</h2>
+        <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
+        
+        <div class="results-container">
+            <div class="result-card">
+                <div class="card-header">
+                    <h4>Kurucu (A)</h4>
+                    <div class="final-score" id="scoreA">0</div>
                 </div>
                 
-                <div class="word-list-wrapper">
-                    <h5>Bulunan Kelimeler</h5>
-                    <ul id="wordsListA" class="word-list"></ul>
+                <div class="card-body">
+                    <div class="mini-grid-wrapper">
+                        <div id="finalGridA" class="grid mini-grid"></div>
+                    </div>
+                    
+                    <div class="word-list-wrapper">
+                        <h5>Bulunan Kelimeler</h5>
+                        <ul id="wordsListA" class="word-list"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="card-header">
+                    <h4>Katılımcı (B)</h4>
+                    <div class="final-score" id="scoreB">0</div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="mini-grid-wrapper">
+                        <div id="finalGridB" class="grid mini-grid"></div>
+                    </div>
+                    
+                    <div class="word-list-wrapper">
+                        <h5>Bulunan Kelimeler</h5>
+                        <ul id="wordsListB" class="word-list"></ul>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="result-card">
-            <div class="card-header">
-                <h4>Katılımcı (B)</h4>
-                <div class="final-score" id="scoreB">0</div>
-            </div>
-            
-            <div class="card-body">
-                <div class="mini-grid-wrapper">
-                    <div id="finalGridB" class="grid mini-grid"></div>
-                </div>
-                
-                <div class="word-list-wrapper">
-                    <h5>Bulunan Kelimeler</h5>
-                    <ul id="wordsListB" class="word-list"></ul>
-                </div>
-            </div>
+        <div class="panel-footer">
+            <button id="restartBtn" onclick="window.location.reload()">TEKRAR OYNA</button>
         </div>
     </div>
-
-    <div class="panel-footer">
-        <button id="restartBtn" onclick="window.location.reload()">TEKRAR OYNA</button>
-    </div>
-</div>
     
     <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
