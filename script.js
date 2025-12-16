@@ -9401,7 +9401,7 @@ async function handleCellClick(index) {
             if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
             else updatePayload.gridB = myCurrentGrid;
             
-            // --- TUR ATLAMA MANTIĞI ---
+            // --- TUR ATLAMA VE OYUN BİTİRME MANTIĞI ---
             
             // SENARYO 1: TEK KİŞİLİK OYUN
             if (isSinglePlayer) {
@@ -9416,55 +9416,69 @@ async function handleCellClick(index) {
                 }
             }
             
-            // SENARYO 2: ÇOK OYUNCULU
+            // SENARYO 2: ÇOK OYUNCULU (Klasik ve Random)
             else {
                 let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
+                // Rakibin dolu hücrelerini say
                 const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
+                // Benim yeni dolu hücre sayım
                 const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
 
-                // --- KRİTİK JOKER HAMLE BİTİŞ KONTROLÜ (25. Hamle) ---
-                if (currentMoveNumber === 25 && myNewFilledCount === 25) {
+                // --- A. SON HAMLE KONTROLÜ (25. Hamle) ---
+                if (currentMoveNumber === 25) {
+                    // Benim gridim şimdi doldu (25).
                     
-                    // Eğer rakip de 25. hücresini doldurmuşsa (oppFilledCount == 25), oyunu bitir.
+                    // KONTROL: Rakip de bitirmiş mi?
                     if (oppFilledCount === 25) { 
+                        // İkimiz de 25'i koyduk -> OYUN BİTTİ
                         updatePayload.status = 'finished';
                         updatePayload.currentLetter = null;
+                    } 
+                    else {
+                        // Rakip henüz bitirmemiş -> BEKLEME MODU
+                        // status 'playing' kalır.
+                        // moveNumber artmaz (25'te sabit kalır).
+                        updatePayload.currentLetter = null; // Ekrandaki harfi temizle
                     }
-                    // Eğer rakip henüz doldurmadıysa, sadece kendi gridini günceller ve biter.
-                    
-                } else { // Normal hamleler (1-24)
+                } 
+                
+                // --- B. ARA HAMLELER (1-24) ---
+                else { 
                     
                     // Tur Atlama Koşulu: İki oyuncunun da dolu hücre sayısı eşitlendiğinde tur tamamdır.
-                    let shouldIncrementMove = (myNewFilledCount === oppFilledCount);
+                    // (Yani ben koydum, sayım arttı. Rakip de koymuşsa sayılar eşitlenir ve tur atlarız)
+                    // NOT: Random modda sıra bekleme olmadığı için bu logic genelde senkronizasyonu sağlar.
+                    let shouldIncrementMove = (myNewFilledCount === oppFilledCount + 1) || (myNewFilledCount === oppFilledCount);
                     
-                    if (shouldIncrementMove) {
-                        
+                    // Daha güvenli kontrol: Sadece iki taraf da bu turdaki harfi koyduysa moveNumber artmalı.
+                    // Random modda moveNumber, "üretilecek sıradaki harf" indexini tutar.
+                    // Eğer ben koydum, rakip koymadıysa -> moveNumber artmaz (Ben beklerim veya sistem izin verir ama global move artmaz)
+                    // Ancak Random modda genelde "ben koydum -> yeni harf gelsin" istenir ama global sync için beklemek daha güvenlidir.
+                    
+                    // Basitleştirilmiş Tur Mantığı:
+                    // Eğer benim hamlemden sonra sayılar eşitleniyorsa (rakip önceden koymuşsa) VEYA ben önden gidiyorsam...
+                    // Burada en sağlıklı yöntem: Her iki tarafın dolu hücre sayısı o anki moveNumber'a eşitse artır.
+                    
+                    if (myNewFilledCount === currentMoveNumber && oppFilledCount === currentMoveNumber) {
                         const nextMove = currentMoveNumber + 1;
                         updatePayload.moveNumber = nextMove;
                         
                         if (data.gameMode === 'CLASSIC') {
-                            // KLASİK MOD: Harf Seçme Sırası (A-B-A-B...)
                             updatePayload.turnOwner = (nextMove % 2 !== 0) ? 'PlayerA' : 'PlayerB';
-                            updatePayload.currentLetter = null; // Yeni harf seçimi için sıfırla
+                            updatePayload.currentLetter = null; 
                             
                         } else if (data.gameMode === 'RANDOM') {
-                            // RANDOM MOD: Harf otomatik verilir.
+                            // Random modda sıra diye bir şey yok ama veri yapısı bozulmasın diye swap yapabiliriz
                             updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
                             
+                            // Yeni harfi belirle
                             if (nextMove <= 24) { 
                                updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
                             } else {
-                               updatePayload.currentLetter = null; 
+                               updatePayload.currentLetter = null; // 25. tura geçerken harf null olur (Joker seçimi için)
                             }
                         }
-                    } 
-                    // Tur artmıyorsa (shouldIncrementMove = false) currentLetter ve turnOwner değişmez.
-                }
-
-                // Oyun bitiş kontrolü (25. hamleden sonra moveNumber artarsa, ki bu mantık dışı)
-                if (updatePayload.moveNumber > 25) {
-                    updatePayload.status = 'finished';
-                    updatePayload.currentLetter = null;
+                    }
                 }
             }
             
@@ -9475,14 +9489,7 @@ async function handleCellClick(index) {
         if (placementMode && myFinalLetter) myFinalLetter = null; 
 
     } catch (e) {
-        console.error("Hücre tıklama hatası:", e);
-        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
-        if (statusMsg) statusMsg.textContent = "Hata: " + e.message;
-        
-        selectedDraftIndex = null;
-        renderGrid(myGridData, 'myGrid');
-    }
-}
+        console
 
 // ==========================================
 // PUAN HESAPLAMA (GÜNCELLENMİŞ - Satır/Sütun Puanlarını Döndürür)
@@ -9825,6 +9832,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
