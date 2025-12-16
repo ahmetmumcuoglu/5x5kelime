@@ -699,9 +699,10 @@ button:focus, .cell:focus, input:focus {
 /* 2. Tabela (Badge) ile Grid Arasındaki Mesafeyi Dengeleme */
 /* Renkli tabela ile alttaki gridin birbirine girmesini engeller */
 .controls-top {
-    margin-bottom: 25px !important; /* Grid'den uzaklaştırdık */
+    margin-bottom: 250px !important; /* Grid'den uzaklaştırdık */
     gap: 15px !important; /* Eğer harf kutusu açılırsa tabela ile yapışmasın */
 }
+
 
 
 
