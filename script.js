@@ -9137,6 +9137,9 @@ function selectJokerLetter(letter) {
     }
 
     placementMode = true; // Grid tıklaması artık çalışır
+
+  // Grid'i yeniden çiz ki hücreler 'clickable' sınıfını alsın ve cursor değişsin
+    renderGrid(myGridData, 'myGrid');
 }
 
 // ==========================================
@@ -9704,7 +9707,7 @@ function showResults(data) {
 // ==========================================
 
 // ==========================================
-// GRID ÇİZİM FONKSİYONU (DÜZELTİLMİŞ)
+// GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
 // ==========================================
 
 function renderGrid(gridData, elementId) {
@@ -9719,18 +9722,43 @@ function renderGrid(gridData, elementId) {
     gridData.forEach((letter, index) => {
         const cell = document.createElement('div');
         cell.classList.add('cell');
+        
+        // 1. Varsayılan olarak veritabanındaki (kesinleşmiş) harfi yaz
         cell.textContent = letter || ''; 
         
-        // Seçim görselleştirmesi
+        // 2. Seçim (Draft) Görselleştirmesi
         if (isMyGrid && index === selectedDraftIndex) {
             cell.classList.add('selected-draft');
+
+            // --- YENİ EKLENEN KISIM: HARFİ GÖSTER ---
+            // Eğer hücre henüz boşsa (onaylanmamışsa), seçili harfi içinde göster.
+            if (letter === '') {
+                // A. Joker harfi seçili mi? (25. Tur)
+                if (typeof myFinalLetter !== 'undefined' && myFinalLetter) {
+                    cell.textContent = myFinalLetter;
+                } 
+                // B. Değilse, normal turdaki harfi ekrandaki kutudan al
+                else {
+                    const display = document.getElementById('randomLetterDisplay');
+                    // Kutunun içinde Alfabe Seçicisi yoksa (yani tek harf varsa)
+                    if (display && !display.querySelector('.alphabet-wrapper')) {
+                        const visibleLetter = display.textContent.trim();
+                        // Sadece tek karakterse (örn: "A") hücreye yaz
+                        if (visibleLetter.length === 1) {
+                            cell.textContent = visibleLetter;
+                        }
+                    }
+                }
+            }
         }
         
-        // Tıklanabilirlik kontrolü
+        // 3. Tıklanabilirlik Kontrolü
+        // Hücre boşsa VEYA zaten o an seçtiğimiz hücreyse (tekrar tıklayıp onaylamak için)
         const shouldBeClickable = isClickable && (letter === '' || index === selectedDraftIndex);
         
         if (shouldBeClickable) {
             cell.classList.add('clickable');
+            // Hücreye tıklanınca handleCellClick çalışsın
             cell.onclick = () => handleCellClick(index);
         } else {
             cell.classList.remove('clickable');
@@ -9840,6 +9868,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
