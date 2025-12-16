@@ -718,12 +718,12 @@ button:focus, .cell:focus, input:focus {
 }
 
 .alpha-btn {
-    width: 32px;
-    height: 32px;
+    width: 34px;
+    height: 34px;
     font-size: 1rem;
     font-weight: 600;
     color: #444;
-    background: #fff;
+    background: 3498db;
     border: 1px solid #ccc;
     border-radius: 6px;
     cursor: pointer;
@@ -751,6 +751,7 @@ button:focus, .cell:focus, input:focus {
 }
 
 /* Eski animasyon kodlarını silebilirsiniz */
+
 
 
 
