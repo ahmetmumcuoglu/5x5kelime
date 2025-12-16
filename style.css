@@ -704,6 +704,53 @@ button:focus, .cell:focus, input:focus {
 }
 
 
+/* ================================================= */
+/* 8. JOKER ALFABE SEÇİCİSİ (GÜNCELLENMİŞ - SEÇ & YERLEŞTİR) */
+/* ================================================= */
+
+.alphabet-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px; /* Boşluğu biraz açtık */
+    max-width: 340px; 
+    padding: 5px;
+}
+
+.alpha-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #444;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.alpha-btn:hover {
+    background-color: #ecf0f1;
+    border-color: #bdc3c7;
+}
+
+/* SEÇİLİ OLAN HARFİN STİLİ (Mavi ve Parlak) */
+.alpha-btn.selected {
+    background-color: #3498db !important;
+    color: white !important;
+    border-color: #2980b9 !important;
+    transform: scale(1.15); /* Hafifçe büyüsün */
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
+    font-weight: bold;
+    z-index: 10; /* Diğer harflerin önüne geçsin */
+}
+
+/* Eski animasyon kodlarını silebilirsiniz */
 
 
 
