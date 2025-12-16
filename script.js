@@ -9690,30 +9690,38 @@ function showResults(data) {
     finalResultMsgEl.style.color = color;
   
 // --- BAŞLIKLARI KİŞİSELLEŞTİRME (SEN vs RAKİP) ---
-    const titleA = document.getElementById('resultTitleA');
-    const titleB = document.getElementById('resultTitleB');
+    try {
+        const titleA = document.getElementById('resultTitleA');
+        const titleB = document.getElementById('resultTitleB');
 
-    if (titleA && titleB) {
-        if (data.isSinglePlayer) {
-            // Tek kişilikse
-            titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-            titleB.style.display = 'none'; // İkinci başlığı gizle
-        } else {
-            // Multiplayer ise
-            if (myPlayerId === 'PlayerA') {
-                // Ben A isem
-                titleA.innerHTML = 'BEN';
-                titleB.innerHTML = 'RAKİP';
-                titleA.style.color = '#333'; // Sizin renginiz koyu/net olsun
-                titleB.style.color = '#7f8c8d'; // Rakip biraz daha gri/pasif dursun
+        if (titleA && titleB) {
+            // Sadece elementler bulunduysa bu bloğa gireriz
+
+            if (data.isSinglePlayer) {
+                // Tek kişilik
+                titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
+                titleB.style.display = 'none';
             } else {
-                // Ben B isem
-                titleA.innerHTML = 'RAKİP';
-                titleB.innerHTML = 'BEN';
-                titleB.style.color = '#333';
-                titleA.style.color = '#7f8c8d';
+                // Multiplayer
+                if (myPlayerId === 'PlayerA') {
+                    // Ben A isem -> A benim, B rakip
+                    titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
+                    titleB.innerHTML = 'RAKİP ALANI';
+                    titleA.style.color = '#2c3e50'; 
+                    titleB.style.color = '#95a5a6';
+                } else {
+                    // Ben B isem -> B benim, A rakip
+                    titleA.innerHTML = 'RAKİP ALANI';
+                    titleB.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
+                    titleB.style.color = '#2c3e50';
+                    titleA.style.color = '#95a5a6';
+                }
             }
+        } else {
+            console.error("HATA: 'resultTitleA' veya 'resultTitleB' elementleri bulunamadı.");
         }
+    } catch (error) {
+        console.error("Başlıkları güncellerken hata oluştu:", error);
     }
   
     // Dinleyiciyi kapat
@@ -9889,6 +9897,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
