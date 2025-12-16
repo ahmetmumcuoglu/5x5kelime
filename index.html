@@ -53,14 +53,10 @@
                 <span>Hamle: <b id="moveNumberDisplay">1/25</b></span> 
                  
             </div>
-            <div class="turn-indicator" id="turnIndicator">Sıra Bekleniyor...</div>
         </div>
 
         <div class="controls-top">
     <div id="turnStatusBadge" class="status-badge hidden">Durum Yükleniyor...</div>
-
-    <div id="actionArea" class="hidden">
-        </div>
     
     </div>
         
@@ -72,26 +68,17 @@
             <div class="controls-section">
                 
                 <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
-
-                <div id="actionArea" class="hidden">
-                    <input type="text" id="letterInput" maxlength="1" placeholder="?" 
-                           oninput="this.value = this.value.toLocaleUpperCase('tr-TR');">
-                    <button id="submitLetterButton" onclick="submitLetter()">SEÇ</button>
-                </div>
                 
-                <div id="gameStatusMsg" class="status-msg">Oyun Yükleniyor...</div>
                 <div id="statusMsg" style="display:none;"></div> 
             </div>
 
             <div class="grid-section" id="opponentSection">
-                <h4>Rakip Alanı (B)</h4>
                 <div id="opponentGrid" class="grid locked"></div>
             </div>
         </div>
     </div>
         
          <div id="gameOverPanel" class="panel hidden">
-        <h2 class="panel-title">OYUN SONUCU</h2>
         <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
              
         <div class="results-container">
@@ -140,6 +127,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
