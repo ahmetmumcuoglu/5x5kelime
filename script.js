@@ -9179,23 +9179,28 @@ function handleTurnLogic(data, myGridData) {
     disableControls();
     placementMode = false;
 
-    // --- 1. JOKER HAMLESİ (25. Hamle) ---
+ // --- 1. JOKER HAMLESİ (25. Hamle) ---
     if (moveNumber === 25) {
-        if (actionArea) actionArea.classList.remove('hidden');
-        if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
+        if (actionArea) actionArea.classList.add('hidden');
+        if (randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
 
         if (myFilledCount >= 25) {
-            updateBadge("Oyun Bitiyor...", "badge-neutral", false);
+            updateBadge("OYUN BİTİYOR...", "badge-neutral", false);
         } else {
+            // HER DURUMDA ALFABEYİ GÖSTER
+            // Kullanıcı seçmiş olsa bile değiştirebilmesi için alfabe ekranda kalmalı
+            renderAlphabetSelector();
+
             if (!myFinalLetter) {
-                // Joker Seçimi
+                // Henüz seçim yapılmadı
                 updateBadge("JOKER HARFİ SEÇ", "badge-info", false); // Grid Pasif
-                enableControls(true);
             } else {
-                // Joker Yerleştirme
-                updateBadge("JOKERİ YERLEŞTİR", "badge-success", true); // Grid Aktif
+                // Seçim yapılmış (geri dönüldüyse görseli güncellemek gerekebilir)
+                const selectedBtn = document.getElementById(`btn-joker-${myFinalLetter}`);
+                if (selectedBtn) selectedBtn.classList.add('selected');
+
+                updateBadge(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true); // Grid Aktif
                 placementMode = true;
-                renderGrid(myGridData, 'myGrid'); 
             }
         }
         return; 
@@ -9820,6 +9825,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
