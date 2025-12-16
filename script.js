@@ -9030,35 +9030,29 @@ function listenToGame() {
                 const finalMsgElement = document.getElementById('finalResultMsg');
                 const resultCards = document.querySelectorAll('.result-card'); // Kartları bul (0: A, 1: B)
 
-                if (data.isSinglePlayer) {
-                    // --- TEK KİŞİLİK MOD ---
-                    // 1. Mesajı güncelle
-                    finalMsgElement.textContent = `Oyun Tamamlandı! Toplam Puan: ${resultA.score}`;
-                    finalMsgElement.style.color = "#2c3e50"; // Nötr Lacivert
+               // 1. OYUN SONU MESAJINI HER DURUMDA GİZLE
+    // Hem tek kişilikte hem multiplayer'da yazı görünmesin
+    finalMsgElement.style.display = 'none'; 
+    finalMsgElement.textContent = ''; 
 
-                    // 2. İkinci oyuncunun kartını GİZLE
-                    if (resultCards[1]) {
-                        resultCards[1].style.display = 'none';
-                    }
-                } else {
-                    // --- ÇOK OYUNCULU MOD (ESKİ MANTIK) ---
-                    // 1. İkinci oyuncunun kartını GÖSTER (Gizliyse aç)
-                    if (resultCards[1]) {
-                        resultCards[1].style.display = 'flex';
-                    }
-
-                    // 2. Kazananı belirle
-                    if (resultA.score > resultB.score) {
-                        finalMsgElement.textContent = "OYUN BİTTİ. Kurucu (A) Kazandı!";
-                        finalMsgElement.style.color = "#27ae60"; // Yeşil
-                    } else if (resultB.score > resultA.score) {
-                        finalMsgElement.textContent = "OYUN BİTTİ. Katılımcı (B) Kazandı!";
-                        finalMsgElement.style.color = "#c0392b"; // Kırmızı
-                    } else {
-                        finalMsgElement.textContent = "OYUN BİTTİ. Berabere!";
-                        finalMsgElement.style.color = "#f39c12"; // Turuncu
-                    }
-                }
+    if (data.isSinglePlayer) {
+        // --- TEK KİŞİLİK MOD ---
+        
+        // Sadece ikinci oyuncunun kartını GİZLE
+        if (resultCards[1]) {
+            resultCards[1].style.display = 'none';
+        }
+    } else {
+        // --- ÇOK OYUNCULU MOD ---
+        
+        // Sadece ikinci oyuncunun kartını GÖSTER (Gizliyse aç)
+        if (resultCards[1]) {
+            resultCards[1].style.display = 'flex';
+        }
+        
+        // Kazananı belirleyen yazı kodları SİLİNDİ.
+        // Artık sadece skor kartları ve gridler görünecek.
+    }
 
                 // Panelleri Değiştir
                 document.getElementById('gamePanel').classList.add('hidden');
@@ -9868,6 +9862,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
