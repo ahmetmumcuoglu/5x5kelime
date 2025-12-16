@@ -8985,8 +8985,8 @@ function listenToGame() {
             renderGrid(oppGridData, 'opponentGrid');
 
             // 3. Bilgileri Güncelle
-            const moveNumDisplay = document.getElementById('moveNumberDisplay');
-            if (moveNumDisplay) moveNumDisplay.textContent = `${data.moveNumber}/25`;
+            // const moveNumDisplay = document.getElementById('moveNumberDisplay');
+            // if (moveNumDisplay) moveNumDisplay.textContent = `${data.moveNumber}/25`;
 
             //const roleDisplay = document.getElementById('myPlayerRole');
             //if (roleDisplay) roleDisplay.textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
@@ -9862,6 +9862,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
