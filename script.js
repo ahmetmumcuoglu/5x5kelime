@@ -9067,6 +9067,78 @@ function listenToGame() {
         });
 }
 
+// --- JOKER SEÇİMİ İÇİN YENİ FONKSİYONLAR (DÜZELTİLMİŞ) ---
+
+// 1. Alfabeyi Ekrana Çizen Fonksiyon
+function renderAlphabetSelector() {
+    const display = document.getElementById('randomLetterDisplay');
+    if (!display) return;
+
+    // Eğer zaten alfabe çiziliyse tekrar çizme (seçimi korumak için)
+    if (display.querySelector('.alphabet-wrapper')) return;
+
+    display.innerHTML = ''; 
+    display.classList.remove('hidden');
+    display.style.fontSize = '1rem'; 
+    display.style.padding = '5px';
+    display.style.border = 'none'; // Turuncu çerçeveyi kaldıralım, daha temiz dursun
+    display.style.background = 'transparent';
+
+    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".split('');
+    const container = document.createElement('div');
+    container.className = 'alphabet-wrapper';
+
+    alphabet.forEach(letter => {
+        const btn = document.createElement('div');
+        btn.textContent = letter;
+        btn.className = 'alpha-btn';
+        // Her harfin kendi ID'si olsun ki kolayca bulup seçelim
+        btn.id = `btn-joker-${letter}`;
+        
+        btn.onclick = (e) => {
+            e.stopPropagation(); 
+            selectJokerLetter(letter);
+        };
+        container.appendChild(btn);
+    });
+
+    display.appendChild(container);
+}
+
+// 2. Harf Seçildiğinde Çalışan Fonksiyon (Seçimi İşaretler)
+function selectJokerLetter(letter) {
+    // 1. Global değişkeni güncelle
+    myFinalLetter = letter; 
+
+    // 2. Görsel Olarak Seçimi Göster (Diğerlerini Temizle)
+    // Tüm butonlardan 'selected' sınıfını kaldır
+    const allBtns = document.querySelectorAll('.alpha-btn');
+    allBtns.forEach(btn => btn.classList.remove('selected'));
+
+    // Tıklanan butona 'selected' sınıfını ekle
+    const selectedBtn = document.getElementById(`btn-joker-${letter}`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('selected');
+    }
+
+    // 3. Oyun Durumunu Güncelle
+    const turnBadge = document.getElementById('turnStatusBadge');
+    if(turnBadge) {
+        // Tabela: "HARFİ YERLEŞTİR" (Yeşil)
+        turnBadge.textContent = `SEÇİLEN: ${letter} - YERLEŞTİR`;
+        turnBadge.className = "status-badge badge-success";
+    }
+
+    // 4. Grid'i Aktif Et (Artık tıklanabilir)
+    const myGridElement = document.getElementById('myGrid');
+    if (myGridElement) {
+        myGridElement.classList.remove('waiting-turn');
+        myGridElement.classList.add('active-turn');
+    }
+
+    placementMode = true; // Grid tıklaması artık çalışır
+}
+
 // ==========================================
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
 // ==========================================
@@ -9748,6 +9820,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
