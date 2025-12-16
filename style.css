@@ -649,6 +649,41 @@ button:focus, .cell:focus, input:focus {
 }
 
 
+/* ================================================= */
+/* 6. BAŞLIKLARI GİZLEME VE HİZALAMA AYARLARI */
+/* ================================================= */
+
+/* 1. "Senin Alanın (A)" Yazısını Kaldırma */
+/* Grid kutularının içindeki tüm başlıkları gizler */
+.grid-box h3, 
+.grid-box h4,
+.grid-box .grid-title {
+    display: none !important;
+}
+
+/* 2. Durum Tabelasını (Badge) Ortalama ve Boşluğu Azaltma */
+.controls-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Yatayda tam ortalar */
+    justify-content: center;
+    gap: 5px !important; /* Elemanlar arasındaki boşluğu azaltır */
+    margin-bottom: 10px !important; /* Grid ile arasındaki mesafeyi kısar */
+}
+
+/* Tabela'nın kendi dış boşluğunu sıfırlayalım */
+#turnStatusBadge {
+    margin: 0 !important;
+    /* Eğer mobilde çok geniş duruyorsa max-width verebiliriz */
+    max-width: 90%; 
+}
+
+/* Oda ve Hamle bilgisinin (Sol üstteki yazıların) sıkışıklığını alalım */
+.room-info {
+    margin-bottom: 5px; /* Badge ile arasına hafif mesafe */
+    text-align: center; /* Eğer ortada durmasını isterseniz */
+    width: 100%;
+}
 
 
 
