@@ -28,19 +28,18 @@
 
             <div class="lobby-divider">- VEYA -</div>
             
+            <div class="join-area">
+                <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
+                <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
+            </div>
+            
+            <div class="lobby-divider">- VEYA -</div>
+            
             <div class="control-group">
                 <button id="singlePlayerBtn" onclick="startSinglePlayerGame()">
                     Tek Başına Oyna (Random)
                 </button>
             </div>
-
-            <div class="lobby-divider">- VEYA -</div>
-            
-            <div class="join-area">
-                <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
-                <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
-            </div>
-
         </div>
 
         <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
@@ -134,3 +133,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
