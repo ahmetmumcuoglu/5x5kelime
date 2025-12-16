@@ -9419,45 +9419,45 @@ async function handleCellClick(index) {
             // SENARYO 2: ÇOK OYUNCULU (Klasik ve Random)
             else {
                 let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-                // Rakibin dolu hücrelerini say
+                // Rakibin ve benim dolu hücre sayılarım
                 const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
-                // Benim yeni dolu hücre sayım
                 const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
 
-                // --- A. SON HAMLE KONTROLÜ (25. Hamle) ---
+                // ==========================================================
+                // A. SON HAMLE KONTROLÜ (25. Hamle - JOKER)
+                // ==========================================================
                 if (currentMoveNumber === 25) {
-                    // Benim gridim şimdi doldu (25).
+                    // Bu blokta moveNumber veya currentLetter değiştirmeyeceğiz.
+                    // Sadece grid zaten updatePayload'a eklendi.
                     
-                    // KONTROL: Rakip de bitirmiş mi?
-                    if (oppFilledCount === 25) { 
-                        // İkimiz de 25'i koyduk -> OYUN BİTTİ
-                        updatePayload.status = 'finished';
-                        updatePayload.currentLetter = null;
-                    } 
-                    else {
-                        // Rakip henüz bitirmemiş -> BEKLEME MODU
-                        // status 'playing' kalır.
-                        // moveNumber artmaz (25'te sabit kalır).
-                        updatePayload.currentLetter = null; // Ekrandaki harfi temizle
+                    // Sadece "Benim gridim 25'e ulaştıysa" kontrolü yapıyoruz
+                    if (myNewFilledCount === 25) {
+                        
+                        // KONTROL: Rakip de 25'i tamamlamış mı?
+                        if (oppFilledCount === 25) { 
+                            // İkimiz de bitirdik -> OYUN BİTTİ
+                            updatePayload.status = 'finished';
+                            updatePayload.currentLetter = null;
+                        } 
+                        else {
+                            // Rakip henüz bitirmemiş.
+                            // SADECE BENİM GRID'İM KAYDEDİLSİN.
+                            // updatePayload.status 'playing' kalır (dokunma).
+                            // updatePayload.moveNumber değişmez (dokunma).
+                            // updatePayload.currentLetter zaten null (dokunma).
+                            
+                            // (Boş blok: Sadece transaction grid'i kaydedip çıkacak)
+                        }
                     }
                 } 
                 
-                // --- B. ARA HAMLELER (1-24) ---
+                // ==========================================================
+                // B. ARA HAMLELER (1-24. Hamleler)
+                // ==========================================================
                 else { 
-                    
-                    // Tur Atlama Koşulu: İki oyuncunun da dolu hücre sayısı eşitlendiğinde tur tamamdır.
-                    // (Yani ben koydum, sayım arttı. Rakip de koymuşsa sayılar eşitlenir ve tur atlarız)
-                    // NOT: Random modda sıra bekleme olmadığı için bu logic genelde senkronizasyonu sağlar.
-                    let shouldIncrementMove = (myNewFilledCount === oppFilledCount + 1) || (myNewFilledCount === oppFilledCount);
-                    
-                    // Daha güvenli kontrol: Sadece iki taraf da bu turdaki harfi koyduysa moveNumber artmalı.
-                    // Random modda moveNumber, "üretilecek sıradaki harf" indexini tutar.
-                    // Eğer ben koydum, rakip koymadıysa -> moveNumber artmaz (Ben beklerim veya sistem izin verir ama global move artmaz)
-                    // Ancak Random modda genelde "ben koydum -> yeni harf gelsin" istenir ama global sync için beklemek daha güvenlidir.
-                    
-                    // Basitleştirilmiş Tur Mantığı:
-                    // Eğer benim hamlemden sonra sayılar eşitleniyorsa (rakip önceden koymuşsa) VEYA ben önden gidiyorsam...
-                    // Burada en sağlıklı yöntem: Her iki tarafın dolu hücre sayısı o anki moveNumber'a eşitse artır.
+                    // Tur Atlama Mantığı:
+                    // Random Modda: Eğer iki taraf da mevcut turdaki harfi koyduysa (sayılar eşitse) tur atla.
+                    // (Örn: Move 5. Ben koydum (5), Rakip koydu (5) -> Move 6 olsun)
                     
                     if (myNewFilledCount === currentMoveNumber && oppFilledCount === currentMoveNumber) {
                         const nextMove = currentMoveNumber + 1;
@@ -9468,14 +9468,15 @@ async function handleCellClick(index) {
                             updatePayload.currentLetter = null; 
                             
                         } else if (data.gameMode === 'RANDOM') {
-                            // Random modda sıra diye bir şey yok ama veri yapısı bozulmasın diye swap yapabiliriz
+                            // Sıra değişimi (Veri akışı için)
                             updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
                             
                             // Yeni harfi belirle
                             if (nextMove <= 24) { 
                                updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
                             } else {
-                               updatePayload.currentLetter = null; // 25. tura geçerken harf null olur (Joker seçimi için)
+                               // 25. tura geçerken harf null olur (Joker için hazırlık)
+                               updatePayload.currentLetter = null; 
                             }
                         }
                     }
@@ -9839,5 +9840,6 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
