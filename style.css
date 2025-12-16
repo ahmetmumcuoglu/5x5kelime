@@ -685,6 +685,23 @@ button:focus, .cell:focus, input:focus {
     width: 100%;
 }
 
+/* ================================================= */
+/* 7. DİKEY BOŞLUK VE HİZALAMA AYARLARI (GÜNCEL) */
+/* ================================================= */
+
+/* 1. Üstteki Oda ve Hamle Bilgisinin Altını Açma */
+/* Bu kısım, "Oda: XXX Hamle: 1/25" yazısı ile renkli tabela arasına mesafe koyar */
+.room-info {
+    margin-bottom: 25px !important; /* Boşluğu artırdık (Eskisi 5px idi) */
+    margin-top: 10px !important;    /* Panelin en üstüne yapışmasını engeller */
+}
+
+/* 2. Tabela (Badge) ile Grid Arasındaki Mesafeyi Dengeleme */
+/* Renkli tabela ile alttaki gridin birbirine girmesini engeller */
+.controls-top {
+    margin-bottom: 25px !important; /* Grid'den uzaklaştırdık */
+    gap: 15px !important; /* Eğer harf kutusu açılırsa tabela ile yapışmasın */
+}
 
 
 
