@@ -8988,8 +8988,8 @@ function listenToGame() {
             const moveNumDisplay = document.getElementById('moveNumberDisplay');
             if (moveNumDisplay) moveNumDisplay.textContent = `${data.moveNumber}/25`;
 
-            const roleDisplay = document.getElementById('myPlayerRole');
-            if (roleDisplay) roleDisplay.textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
+            //const roleDisplay = document.getElementById('myPlayerRole');
+            //if (roleDisplay) roleDisplay.textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
 
             // -------------------------------------------------
             // DURUM 1: OYUN AKTİF (ACTIVE)
@@ -9748,6 +9748,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
