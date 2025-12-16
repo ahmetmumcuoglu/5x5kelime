@@ -295,7 +295,7 @@ const WORD_ARRAY = [
 "ALBÜM",
 "ALÇAK",
 "ALÇI",
-"ALEM ",
+"ALEM",
 "ALENİ",
 "ALET",
 "ALEV",
@@ -9862,6 +9862,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
