@@ -9672,7 +9672,9 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
         if (score >= 4) return 'score-4';
         if (score >= 3) return 'score-3';
         if (score >= 2) return 'score-2';
-        return ''; // 0 veya 1 puan için boş string dönecek
+        if (score === 1) return 'score-1';
+        if (score === 0) return 'score-0';
+        return '';
     };
 
     // 5x5 harf hücresi ve 5x1 satır puanı hücresi oluştur
@@ -9746,6 +9748,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
