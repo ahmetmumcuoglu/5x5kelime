@@ -9489,7 +9489,14 @@ async function handleCellClick(index) {
         if (placementMode && myFinalLetter) myFinalLetter = null; 
 
     } catch (e) {
-        console
+        console.error("Hücre tıklama hatası:", e);
+        const statusMsg = document.getElementById('gameStatusMsg') || document.getElementById('statusMsg');
+        if (statusMsg) statusMsg.textContent = "Hata: " + e.message;
+        
+        selectedDraftIndex = null;
+        renderGrid(myGridData, 'myGrid');
+    }
+}
 
 // ==========================================
 // PUAN HESAPLAMA (GÜNCELLENMİŞ - Satır/Sütun Puanlarını Döndürür)
@@ -9832,24 +9839,5 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
