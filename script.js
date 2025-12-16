@@ -9688,7 +9688,34 @@ function showResults(data) {
 
     finalResultMsgEl.textContent = message;
     finalResultMsgEl.style.color = color;
+  
+// --- BAŞLIKLARI KİŞİSELLEŞTİRME (SEN vs RAKİP) ---
+    const titleA = document.getElementById('resultTitleA');
+    const titleB = document.getElementById('resultTitleB');
 
+    if (titleA && titleB) {
+        if (data.isSinglePlayer) {
+            // Tek kişilikse
+            titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
+            titleB.style.display = 'none'; // İkinci başlığı gizle
+        } else {
+            // Multiplayer ise
+            if (myPlayerId === 'PlayerA') {
+                // Ben A isem
+                titleA.innerHTML = 'BEN';
+                titleB.innerHTML = 'RAKİP';
+                titleA.style.color = '#333'; // Sizin renginiz koyu/net olsun
+                titleB.style.color = '#7f8c8d'; // Rakip biraz daha gri/pasif dursun
+            } else {
+                // Ben B isem
+                titleA.innerHTML = 'RAKİP';
+                titleB.innerHTML = 'BEN';
+                titleB.style.color = '#333';
+                titleA.style.color = '#7f8c8d';
+            }
+        }
+    }
+  
     // Dinleyiciyi kapat
     if (unsubscribe) {
         unsubscribe();
@@ -9862,6 +9889,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
