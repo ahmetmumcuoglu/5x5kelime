@@ -554,6 +554,57 @@ button:disabled {
     border: none;
 }
 
+/* ================================================= */
+/* 4. OYUN DURUMU VE GRID EFEKTLERİ (YENİ) */
+/* ================================================= */
+
+/* --- GRID DURUMLARI --- */
+
+/* Aktif Sıra (Senin Sıran): Parlak, Yeşil Çerçeve, Tıklanabilir */
+.active-turn {
+    border: 3px solid #2ecc71 !important; /* Yeşil Çerçeve */
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); /* Yeşil Parlama */
+    opacity: 1 !important;
+    transform: scale(1.02); /* Çok hafif büyütme efekti */
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+/* Bekleme Modu (Rakip Bekleniyor / Harf Seçimi): Soluk, Gri, Tıklanamaz */
+.waiting-turn {
+    border: 3px solid #bdc3c7 !important; /* Gri Çerçeve */
+    opacity: 0.6 !important; /* Soluklaşma */
+    filter: grayscale(60%); /* Renkleri soldur */
+    pointer-events: none; /* Tıklamayı CSS ile de engelle */
+    transform: scale(0.98); /* Hafif küçülme */
+    transition: all 0.3s ease-in-out;
+}
+
+/* --- DURUM TABELASI (STATUS BADGE) --- */
+.status-badge {
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: 800;
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    display: inline-block;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    animation: fadeIn 0.5s ease;
+}
+
+/* Tabela Renkleri */
+.badge-success { background-color: #2ecc71; } /* Yeşil (Yerleştir) */
+.badge-warning { background-color: #f39c12; } /* Turuncu (Rakip Bekleniyor) */
+.badge-info    { background-color: #3498db; } /* Mavi (Harf Seç / Joker) */
+.badge-neutral { background-color: #95a5a6; } /* Gri (Bekleme) */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 
 
