@@ -19,7 +19,7 @@ const db = firebase.firestore();
 // ==========================================
 // 1.1. PUANLAMA VE SÖZLÜK TANIMLARI
 // ==========================================
-const SCORE_RULES = { 3: 3, 4: 6, 5: 10 };
+const SCORE_RULES = { 3: 5, 4: 8, 5: 15 };
 
 // DİKKAT: JSON dosyasının içeriği bu değişkenin içine yapıştırılacak.
 // Lütfen burayı 3542 satırlık gerçek kelime listenizle doldurun.
@@ -9509,7 +9509,7 @@ function calculateScore(gridData) {
     const rowScores = Array(5).fill(0);
     const colScores = Array(5).fill(0);
     
-    const SCORE_RULES = { 2: 2, 3: 3, 4: 6, 5: 10 };
+    const SCORE_RULES = { 2: 2, 3: 5, 4: 8, 5: 15 };
 
     const getSegmentMaxScore = (text) => {
         // --- ADIM 1: BASKIN KELİME KONTROLÜ (4 ve 5 Harfliler) ---
@@ -9815,11 +9815,11 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     
     // Yardımcı fonksiyon: Puana göre CSS sınıfı döndürür
     const getScoreClass = (score) => {
-        if (score >= 10) return 'score-10';
-        if (score >= 6) return 'score-6';
+        if (score >= 15) return 'score-15';
+        if (score >= 8) return 'score-8';
+        if (score >= 7) return 'score-7';
         if (score >= 5) return 'score-5';
         if (score >= 4) return 'score-4';
-        if (score >= 3) return 'score-3';
         if (score >= 2) return 'score-2';
         if (score === 1) return 'score-1';
         if (score === 0) return 'score-0';
@@ -9897,6 +9897,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
