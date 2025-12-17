@@ -510,29 +510,29 @@ button:disabled {
 /* ================================================= */
 
 /* Tüm puanlar için varsayılan yazı rengini (siyah/koyu) zorla */
-.score-10, .score-6, .score-5, .score-4, .score-3, .score-2, .score-1, .score-0 {
+.score-15, .score-8, .score-7, .score-5, .score-4, .score-2, .score-1, .score-0 {
     color: #333 !important; /* Yazıyı siyah/koyu yap */
     font-weight: bold;
 }
 
-/* 10 Puan için Mavi Arka Plan */
-.score-10 {
+/* 15 Puan için Mavi Arka Plan */
+.score-15 {
     background-color: #34c5db !important; 
 }
-/* 6 Puan için Yeşil Arka Plan */
-.score-6 {
+/* 8 Puan için Yeşil Arka Plan */
+.score-8 {
     background-color: #21d96f !important; 
 }
-/* 5 Puan için Mor Arka Plan */
-.score-5 {
+/* 7 Puan için Mor Arka Plan */
+.score-7 {
     background-color: #9b59b6 !important; 
 }
-/* 4 Puan için Turuncu Arka Plan */
-.score-4 {
+/* 5 Puan için Turuncu Arka Plan */
+.score-5 {
     background-color: #e67e22 !important; 
 }
-/* 3 Puan için Koyu Sarı Arka Plan */
-.score-3 {
+/* 4 Puan için Koyu Sarı Arka Plan */
+.score-4 {
     background-color: #f1d70f !important; 
 }
 /* 2 Puan için Kırmızı Arka Plan */
@@ -751,6 +751,7 @@ button:focus, .cell:focus, input:focus {
 }
 
 /* Eski animasyon kodlarını silebilirsiniz */
+
 
 
 
