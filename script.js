@@ -50,98 +50,174 @@ window.addEventListener('load', () => {
 });
 
 // ==========================================
-// İSTATİSTİK SİSTEMİ (ANONYMOUS & LOCAL)
+// YENİ İSTATİSTİK VE SIRALAMA SİSTEMİ
 // ==========================================
 
-// 1. Kullanıcı ID'si Al (Yoksa Oluştur)
+// 1. Kullanıcı ID'si Al
 function getMyStatsId() {
     let id = localStorage.getItem('kelimelik_user_id');
     if (!id) {
-        // Rastgele benzersiz bir ID oluştur
-        id = 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        id = 'user_' + Math.random().toString(36).substr(2, 6);
         localStorage.setItem('kelimelik_user_id', id);
     }
     return id;
 }
 
-// 2. İstatistikleri Yükle (Local Storage'dan)
-function loadLocalStats() {
-    const defaultStats = {
-        played: 0,
-        wins: 0,
-        losses: 0,
-        currentStreak: 0,
-        maxStreak: 0
-    };
-    const stored = localStorage.getItem('kelimelik_stats');
-    return stored ? JSON.parse(stored) : defaultStats;
+// 2. Yerel İstatistikleri Getir
+function getLocalRandomStats() {
+    const raw = localStorage.getItem('kelimelik_random_history');
+    // Veri yapısı: { allScores: [120, 90, ...], dates: [...] }
+    if (!raw) return { allScores: [] };
+    return JSON.parse(raw);
 }
 
-// 3. İstatistikleri Güncelle (Oyun Sonu Çalışacak)
-function updateStats(result) { 
-    // result: 'WIN', 'LOSS', 'DRAW', 'SINGLE'
+// 3. İstatistik Güncelle (Oyun Bittiğinde Çağrılır)
+function updateRandomStats(score) {
+    let data = getLocalRandomStats();
     
-    let stats = loadLocalStats();
-    stats.played += 1;
+    // Puanı listeye ekle
+    data.allScores.push(score);
+    
+    // LocalStorage'a kaydet
+    localStorage.setItem('kelimelik_random_history', JSON.stringify(data));
 
-    if (result === 'WIN') {
-        stats.wins += 1;
-        stats.currentStreak += 1;
-        if (stats.currentStreak > stats.maxStreak) {
-            stats.maxStreak = stats.currentStreak;
-        }
-    } else if (result === 'LOSS') {
-        stats.losses += 1;
-        stats.currentStreak = 0; // Seriyi sıfırla
-    } 
-    // Beraberlikte veya Tek Kişilikte seri bozulmaz ama artmaz da (Tercihe bağlı)
-
-    // Local Storage'a Kaydet
-    localStorage.setItem('kelimelik_stats', JSON.stringify(stats));
-
-    // Firebase'e Yedekle (Opsiyonel ama önerilir)
-    saveStatsToFirebase(stats);
+    // --- FIREBASE GÜNCELLEME (AYLIK VERİ) ---
+    saveMonthlyStatsToFirebase(data.allScores);
 }
 
-// 4. Firebase'e Kaydet
-function saveStatsToFirebase(stats) {
+// 4. Firebase'e Aylık Veri Yazma
+function saveMonthlyStatsToFirebase(allScores) {
     const userId = getMyStatsId();
-    // 'users' koleksiyonuna yazıyoruz
-    db.collection('users').doc(userId).set({
-        ...stats,
-        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(err => console.error("Stat sync error:", err));
+    const date = new Date();
+    // Anahtar Örneği: 'stats_2023_12' (Yıl_Ay)
+    const monthKey = `stats_${date.getFullYear()}_${date.getMonth() + 1}`; 
+    
+    // Genel Ortalama
+    const totalAvg = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
+    
+    // Sadece bu ayın oyunlarını ayırt etmek zor olacağı için, 
+    // Basitlik adına "Toplam Oyun Sayısı" üzerinden filtreleme yapacağız
+    // Ancak kullanıcı "Bu ay en az 10 oyun" dediği için, Firebase'de o aya özel sayaç tutmalıyız.
+    
+    const userRef = db.collection('users').doc(userId);
+
+    db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(userRef);
+        let userData = doc.exists ? doc.data() : {};
+        
+        // O aya ait veriyi al veya oluştur
+        let monthData = userData[monthKey] || { count: 0, totalScore: 0, avg: 0 };
+        
+        // Yeni puanı ekle
+        // Not: Burada 'score' parametresini fonksiyon içinde globalden alamadığımız için
+        // allScores dizisinin son elemanını alıyoruz.
+        const lastScore = allScores[allScores.length - 1];
+        
+        monthData.count += 1;
+        monthData.totalScore += lastScore;
+        monthData.avg = Math.round(monthData.totalScore / monthData.count); // Tam sayı ortalama
+
+        // Veriyi güncelle
+        transaction.set(userRef, {
+            [monthKey]: monthData, // Dinamik anahtar (Örn: stats_2025_12)
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+    });
 }
 
-// 5. Pencereyi Aç ve Verileri Göster
+// 5. İstatistik Penceresini Açma ve Hesaplama
 window.openStatsModal = function() {
     const modal = document.getElementById("statsModal");
-    if (modal) {
-        const stats = loadLocalStats();
-        
-        // Hesaplamalar
-        const winRate = stats.played > 0 
-            ? Math.round((stats.wins / stats.played) * 100) 
-            : 0;
+    if (!modal) return;
 
-        // HTML'e Yaz
-        document.getElementById('statPlayed').textContent = stats.played;
-        document.getElementById('statWins').textContent = stats.wins;
-        document.getElementById('statWinRate').textContent = `%${winRate}`;
-        document.getElementById('statStreak').textContent = stats.currentStreak;
-        document.getElementById('statMaxStreak').textContent = stats.maxStreak;
+    // --- KİŞİSEL VERİLERİ HESAPLA ---
+    const data = getLocalRandomStats();
+    const scores = data.allScores;
+    
+    let lifeTimeAvg = "-";
+    let last10Avg = "-";
 
-        modal.classList.remove("hidden");
-        modal.style.display = "flex";
+    if (scores.length > 0) {
+        // Genel Ortalama
+        const total = scores.reduce((a, b) => a + b, 0);
+        lifeTimeAvg = (total / scores.length).toFixed(1); // Virgülden sonra 1 hane
+
+        // Son 10 Ortalama
+        // slice(-10) son 10 elemanı alır
+        const last10 = scores.slice(-10);
+        const total10 = last10.reduce((a, b) => a + b, 0);
+        last10Avg = (total10 / last10.length).toFixed(1);
     }
+
+    document.getElementById('statLifeTimeAvg').textContent = lifeTimeAvg;
+    document.getElementById('statLast10Avg').textContent = last10Avg;
+
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+
+    // --- LİDER TABLOSUNU ÇEK ---
+    fetchLeaderboard();
 }
 
+// 6. Lider Tablosunu Getir
+function fetchLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
+
+    const date = new Date();
+    const monthKey = `stats_${date.getFullYear()}_${date.getMonth() + 1}`; // Örn: stats_2025_12
+    
+    // SORGULAMA: O ayın sayacı >= 10 olanları getir, Ortalamaya göre sırala
+    // NOT: Bu sorgu için Firebase Console'da Index oluşturmanız gerekebilir!
+    // Eğer console'da hata linki çıkarsa ona tıklayıp index oluşturun.
+    
+    db.collection('users')
+        .orderBy(`${monthKey}.avg`, 'desc') // Ortalamaya göre azalan
+        .limit(20) // İlk 20 kişi
+        .get()
+        .then(snapshot => {
+            let html = '';
+            let rank = 1;
+            
+            snapshot.forEach(doc => {
+                const uData = doc.data();
+                const mData = uData[monthKey];
+
+                // Filtreleme: En az 10 oyun (Firestore where sorgusu index isteyeceği için
+                // basitlik adına filtrelemeyi burada yapıyoruz, veri azsa sorun olmaz)
+                if (mData && mData.count >= 10) {
+                    // Kullanıcı ID'sinin son 4 hanesini göster (Gizlilik için)
+                    const shortName = "Oyuncu-" + doc.id.substr(-4).toUpperCase();
+                    
+                    // Kendi satırımızı vurgulamak için
+                    const isMe = (doc.id === getMyStatsId());
+                    const rowStyle = isMe ? 'style="background-color:#e8f8f5; font-weight:bold;"' : '';
+
+                    html += `
+                        <tr ${rowStyle}>
+                            <td>${rank++}.</td>
+                            <td>${shortName} ${isMe ? '(Sen)' : ''}</td>
+                            <td>${mData.avg} Puan</td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if (html === '') {
+                html = '<tr><td colspan="3">Bu ay henüz yeterli oyun oynanmadı.</td></tr>';
+            }
+            tbody.innerHTML = html;
+        })
+        .catch(error => {
+            console.error("Leaderboard error:", error);
+            tbody.innerHTML = '<tr><td colspan="3">Sıralama yüklenemedi.</td></tr>';
+        });
+}
+
+// Kapatma Fonksiyonu (Aynı kalabilir)
 window.closeStatsModal = function() {
-    const modal = document.getElementById("statsModal");
-    if (modal) {
-        modal.classList.add("hidden");
-        modal.style.display = "none";
-    }
+    document.getElementById("statsModal").classList.add("hidden");
+    document.getElementById("statsModal").style.display = "none";
 }
 
 // ==========================================
@@ -9888,43 +9964,29 @@ function showResults(data) {
         unsubscribe();
         unsubscribe = null;
 
-      // --- İSTATİSTİK GÜNCELLEME ---
-    // Bu fonksiyonun birden fazla kez çalışmasını engellemek için basit bir kontrol
-    // (Snapshot dinleyicisi bazen üst üste çalışabilir)
-    
-    // Sadece oyun yeni bittiyse ve veritabanı yazma işlemi değilse
-    // Bunu LocalStorage'da son kaydedilen oyun ID'si ile kontrol edebiliriz
+      // ... (showResults fonksiyonunun en sonu) ...
+
+    // --- YENİ İSTATİSTİK GÜNCELLEME (SADECE RANDOM MOD) ---
     const lastProcessedGame = localStorage.getItem('last_processed_game_id');
     
     if (lastProcessedGame !== currentGameId) {
         localStorage.setItem('last_processed_game_id', currentGameId);
         
-        let matchResult = 'DRAW'; // Varsayılan
+        // Sadece RANDOM mod ise istatistiği işle
+        // Not: Tek kişilik oyun her zaman Random'dır.
+        if (data.gameMode === 'RANDOM' || data.isSinglePlayer) {
+            
+            let myScore = 0;
+            if (myPlayerId === 'PlayerA') myScore = resultA.score;
+            else myScore = resultB.score;
 
-        if (data.isSinglePlayer) {
-            matchResult = 'SINGLE'; 
-            // Tek kişilikte sadece 'Oynanan' artar, kazanma/kaybetme sayılmaz
-            // İsterseniz Tek Kişilik için ayrı mantık kurabiliriz.
-        } else {
-            // Multiplayer Sonuç Kontrolü
-            if (resultA.score > resultB.score) {
-                // A Kazandı
-                if (myPlayerId === 'PlayerA') matchResult = 'WIN';
-                else matchResult = 'LOSS';
-            } else if (resultB.score > resultA.score) {
-                // B Kazandı
-                if (myPlayerId === 'PlayerB') matchResult = 'WIN';
-                else matchResult = 'LOSS';
-            } else {
-                matchResult = 'DRAW';
-            }
+            // Yeni Fonksiyonu Çağır
+            updateRandomStats(myScore);
+            console.log("Random mod istatistiği kaydedildi:", myScore);
         }
-        }
-        // İstatistiği İşle
-        updateStats(matchResult);
-        console.log("İstatistik güncellendi:", matchResult);
     }
-}
+
+} // showResults bitişi
 
 // ==========================================
 // GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
@@ -10176,6 +10238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
 
 
 
