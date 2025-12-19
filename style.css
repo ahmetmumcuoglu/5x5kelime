@@ -906,6 +906,38 @@ button:focus, .cell:focus, input:focus {
     margin-top: 5px;
 }
 
+/* --- LİDER TABLOSU STİLLERİ --- */
+.leaderboard-section {
+    margin-top: 25px;
+    border-top: 2px solid #eee;
+    padding-top: 15px;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.leaderboard-table th {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    padding: 8px;
+    text-align: center;
+    border-bottom: 2px solid #ddd;
+}
+
+.leaderboard-table td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+    color: #555;
+}
+
+/* İlk 3 sıraya özel renkler (Altın, Gümüş, Bronz) */
+.leaderboard-table tr:nth-child(1) td:first-child { color: #f1c40f; font-weight: bold; font-size: 1.2rem; }
+.leaderboard-table tr:nth-child(2) td:first-child { color: #95a5a6; font-weight: bold; font-size: 1.1rem; }
+.leaderboard-table tr:nth-child(3) td:first-child { color: #d35400; font-weight: bold; font-size: 1.1rem; }
 
 
 
