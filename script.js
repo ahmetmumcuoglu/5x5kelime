@@ -8951,7 +8951,7 @@ function setupGameUI(gameId) {
     if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
 }
 // ==========================================
-// OYUNU DİNLEME (TAMİR EDİLMİŞ VERSİYON)
+// OYUNU DİNLEME (TABELA GARANTİLİ VERSİYON)
 // ==========================================
 
 function listenToGame() {
@@ -8977,8 +8977,14 @@ function listenToGame() {
             // 2. Elementleri Hazırla
             const classicArea = document.getElementById('classicLetterSelectionArea');
             const randomDisplay = document.getElementById('randomLetterDisplay');
-            const turnBadge = document.getElementById('turnStatusBadge');
             const myGridEl = document.getElementById('myGrid');
+            
+            // --- TABELA ELEMENTİNİ BUL (YEDEKLİ SİSTEM) ---
+            // Önce yeniyi ara, yoksa eskisini kullan
+            let turnBadge = document.getElementById('turnStatusBadge');
+            if (!turnBadge) {
+                turnBadge = document.getElementById('gameStatusMsg'); // Yedek
+            }
             
             // --- UI TEMİZLİĞİ ---
             if (classicArea) classicArea.classList.add('hidden');
@@ -8986,14 +8992,18 @@ function listenToGame() {
             if (turnBadge) turnBadge.classList.remove('hidden'); 
             
             // ==========================================================
-            // YARDIMCI: UI DURUM GÜNCELLEYİCİ (Sorunu Çözen Kısım)
+            // YARDIMCI: UI DURUM GÜNCELLEYİCİ
             // ==========================================================
             const updateUIState = (text, badgeColor, isInteractive) => {
                 // 1. Tabela Yazısını Güncelle
                 if (turnBadge) {
                     turnBadge.textContent = text;
-                    turnBadge.className = `status-badge ${badgeColor}`; // badge-success, badge-warning vb.
-                    turnBadge.classList.remove('hidden');
+                    turnBadge.className = `status-badge ${badgeColor}`; 
+                    // Eğer eski element kullanılıyorsa hidden sınıfını manuel sil
+                    turnBadge.classList.remove('hidden'); 
+                    turnBadge.style.display = 'block'; // Garanti olsun
+                } else {
+                    console.warn("UYARI: Tabela elementi (turnStatusBadge) HTML'de bulunamadı!");
                 }
 
                 // 2. Grid Görselini ve Tıklamayı Yönet
@@ -9001,19 +9011,17 @@ function listenToGame() {
                 
                 if (myGridEl) {
                     if (isInteractive) {
-                        myGridEl.classList.remove('waiting-turn'); // Solukluğu kaldır
-                        myGridEl.classList.add('active-turn');     // Parlat
-                        myGridEl.style.opacity = "1";              // Garanti olsun
-                        myGridEl.style.pointerEvents = "auto";     // Tıklamayı aç
+                        myGridEl.classList.remove('waiting-turn'); 
+                        myGridEl.classList.add('active-turn');     
+                        myGridEl.style.opacity = "1";              
+                        myGridEl.style.pointerEvents = "auto";     
                     } else {
-                        myGridEl.classList.add('waiting-turn');    // Soluklaştır
+                        myGridEl.classList.add('waiting-turn');    
                         myGridEl.classList.remove('active-turn');
-                        myGridEl.style.opacity = "0.6";            // Görsel olarak pasif
-                        myGridEl.style.pointerEvents = "none";     // Tıklamayı kapat
+                        myGridEl.style.opacity = "0.6";            
+                        myGridEl.style.pointerEvents = "none";     
                     }
                 }
-                
-                // Gridi yeniden çiz ki 'clickable' sınıfları güncellensin
                 renderGrid(myGridData, 'myGrid');
             };
 
@@ -9026,15 +9034,12 @@ function listenToGame() {
                 document.getElementById('gameOverPanel').classList.add('hidden');
 
                 const isMyTurn = (data.turnOwner === myPlayerId);
-                // Gridde dolu olan hücre sayım
                 const myFilledCount = myGridData.filter(c => c !== '').length;
-                const currentMove = data.moveNumber;
-                
-                // Bu turda hamle yaptım mı? (Dolu hücre sayısı tur sayısına eşitse yapmışımdır)
+                const currentMove = data.moveNumber || 1;
                 const myMoveDone = (myFilledCount >= currentMove);
 
                 // ====================================================
-                // A. 25. TUR: JOKER HAMLESİ (HER MOD İÇİN ORTAK)
+                // A. 25. TUR: JOKER HAMLESİ
                 // ====================================================
                 if (currentMove === 25) {
                     if (randomDisplay) randomDisplay.classList.remove('hidden');
@@ -9042,9 +9047,7 @@ function listenToGame() {
                     if (myFilledCount >= 25) {
                         updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
                     } else {
-                        // Joker Seçimi İçin Alfabeyi Göster
                         renderAlphabetSelector(); 
-                        
                         if (!myFinalLetter) {
                             updateUIState("SON HARF: JOKER SEÇİNİZ", "badge-info", false);
                         } else {
@@ -9058,13 +9061,10 @@ function listenToGame() {
                 // B. KLASİK MOD (CLASSIC)
                 // ====================================================
                 if (data.gameMode === 'CLASSIC') {
-                    
                     const harfSecildiMi = (data.currentLetter !== null && data.currentLetter !== "");
 
-                    // 1. Harf Seçme Aşaması
                     if (!harfSecildiMi) {
                         if (isMyTurn) {
-                            // SIRA BENDE: Harf Seç
                             if (classicArea) {
                                 classicArea.classList.remove('hidden');
                                 if(classicArea.querySelector('#classicAlphabetContainer').children.length === 0) {
@@ -9078,17 +9078,12 @@ function listenToGame() {
                             }
                             updateUIState("Sıra Sizde: Harf Seçin", "your-turn", false);
                         } else {
-                            // SIRA RAKİPTE
                             updateUIState("Rakip Harf Seçiyor...", "opponent-turn", false);
                         }
-                    } 
-                    
-                    // 2. Harf Yerleştirme Aşaması
-                    else {
+                    } else {
                         if (randomDisplay) {
                             randomDisplay.textContent = data.currentLetter;
                             randomDisplay.classList.remove('hidden');
-                            // Eğer içinde alfabe kaldıysa temizle (Joker'den dönüşte bug olmasın)
                             if (randomDisplay.querySelector('.alphabet-wrapper')) {
                                 randomDisplay.textContent = data.currentLetter; 
                             }
@@ -9103,13 +9098,12 @@ function listenToGame() {
                 }
 
                 // ====================================================
-                // C. RANDOM MODLAR (MULTIPLAYER & SINGLE)
+                // C. RANDOM MODLAR
                 // ====================================================
                 else {
                     if (randomDisplay) {
                         randomDisplay.textContent = data.currentLetter;
                         randomDisplay.classList.remove('hidden');
-                         // Eğer içinde alfabe kaldıysa temizle
                         if (randomDisplay.querySelector('.alphabet-wrapper')) {
                             randomDisplay.textContent = data.currentLetter;
                         }
@@ -9985,6 +9979,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
