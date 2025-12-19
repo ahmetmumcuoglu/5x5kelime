@@ -9980,6 +9980,37 @@ function submitClassicLetter() {
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
 
+// ==========================================
+// BİLGİ PENCERESİ (MODAL) YÖNETİMİ
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById("howToPlayModal");
+    const btn = document.getElementById("howToPlayBtn");
+    const closeSpan = document.querySelector(".close-modal");
+
+    if (btn && modal && closeSpan) {
+        // Butona basınca aç
+        btn.onclick = (e) => {
+            e.preventDefault(); // Form submit olmasın diye
+            modal.classList.remove("hidden");
+            modal.style.display = "flex"; // CSS çakışması olursa garanti olsun
+        }
+
+        // Çarpıya basınca kapat
+        closeSpan.onclick = () => {
+            modal.classList.add("hidden");
+            modal.style.display = "none";
+        }
+
+        // Boşluğa basınca kapat
+        window.onclick = (event) => {
+            if (event.target === modal) {
+                modal.classList.add("hidden");
+                modal.style.display = "none";
+            }
+        }
+    }
+});
 
 
 
