@@ -9100,7 +9100,6 @@ function listenToGame() {
                     // Bu yüzden placementMode genelde moves kontrolüne bağlıdır.
                 }
             }
-            } 
             
             // -------------------------------------------------
             // DURUM 2: OYUN BİTTİ (FINISHED)
@@ -10052,6 +10051,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
