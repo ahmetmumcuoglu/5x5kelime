@@ -9669,119 +9669,103 @@ function calculateScore(gridData) {
 }
 
 // ==========================================
-// OYUN SONUÇLARINI GÖSTERME FONKSİYONU
+// OYUN SONUÇLARINI GÖSTERME (TEMİZLENMİŞ VERSİYON)
 // ==========================================
 
 function showResults(data) {
-    // 1. Puanları Hesapla (Gerekirse)
-    // Eğer veritabanında puanlar önceden hesaplanmadıysa, burada hesaplanmalı.
-    
+    // 1. Puanları Hesapla
     const resultA = calculateScore(data.gridA);
     const resultB = calculateScore(data.gridB);
 
-    // 2. DOM Elementlerini Seç (HTML'deki Sonuç Paneli ID'leri kullanılacak)
-    // Global DOM değişkenlerini burada kullanamayız, çünkü bunlar oyun panelinde değil, sonuç panelindedir.
+    // 2. DOM Elementlerini Seç
     const scoreAEl = document.getElementById('scoreA');
     const scoreBEl = document.getElementById('scoreB');
-    const finalGridAEl = document.getElementById('finalGridA');
-    const finalGridBEl = document.getElementById('finalGridB');
     const wordsListAEl = document.getElementById('wordsListA');
     const wordsListBEl = document.getElementById('wordsListB');
     const finalResultMsgEl = document.getElementById('finalResultMsg');
     
+    // Skor Kartlarını (Kutularını) Seç
+    const resultCards = document.querySelectorAll('.result-card'); 
+
     // 3. Panelleri Geçiş
-    lobbyPanel.classList.add('hidden');
-    gamePanel.classList.add('hidden');
-    gameOverPanel.classList.remove('hidden');
+    document.getElementById('lobbyPanel').classList.add('hidden');
+    document.getElementById('gamePanel').classList.add('hidden');
+    document.getElementById('gameOverPanel').classList.remove('hidden');
 
-    // 4. Skorları ve Gridleri Doldur
-    scoreAEl.textContent = resultA.score;
-    scoreBEl.textContent = resultB.score;
-
-    // 5. Gridleri YENİ FONKSİYONLA Çiz
-    renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
-    renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
-
-    // 6. Kelime Listelerini Doldur
-    const populateWordList = (words, element) => {
-        element.innerHTML = '';
-        if (words.length === 0) {
-            element.innerHTML = '<li>Kelime bulunamadı.</li>';
-            return;
-        }
-        words.forEach(word => {
-            const li = document.createElement('li');
-            li.textContent = word;
-            element.appendChild(li);
-        });
-    };
-
-    populateWordList(resultA.words, wordsListAEl);
-    populateWordList(resultB.words, wordsListBEl);
-
-    // 7. Sonuç Mesajını Belirle
-    let message = '';
-    let color = '';
-
-    if (resultA.score > resultB.score) {
-        message = (myPlayerId === 'PlayerA') ? 'TEBRİKLER! Oyunu Kazandınız.' : 'OYUN BİTTİ. Rakip (A) Kazandı.';
-        color = (myPlayerId === 'PlayerA') ? '#2ecc71' : '#e74c3c';
-    } else if (resultB.score > resultA.score) {
-        message = (myPlayerId === 'PlayerB') ? 'TEBRİKLER! Oyunu Kazandınız.' : 'OYUN BİTTİ. Rakip (B) Kazandı.';
-        color = (myPlayerId === 'PlayerB') ? '#2ecc71' : '#e74c3c';
-    } else {
-        message = 'BERABERLİK! Puanlarınız eşit.';
-        color = '#f39c12';
+    // 4. İstenmeyen Yazıları Gizle (Kazandın/Kaybettin)
+    if (finalResultMsgEl) {
+        finalResultMsgEl.style.display = 'none'; // Bu yazıyı tamamen kaldırıyoruz
+        finalResultMsgEl.textContent = '';
     }
 
-    finalResultMsgEl.textContent = message;
-    finalResultMsgEl.style.color = color;
-  
-// --- BAŞLIKLARI KİŞİSELLEŞTİRME (SEN vs RAKİP) ---
-    try {
+    // 5. Gridleri ve Skorları Doldur
+    // A Oyuncusu (Her zaman var)
+    scoreAEl.textContent = resultA.score;
+    renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
+    
+    // Kelime listesi A
+    wordsListAEl.innerHTML = resultA.words.length > 0 
+        ? resultA.words.map(w => `<li>${w}</li>`).join('') 
+        : '<li>Kelime yok</li>';
+
+    // 6. TEK KİŞİLİK / ÇOK KİŞİLİK GÖRÜNÜM AYARI
+    if (data.isSinglePlayer) {
+        // --- TEK KİŞİLİK MOD ---
+        
+        // İkinci kartı (Rakip/Boş olanı) tamamen GİZLE
+        if (resultCards.length > 1) {
+            resultCards[1].style.display = 'none';
+        }
+        
+        // Başlığı düzenle ("Kurucu A" yerine "SKOR TABLONUZ" gibi)
+        const titleA = document.getElementById('resultTitleA');
+        if (titleA) {
+            titleA.innerHTML = 'OYUN SONUCUNUZ';
+            titleA.style.color = '#2c3e50';
+        }
+
+    } else {
+        // --- MULTIPLAYER MOD (KLASİK & RANDOM) ---
+
+        // İkinci kartı GÖSTER (Eğer gizlendiyse geri aç)
+        if (resultCards.length > 1) {
+            resultCards[1].style.display = 'flex'; // Veya 'block', CSS yapınıza göre
+        }
+
+        // B Oyuncusunun verilerini doldur
+        scoreBEl.textContent = resultB.score;
+        renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
+        
+        // Kelime listesi B
+        wordsListBEl.innerHTML = resultB.words.length > 0 
+            ? resultB.words.map(w => `<li>${w}</li>`).join('') 
+            : '<li>Kelime yok</li>';
+
+        // Başlıkları "Sen" ve "Rakip" olarak ayarla
         const titleA = document.getElementById('resultTitleA');
         const titleB = document.getElementById('resultTitleB');
 
         if (titleA && titleB) {
-            // Sadece elementler bulunduysa bu bloğa gireriz
-
-            if (data.isSinglePlayer) {
-                // Tek kişilik
+            if (myPlayerId === 'PlayerA') {
                 titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-                titleB.style.display = 'none';
+                titleB.innerHTML = 'RAKİP ALANI';
+                titleA.style.color = '#2c3e50'; 
+                titleB.style.color = '#95a5a6';
             } else {
-                // Multiplayer
-                if (myPlayerId === 'PlayerA') {
-                    // Ben A isem -> A benim, B rakip
-                    titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-                    titleB.innerHTML = 'RAKİP ALANI';
-                    titleA.style.color = '#2c3e50'; 
-                    titleB.style.color = '#95a5a6';
-                } else {
-                    // Ben B isem -> B benim, A rakip
-                    titleA.innerHTML = 'RAKİP ALANI';
-                    titleB.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-                    titleB.style.color = '#2c3e50';
-                    titleA.style.color = '#95a5a6';
-                }
+                titleA.innerHTML = 'RAKİP ALANI';
+                titleB.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
+                titleB.style.color = '#2c3e50';
+                titleA.style.color = '#95a5a6'; 
             }
-        } else {
-            console.error("HATA: 'resultTitleA' veya 'resultTitleB' elementleri bulunamadı.");
         }
-    } catch (error) {
-        console.error("Başlıkları güncellerken hata oluştu:", error);
     }
-  
+
     // Dinleyiciyi kapat
     if (unsubscribe) {
         unsubscribe();
         unsubscribe = null;
     }
 }
-
-// ==========================================
-// GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
-// ==========================================
 
 // ==========================================
 // GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
@@ -10001,6 +9985,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
