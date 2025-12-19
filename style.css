@@ -800,6 +800,7 @@ button:focus, .cell:focus, input:focus {
 .icon-info-btn {
     width: 30px;
     height: 30px;
+    padding: 0;
     border-radius: 50%; /* Tam yuvarlak */
     background-color: #34495e; /* Koyu Gri/Mavi */
     color: white;
@@ -869,6 +870,7 @@ button:focus, .cell:focus, input:focus {
 .rules-text h3 { color: #e67e22; border-bottom: 1px solid #ddd; margin-top: 15px; padding-bottom: 3px; font-size: 1.1rem; }
 .rules-text ul { padding-left: 20px; font-size: 0.95rem; line-height: 1.4; }
 .rules-text p { font-size: 0.95rem; line-height: 1.4; }
+
 
 
 
