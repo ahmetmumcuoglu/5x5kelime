@@ -8660,6 +8660,7 @@ let myFinalLetter = null;     // 25. hamle için yerel olarak seçilen harf (Sad
 let unsubscribe = null;       // Firebase anlık dinleyicisini kapatmak için kullanılır.
 let selectedDraftIndex = null; // Seçili hücrenin indeksini tutar (Onay mekanizması için)
 let myGridData = [];
+let selectedClassicLetter = null; // Klasik modda o an seçilen (ama henüz gönderilmeyen) harf
 
 // ==========================================
 // 3. DOM ELEMENTLERİ
@@ -8991,8 +8992,114 @@ function listenToGame() {
                 document.getElementById('gamePanel').classList.remove('hidden');
                 document.getElementById('gameOverPanel').classList.add('hidden');
 
-                // Hamle mantığını çalıştır (Sıra kimde, harf ne, vs.)
-                handleTurnLogic(data, myGridData);
+                // Elementleri seç
+                const classicArea = document.getElementById('classicLetterSelectionArea');
+                const randomDisplay = document.getElementById('randomLetterDisplay');
+                const turnBadge = document.getElementById('turnStatusBadge');
+
+                // 1. Önce Klasik Alanı Gizle (Temizlik)
+                if (classicArea) classicArea.classList.add('hidden');
+                if (randomDisplay) randomDisplay.classList.add('hidden'); // Varsayılan gizli
+
+                const isMyTurn = (data.turn === myPlayerId);
+
+                // --- KLASİK MOD KONTROLÜ ---
+                if (data.gameMode === 'CLASSIC') {
+                    
+                    // DURUM A: Harf Seçme Sırası (WAITING_FOR_LETTER)
+                    if (data.status === 'WAITING_FOR_LETTER') {
+                        if (isMyTurn) {
+                            // SIRA SİZDE: Alfabeyi Göster
+                            if (classicArea) {
+                                classicArea.classList.remove('hidden');
+                                renderClassicAlphabet(); // Fonksiyon çağrısı
+                                
+                                // Onay butonunu sıfırla
+                                const confirmBtn = document.getElementById('confirmLetterBtn');
+                                if (confirmBtn) {
+                                    confirmBtn.disabled = true;
+                                    confirmBtn.textContent = "BİR HARF SEÇİNİZ";
+                                }
+                                selectedClassicLetter = null;
+                            }
+                            if (turnBadge) {
+                                turnBadge.textContent = "Sıra Sizde: Harf Seçin";
+                                turnBadge.className = "status-badge your-turn";
+                                turnBadge.classList.remove('hidden');
+                            }
+                        } else {
+                            // SIRA RAKİPTE
+                            if (turnBadge) {
+                                turnBadge.textContent = "Rakip Harf Seçiyor...";
+                                turnBadge.className = "status-badge opponent-turn";
+                                turnBadge.classList.remove('hidden');
+                            }
+                        }
+                    } 
+                    
+                    // DURUM B: Harf Seçildi, Yerleştirme Zamanı (WAITING_FOR_MOVE)
+                    else if (data.status === 'WAITING_FOR_MOVE') {
+                        // Seçilen harfi turuncu kutuda göster
+                        if (randomDisplay) {
+                            randomDisplay.textContent = data.currentLetter;
+                            randomDisplay.classList.remove('hidden');
+                        }
+                        
+                        // Hamle kontrolü
+                        const myMoveDone = data.moves && data.moves[myPlayerId];
+                        
+                        if (!myMoveDone) {
+                            if (turnBadge) {
+                                turnBadge.textContent = `"${data.currentLetter}" Harfini Yerleştirin`;
+                                turnBadge.className = "status-badge your-turn";
+                            }
+                            placementMode = true;
+                        } else {
+                            if (turnBadge) {
+                                turnBadge.textContent = "Rakip Yerleştiriyor...";
+                                turnBadge.className = "status-badge opponent-turn";
+                            }
+                            placementMode = false;
+                        }
+                        if (turnBadge) turnBadge.classList.remove('hidden');
+                    }
+                }
+
+                // --- RANDOM MOD KONTROLÜ (ESKİ MANTIK) ---
+                else {
+                    // Random Modda (veya Tek Kişilikte) Klasik alan zaten gizlendi.
+                    
+                    // Harfi göster
+                    if (randomDisplay) {
+                        randomDisplay.textContent = data.currentLetter;
+                        randomDisplay.classList.remove('hidden');
+                    }
+
+                    // Durum Badge'i ve Placement Mode
+                    // Burada eski handleTurnLogic mantığını manuel işletiyoruz:
+                    
+                    if (isMyTurn) { // Random'da teknik olarak turn hep 'SYSTEM' gibidir ama moves kontrolü önemli
+                         const myMoveDone = data.moves && data.moves[myPlayerId];
+                         if (!myMoveDone) {
+                             if (turnBadge) {
+                                 turnBadge.textContent = "Sıra Sizde: Yerleştirin";
+                                 turnBadge.className = "status-badge your-turn";
+                                 turnBadge.classList.remove('hidden');
+                             }
+                             placementMode = true;
+                         } else {
+                             if (turnBadge) {
+                                 turnBadge.textContent = "Rakip Bekleniyor...";
+                                 turnBadge.className = "status-badge opponent-turn";
+                                 turnBadge.classList.remove('hidden');
+                             }
+                             placementMode = false;
+                         }
+                    }
+                    // Eğer data.turn sistem tarafından yönetiliyorsa, Random modda herkes aynı anda oynar
+                    // Bu yüzden placementMode genelde moves kontrolüne bağlıdır.
+                }
+            }
             } 
             
             // -------------------------------------------------
@@ -9890,6 +9997,61 @@ function enableControls(isLetterSelectionMode = true) {
     }
 }
 
+// ==========================================
+// KLASİK MOD HARF SEÇİM FONKSİYONLARI
+// ==========================================
+
+// 1. Alfabeyi Ekrana Çiz
+function renderClassicAlphabet() {
+    const container = document.getElementById('classicAlphabetContainer');
+    if (!container) return;
+    
+    container.innerHTML = ''; // Temizle
+    const alphabet = "ABCÇDEFGĞHİIJKLMNOÖPRSŞTUÜVYZ";
+    
+    alphabet.split('').forEach(char => {
+        const btn = document.createElement('div');
+        btn.classList.add('alpha-btn'); // CSS'deki mavi buton stili
+        btn.textContent = char;
+        
+        // Tıklama Olayı
+        btn.onclick = () => selectClassicLetter(char, btn);
+        
+        container.appendChild(btn);
+    });
+}
+
+// 2. Harfe Tıklandığında Seçim Yap
+function selectClassicLetter(char, btnElement) {
+    selectedClassicLetter = char;
+    
+    // Görsel vurgu: Önce hepsinden 'selected' sınıfını kaldır
+    const allBtns = document.querySelectorAll('#classicAlphabetContainer .alpha-btn');
+    allBtns.forEach(b => b.classList.remove('selected'));
+    
+    // Tıklanana ekle
+    btnElement.classList.add('selected');
+    
+    // Onay butonunu aktif et
+    const confirmBtn = document.getElementById('confirmLetterBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = `"${char}" HARFİNİ GÖNDER`;
+    }
+}
+
+// 3. Onay Butonuna Tıklanınca Gönder
+function submitClassicLetter() {
+    if (!selectedClassicLetter) return;
+    
+    // Mevcut submitLetter fonksiyonunu çağır (veya direkt veritabanı kodu)
+    // Eğer kodunuzda "submitLetter()" fonksiyonu varsa onu kullanıyoruz:
+    submitLetter(selectedClassicLetter); 
+    
+    // Temizlik
+    selectedClassicLetter = null;
+    document.getElementById('classicLetterSelectionArea').classList.add('hidden');
+}
 
 
 
