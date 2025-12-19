@@ -14,6 +14,10 @@
     
     <div id="lobbyPanel" class="panel">
         <h2 class="panel-title">Kelime Oyunu</h2>
+
+        <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: left; margin-bottom: 10px;">
+        <button id="howToPlayBtn" class="icon-info-btn" title="Nasıl Oynanır?">?</button>
+    </div>
         
         <div class="lobby-controls">
             
@@ -136,8 +140,39 @@
     </div>
     
     <script src="script.js"></script>
+
+    <div id="howToPlayModal" class="modal hidden">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 style="color:#2c3e50; text-align:center;">NASIL OYNANIR?</h2>
+        <div class="rules-text">
+            <h3>🎯 Oyunun Amacı</h3>
+            <p>5x5'lik grid üzerinde, verilen harfleri kullanarak yatay veya dikey anlamlı kelimeler oluşturmak ve en yüksek puanı toplamaktır.</p>
+
+            <h3>🕹️ Oyun Modları</h3>
+            <ul>
+                <li><strong>Klasik Mod:</strong> Sırası gelen oyuncu bir harf seçer. Seçilen harfi her iki oyuncu da kullanmak zorundadır.</li>
+                <li><strong>Random Mod:</strong> Sistem rastgele harfler verir. Hız ve strateji önemlidir.</li>
+                <li><strong>Tek Kişilik:</strong> Kendi rekorunuzu kırmak için rastgele gelen harflerle oynarsınız.</li>
+            </ul>
+
+            <h3>⭐ Puanlama</h3>
+            <ul>
+                <li><strong>5 Harfli:</strong> 15 Puan (Büyük Ödül!)</li>
+                <li><strong>4 Harfli:</strong> 9 Puan</li>
+                <li><strong>3 Harfli:</strong> 5 Puan</li>
+                <li><strong>2 Harfli:</strong> 2 Puan</li>
+            </ul>
+
+            <h3>🃏 Joker Kuralı</h3>
+            <p>24 harf yerleştirildikten sonra, son kalan 25. kare için <strong>JOKER</strong> hakkınız vardır. İstediğiniz harfi seçip oyunun kaderini değiştirebilirsiniz!</p>
+        </div>
+    </div>
+</div>
+    
 </body>
 </html>
+
 
 
 
