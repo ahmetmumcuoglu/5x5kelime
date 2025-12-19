@@ -67,6 +67,18 @@
             <div class="controls-section">
                 
                 <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
+
+                <div id="classicLetterSelectionArea" class="hidden">
+        <p style="text-align:center; margin-bottom:5px; font-weight:bold; color:#2c3e50;">
+            Bir Harf Seç ve Onayla:
+        </p>
+        
+        <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
+        
+        <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>
+            SEÇİMİ ONAYLA
+        </button>
+    </div>
                 
                 <div id="statusMsg" style="display:none;"></div> 
             </div>
@@ -126,6 +138,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
