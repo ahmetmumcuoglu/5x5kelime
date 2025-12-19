@@ -9110,7 +9110,7 @@ function listenToGame() {
                     }
 
                     if (!myMoveDone) {
-                        updateUIState("Sıra Sizde: Harfi Yerleştirin", "your-turn", true);
+                        updateUIState("Harfi Yerleştirin", "your-turn", true);
                     } else {
                          if(data.isSinglePlayer) {
                              updateUIState("Kaydediliyor...", "badge-neutral", false);
@@ -9979,6 +9979,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
