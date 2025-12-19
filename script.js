@@ -9230,7 +9230,6 @@ function selectJokerLetter(letter) {
 
   // Grid'i yeniden çiz ki hücreler 'clickable' sınıfını alsın ve cursor değişsin
     renderGrid(myGridData, 'myGrid');
-}
 
 // ==========================================
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
@@ -10002,6 +10001,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
