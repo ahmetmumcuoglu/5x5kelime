@@ -9817,7 +9817,7 @@ function calculateScore(gridData) {
         
         bestWords.forEach(w => foundWords.add(w));
         return maxComboScore;
-    }
+    };
 
     const getLineString = (indices) => {
         return indices.map(index => gridData[index] || ' ').join('');
@@ -10239,6 +10239,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 }
+
 
 
 
