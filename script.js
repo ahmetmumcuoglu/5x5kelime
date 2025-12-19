@@ -9384,51 +9384,27 @@ function selectJokerLetter(letter) {
         selectedBtn.classList.add('selected');
     }
 
-    // 3. TABELA VE GRİD DURUMUNU MANUEL GÜNCELLE
-    // (Veritabanı değişmediği için bunu elle yapmalıyız)
-    
+    // 3. Oyun Durumunu Güncelle (Tabela)
     const turnBadge = document.getElementById('turnStatusBadge');
-    const myGridEl = document.getElementById('myGrid');
-
-    // Tabelayı güncelle
     if(turnBadge) {
         turnBadge.textContent = `SEÇİLEN: ${letter} - YERLEŞTİRİN`;
         turnBadge.className = "status-badge badge-success";
     }
 
-    // --- KRİTİK KISIM: GRIDİ AÇ ---
-    placementMode = true; // Mantıksal olarak aç
+    // 4. Grid'i Aktif Et (Tıklamayı Aç)
+    const myGridEl = document.getElementById('myGrid');
+    placementMode = true; 
     
     if (myGridEl) {
-        myGridEl.classList.remove('waiting-turn'); // Solukluğu kaldır
-        myGridEl.classList.add('active-turn');     // Parlat
-        myGridEl.style.opacity = "1";              // Görsel olarak tam görünür
-        myGridEl.style.pointerEvents = "auto";     // TIKLAMAYI AÇ
+        myGridEl.classList.remove('waiting-turn');
+        myGridEl.classList.add('active-turn');
+        myGridEl.style.opacity = "1";
+        myGridEl.style.pointerEvents = "auto";
     }
 
-    // Gridi yeniden çiz ki hücrelere 'clickable' sınıfı eklensin
+    // Gridi yeniden çiz (Değişikliklerin yansıması için)
     renderGrid(myGridData, 'myGrid');
-}
-
-    // 3. Oyun Durumunu Güncelle
-    const turnBadge = document.getElementById('turnStatusBadge');
-    if(turnBadge) {
-        // Tabela: "HARFİ YERLEŞTİR" (Yeşil)
-        turnBadge.textContent = `SEÇİLEN: ${letter} - YERLEŞTİR`;
-        turnBadge.className = "status-badge badge-success";
-    }
-
-    // 4. Grid'i Aktif Et (Artık tıklanabilir)
-    const myGridElement = document.getElementById('myGrid');
-    if (myGridElement) {
-        myGridElement.classList.remove('waiting-turn');
-        myGridElement.classList.add('active-turn');
-    }
-
-    placementMode = true; // Grid tıklaması artık çalışır
-
-  // Grid'i yeniden çiz ki hücreler 'clickable' sınıfını alsın ve cursor değişsin
-    renderGrid(myGridData, 'myGrid');
+} // <-- FONKSİYON BURADA BİTMELİ
 
 // ==========================================
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
@@ -10239,6 +10215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 }
+
 
 
 
