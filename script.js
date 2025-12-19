@@ -8950,8 +8950,9 @@ function setupGameUI(gameId) {
     if (actionArea) actionArea.classList.add('hidden');
     if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
 }
+
 // ==========================================
-// OYUNU DİNLEME (TABELA GARANTİLİ VERSİYON)
+// OYUNU DİNLEME (TABELA VE GRID SORUNSUZ VERSİYON)
 // ==========================================
 
 function listenToGame() {
@@ -8979,31 +8980,24 @@ function listenToGame() {
             const randomDisplay = document.getElementById('randomLetterDisplay');
             const myGridEl = document.getElementById('myGrid');
             
-            // --- TABELA ELEMENTİNİ BUL (YEDEKLİ SİSTEM) ---
-            // Önce yeniyi ara, yoksa eskisini kullan
-            let turnBadge = document.getElementById('turnStatusBadge');
-            if (!turnBadge) {
-                turnBadge = document.getElementById('gameStatusMsg'); // Yedek
-            }
-            
+            // --- TABELAYI BUL ---
+            const turnBadge = document.getElementById('turnStatusBadge');
+
             // --- UI TEMİZLİĞİ ---
             if (classicArea) classicArea.classList.add('hidden');
             if (randomDisplay) randomDisplay.classList.add('hidden');
-            if (turnBadge) turnBadge.classList.remove('hidden'); 
             
             // ==========================================================
-            // YARDIMCI: UI DURUM GÜNCELLEYİCİ
+            // YARDIMCI: UI DURUM GÜNCELLEYİCİ (Sorunu Çözen Kısım)
             // ==========================================================
             const updateUIState = (text, badgeColor, isInteractive) => {
-                // 1. Tabela Yazısını Güncelle
+                // 1. Tabela Yazısını Güncelle (ZORLAYICI YÖNTEM)
                 if (turnBadge) {
                     turnBadge.textContent = text;
+                    // Tüm olası renk sınıflarını temizle, yenisini ekle
                     turnBadge.className = `status-badge ${badgeColor}`; 
-                    // Eğer eski element kullanılıyorsa hidden sınıfını manuel sil
                     turnBadge.classList.remove('hidden'); 
-                    turnBadge.style.display = 'block'; // Garanti olsun
-                } else {
-                    console.warn("UYARI: Tabela elementi (turnStatusBadge) HTML'de bulunamadı!");
+                    turnBadge.style.display = 'block'; // Görünürlüğü garanti et
                 }
 
                 // 2. Grid Görselini ve Tıklamayı Yönet
@@ -9022,6 +9016,7 @@ function listenToGame() {
                         myGridEl.style.pointerEvents = "none";     
                     }
                 }
+                // Gridi yeniden çiz (Clickable sınıfları için)
                 renderGrid(myGridData, 'myGrid');
             };
 
@@ -9035,7 +9030,9 @@ function listenToGame() {
 
                 const isMyTurn = (data.turnOwner === myPlayerId);
                 const myFilledCount = myGridData.filter(c => c !== '').length;
-                const currentMove = data.moveNumber || 1;
+                const currentMove = data.moveNumber || 1; // moveNumber yoksa 1 kabul et
+                
+                // Bu turdaki hamlem yapıldı mı?
                 const myMoveDone = (myFilledCount >= currentMove);
 
                 // ====================================================
@@ -9054,7 +9051,7 @@ function listenToGame() {
                             updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİRİN`, "badge-success", true);
                         }
                     }
-                    return; 
+                    return; // Fonksiyondan çık, aşağısı çalışmasın
                 }
 
                 // ====================================================
@@ -9064,6 +9061,7 @@ function listenToGame() {
                     const harfSecildiMi = (data.currentLetter !== null && data.currentLetter !== "");
 
                     if (!harfSecildiMi) {
+                        // HARF SEÇME AŞAMASI
                         if (isMyTurn) {
                             if (classicArea) {
                                 classicArea.classList.remove('hidden');
@@ -9081,9 +9079,11 @@ function listenToGame() {
                             updateUIState("Rakip Harf Seçiyor...", "opponent-turn", false);
                         }
                     } else {
+                        // YERLEŞTİRME AŞAMASI
                         if (randomDisplay) {
                             randomDisplay.textContent = data.currentLetter;
                             randomDisplay.classList.remove('hidden');
+                            // Eğer içinde eski alfabe kaldıysa temizle
                             if (randomDisplay.querySelector('.alphabet-wrapper')) {
                                 randomDisplay.textContent = data.currentLetter; 
                             }
@@ -9105,7 +9105,7 @@ function listenToGame() {
                         randomDisplay.textContent = data.currentLetter;
                         randomDisplay.classList.remove('hidden');
                         if (randomDisplay.querySelector('.alphabet-wrapper')) {
-                            randomDisplay.textContent = data.currentLetter;
+                             randomDisplay.textContent = data.currentLetter;
                         }
                     }
 
@@ -9979,6 +9979,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
