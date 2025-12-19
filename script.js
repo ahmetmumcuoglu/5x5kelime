@@ -8951,7 +8951,7 @@ function setupGameUI(gameId) {
     if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
 }
 // ==========================================
-// OYUNU DİNLEME (GÜNCELLENMİŞ - TEK KİŞİLİK SKOR EKRANI DÜZELTİLDİ)
+// OYUNU DİNLEME (TAMAMEN DÜZELTİLMİŞ)
 // ==========================================
 
 function listenToGame() {
@@ -8979,10 +8979,10 @@ function listenToGame() {
             const randomDisplay = document.getElementById('randomLetterDisplay');
             const turnBadge = document.getElementById('turnStatusBadge');
             
-            // --- UI TEMİZLİĞİ (Varsayılan Durumlar) ---
-            if (classicArea) classicArea.classList.add('hidden'); // Klasik alanı gizle
-            if (randomDisplay) randomDisplay.classList.add('hidden'); // Random kutusunu gizle
-            if (turnBadge) turnBadge.classList.remove('hidden'); // Durum çubuğunu göster
+            // --- UI TEMİZLİĞİ (Varsayılan olarak her şeyi gizle, aşağıda açacağız) ---
+            if (classicArea) classicArea.classList.add('hidden');
+            if (randomDisplay) randomDisplay.classList.add('hidden');
+            if (turnBadge) turnBadge.classList.remove('hidden'); 
             
             placementMode = false; // Varsayılan olarak tıklamayı kapat
 
@@ -8994,21 +8994,52 @@ function listenToGame() {
                 document.getElementById('gamePanel').classList.remove('hidden');
                 document.getElementById('gameOverPanel').classList.add('hidden');
 
-                const isMyTurn = (data.turn === myPlayerId);
-                const myMoveDone = data.moves && data.moves[myPlayerId];
+                const isMyTurn = (data.turnOwner === myPlayerId);
+                const myMoveDone = myGridData.filter(c => c !== '').length >= data.moveNumber; // Hamlemi yaptım mı?
+                const currentMove = data.moveNumber;
 
                 // ====================================================
-                // MOD A: KLASİK MOD (CLASSIC)
+                // A. 25. TUR: JOKER HAMLESİ (HER MOD İÇİN ORTAK)
+                // ====================================================
+                if (currentMove === 25) {
+                    if (randomDisplay) randomDisplay.classList.remove('hidden');
+                    
+                    if (myMoveDone) {
+                        turnBadge.textContent = "OYUN BİTİYOR... RAKİP BEKLENİYOR";
+                        turnBadge.className = "status-badge badge-neutral";
+                    } else {
+                        // Joker Seçimi İçin Alfabeyi Göster (Turuncu kutunun içinde)
+                        renderAlphabetSelector(); 
+                        
+                        if (!myFinalLetter) {
+                            turnBadge.textContent = "SON HARF: JOKER SEÇİNİZ";
+                            turnBadge.className = "status-badge badge-info";
+                        } else {
+                            turnBadge.textContent = `SEÇİLEN: ${myFinalLetter} - YERLEŞTİRİN`;
+                            turnBadge.className = "status-badge badge-success";
+                            placementMode = true; // Tıklamayı aç
+                        }
+                    }
+                    return; // 25. turda başka mantık çalışmasın
+                }
+
+                // ====================================================
+                // B. KLASİK MOD (CLASSIC) - 1-24. TURLAR
                 // ====================================================
                 if (data.gameMode === 'CLASSIC') {
                     
+                    const harfSecildiMi = (data.currentLetter !== null && data.currentLetter !== "");
+
                     // 1. Harf Seçme Aşaması
-                    if (data.status === 'WAITING_FOR_LETTER') {
+                    if (!harfSecildiMi) {
                         if (isMyTurn) {
                             // Sıra Bende: Alfabeyi Göster
                             if (classicArea) {
                                 classicArea.classList.remove('hidden');
-                                renderClassicAlphabet(); // Alfabeyi çiz
+                                // Alfabe boşsa çiz, doluysa dokunma
+                                if(classicArea.querySelector('#classicAlphabetContainer').children.length === 0) {
+                                     renderClassicAlphabet(); 
+                                }
                                 
                                 const confirmBtn = document.getElementById('confirmLetterBtn');
                                 if (confirmBtn && !selectedClassicLetter) {
@@ -9026,17 +9057,21 @@ function listenToGame() {
                     } 
                     
                     // 2. Harf Yerleştirme Aşaması
-                    else if (data.status === 'WAITING_FOR_MOVE') {
+                    else {
                         // Seçilen harfi göster
                         if (randomDisplay) {
                             randomDisplay.textContent = data.currentLetter;
                             randomDisplay.classList.remove('hidden');
+                            // Turuncu kutunun içini temizle (Eski joker alfabesi kalmasın)
+                            if (randomDisplay.querySelector('.alphabet-wrapper')) {
+                                randomDisplay.innerHTML = data.currentLetter;
+                            }
                         }
 
                         if (!myMoveDone) {
                             turnBadge.textContent = `"${data.currentLetter}" Harfini Yerleştirin`;
                             turnBadge.className = "status-badge your-turn";
-                            placementMode = true; // <--- KRİTİK: Tıklamayı aç
+                            placementMode = true; // <--- Tıklamayı aç
                         } else {
                             turnBadge.textContent = "Rakip Yerleştiriyor...";
                             turnBadge.className = "status-badge opponent-turn";
@@ -9046,36 +9081,33 @@ function listenToGame() {
                 }
 
                 // ====================================================
-                // MOD B: RANDOM MODLAR (MULTIPLAYER & SINGLE)
+                // C. RANDOM MODLAR (MULTIPLAYER & SINGLE) - 1-24. TURLAR
                 // ====================================================
                 else {
-                    // Random Modda (veya Single Player) harf her zaman bellidir
+                    // Harfi her zaman göster
                     if (randomDisplay) {
                         randomDisplay.textContent = data.currentLetter;
                         randomDisplay.classList.remove('hidden');
+                        // Temizlik (Eski joker kalıntıları olmasın)
+                        if (randomDisplay.querySelector('.alphabet-wrapper')) {
+                            randomDisplay.innerHTML = data.currentLetter;
+                        }
                     }
 
-                    // Tek Kişilik Mod Kontrolü
-                    if (data.isSinglePlayer) {
-                        if (!myMoveDone) {
-                            turnBadge.textContent = "Sıra Sizde: Yerleştirin";
-                            turnBadge.className = "status-badge your-turn";
-                            placementMode = true; // <--- KRİTİK: Single modda tıklamayı aç
-                        } else {
-                             turnBadge.textContent = "Lütfen bekleyin...";
-                        }
-                    } 
-                    // Multiplayer Random Kontrolü
-                    else {
-                        if (!myMoveDone) {
-                            turnBadge.textContent = "Sıra Sizde: Yerleştirin";
-                            turnBadge.className = "status-badge your-turn";
-                            placementMode = true; // <--- KRİTİK: Random modda tıklamayı aç
-                        } else {
-                            turnBadge.textContent = "Rakip Bekleniyor...";
-                            turnBadge.className = "status-badge opponent-turn";
-                            placementMode = false;
-                        }
+                    if (!myMoveDone) {
+                        turnBadge.textContent = "Sıra Sizde: Yerleştirin";
+                        turnBadge.className = "status-badge your-turn";
+                        placementMode = true; // <--- Tıklamayı aç
+                    } else {
+                         // Eğer tek kişilikse ve bekliyorsa
+                         if(data.isSinglePlayer) {
+                             turnBadge.textContent = "Kaydediliyor...";
+                             turnBadge.className = "status-badge badge-neutral";
+                         } else {
+                             turnBadge.textContent = "Rakip Bekleniyor...";
+                             turnBadge.className = "status-badge opponent-turn";
+                         }
+                        placementMode = false;
                     }
                 }
             } 
@@ -9285,84 +9317,60 @@ function handleTurnLogic(data, myGridData) {
 }
 
 // ==========================================
-// HARF SEÇİMİ (SUBMIT LETTER) - DÜZELTİLMİŞ
+// HARF SEÇİMİ VE GÖNDERİMİ (DÜZELTİLMİŞ)
 // ==========================================
 
-async function submitLetter() {
-    // Güvenlik için DOM elementlerini burada tekrar seçiyoruz
-    const letterInput = document.getElementById('letterInput');
-    const statusMsg = document.getElementById('gameStatusMsg');
-    
-    let letter = letterInput.value.trim().toLocaleUpperCase('tr-TR'); 
-    const validLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ"; // Türkçe geçerli harfler
+async function submitLetter(letterParam = null) {
+    // 1. Harfi Belirle (Parametreden mi Inputtan mı?)
+    let letter = letterParam;
 
-    // 1. Kontrol: Geçerli tek bir harf girildi mi?
-    if (!letter || letter.length !== 1) {
-        statusMsg.textContent = "HATA: Lütfen geçerli tek bir harf girin.";
-        return;
-    }
-    // DÜZELTME 1: Türkçe karakter geçerliliğini kontrol et
-    if (!validLetters.includes(letter)) {
-        statusMsg.textContent = "HATA: Geçersiz bir karakter girdiniz.";
-        return;
+    // Eğer parametre yoksa inputtan al (Eski input sistemi için güvenlik)
+    if (!letter) {
+        const letterInput = document.getElementById('letterInput');
+        if (letterInput) letter = letterInput.value.trim().toUpperCase();
     }
     
+    // Harf yoksa dur
+    if (!letter) return;
+    
+    // Geçerlilik Kontrolü
+    const validLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    if (!validLetters.includes(letter)) {
+        alert("Geçersiz harf.");
+        return;
+    }
+
     const gameRef = db.collection('games').doc(currentGameId);
     
-    // Harf seçme anındaki moveNumber'ı çekelim
-    const doc = await gameRef.get();
-    if (!doc.exists) {
-        statusMsg.textContent = "HATA: Oyun verisi bulunamadı.";
-        return;
-    }
-    const data = doc.data();
-    const isFinalMove = (data.moveNumber === 25);
-    
-    if (isFinalMove) {
-        // 25. Hamle: YEREL İŞLEM
-        myFinalLetter = letter; 
-        placementMode = true; 
-        
-        statusMsg.textContent = `SON HARFİN SEÇİLDİ: "${letter}" - Şimdi yerleştir!`;
-        disableControls(); 
-
-        const myCurrentGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
-        renderGrid(myCurrentGridData, 'myGrid'); 
-        
-        letterInput.value = '';
-        return; 
-    }
-    
-    // --- NORMAL KLASİK MOD MANTIĞI (Transaction ile güvenli yazma) ---
     try {
         await db.runTransaction(async (transaction) => {
-            const doc_inner = await transaction.get(gameRef);
-            const data_inner = doc_inner.data();
+            const doc = await transaction.get(gameRef);
+            if (!doc.exists) throw new Error("Oyun bulunamadı.");
+            
+            const data = doc.data();
 
-            if (data_inner.currentLetter) {
-                throw new Error("Harf zaten seçilmiş.");
+            // Klasik Mod Kontrolleri
+            if (data.currentLetter) {
+                 // Zaten harf seçilmiş, işlem yapma
+                 return; 
             }
-            if (data_inner.turnOwner !== myPlayerId) {
-                 throw new Error("Sıra sizde değil.");
+            if (data.turnOwner !== myPlayerId) {
+                throw new Error("Sıra sizde değil.");
             }
             
-            // Harfi veritabanına kaydet
+            // Harfi Yaz
             transaction.update(gameRef, {
-                currentLetter: letter,
+                currentLetter: letter
             });
-            
-            // Harf seçimi başarılıysa kontrolü devre dışı bırak
-            disableControls();
-            letterInput.value = '';
         });
+        
+        // UI Temizliği
+        const classicArea = document.getElementById('classicLetterSelectionArea');
+        if (classicArea) classicArea.classList.add('hidden');
+        selectedClassicLetter = null;
 
     } catch (error) {
-        if (error.message.startsWith("Harf zaten seçilmiş") || error.message.startsWith("Sıra sizde değil")) {
-            statusMsg.textContent = `HATA: ${error.message}`;
-        } else {
-            console.error("Harf seçme hatası:", error);
-            statusMsg.textContent = "HATA: Harf seçilemedi. Konsolu kontrol edin.";
-        }
+        console.error("Harf gönderme hatası:", error);
     }
 }
 
@@ -9981,6 +9989,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
