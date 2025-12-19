@@ -17,6 +17,39 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 
 // ==========================================
+// NASIL OYNANIR PENCERE AYARLARI (GLOBAL)
+// ==========================================
+
+// Pencereyi AÇAN Fonksiyon
+window.openInfoModal = function() {
+    const modal = document.getElementById("howToPlayModal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        // CSS yüklenmese bile açılması için zorluyoruz:
+        modal.style.display = "flex"; 
+    }
+}
+
+// Pencereyi KAPATAN Fonksiyon
+window.closeInfoModal = function() {
+    const modal = document.getElementById("howToPlayModal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+    }
+}
+
+// Sayfa yüklendiğinde: Pencerenin dışına (siyah alana) tıklayınca kapatma
+window.addEventListener('load', () => {
+    const modal = document.getElementById("howToPlayModal");
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            window.closeInfoModal();
+        }
+    }
+});
+
+// ==========================================
 // 1.1. PUANLAMA VE SÖZLÜK TANIMLARI
 // ==========================================
 const SCORE_RULES = { 3: 5, 4: 9, 5: 15 };
@@ -10012,6 +10045,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
 
 
 
