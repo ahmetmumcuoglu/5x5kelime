@@ -9939,6 +9939,7 @@ function showResults(data) {
     if (unsubscribe) {
         unsubscribe();
         unsubscribe = null;
+      }
 
       // ... (showResults fonksiyonunun en sonu) ...
 
@@ -9961,7 +9962,7 @@ function showResults(data) {
             console.log("Random mod istatistiği kaydedildi:", myScore);
         }
     }
-
+}
 } // showResults bitişi
 
 // ==========================================
@@ -10215,6 +10216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 }
+
 
 
 
