@@ -10237,29 +10237,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 
 
