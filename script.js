@@ -8658,7 +8658,7 @@ let myPlayerId = null;        // Oyuncunun rolü ('PlayerA' veya 'PlayerB')
 let placementMode = false;    // Hücrelere tıklamaya izin var mı? (Boolean)
 let myFinalLetter = null;     // 25. hamle için yerel olarak seçilen harf (Sadece 25. hamlede kullanılır)
 let unsubscribe = null;       // Firebase anlık dinleyicisini kapatmak için kullanılır.
-let selectedDraftIndex = null; // Seçili hücrenin indeksini tutar (Onay mekanizması için)
+let selectedDraftIndex = -1; // Seçili hücrenin indeksini tutar (Onay mekanizması için)
 let myGridData = [];
 let selectedClassicLetter = null; // Klasik modda o an seçilen (ama henüz gönderilmeyen) harf
 
@@ -8967,194 +8967,124 @@ function listenToGame() {
 
             const data = doc.data();
 
-            // 1. Global Grid Verisini Güncelle (HandleCellClick için kritik)
+            // 1. Grid Verilerini Al ve Çiz
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
-            
-            // Rakip gridi (Sadece görsel güncelleme için)
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
 
-            // 2. Gridleri Ekrana Çiz
             renderGrid(myGridData, 'myGrid');
             renderGrid(oppGridData, 'opponentGrid');
 
-            // 3. Bilgileri Güncelle
-            // const moveNumDisplay = document.getElementById('moveNumberDisplay');
-            // if (moveNumDisplay) moveNumDisplay.textContent = `${data.moveNumber}/25`;
-
-            //const roleDisplay = document.getElementById('myPlayerRole');
-            //if (roleDisplay) roleDisplay.textContent = (myPlayerId === 'PlayerA') ? "Kurucu (A)" : "Katılımcı (B)";
+            // 2. Elementleri Hazırla
+            const classicArea = document.getElementById('classicLetterSelectionArea');
+            const randomDisplay = document.getElementById('randomLetterDisplay');
+            const turnBadge = document.getElementById('turnStatusBadge');
+            
+            // --- UI TEMİZLİĞİ (Varsayılan Durumlar) ---
+            if (classicArea) classicArea.classList.add('hidden'); // Klasik alanı gizle
+            if (randomDisplay) randomDisplay.classList.add('hidden'); // Random kutusunu gizle
+            if (turnBadge) turnBadge.classList.remove('hidden'); // Durum çubuğunu göster
+            
+            placementMode = false; // Varsayılan olarak tıklamayı kapat
 
             // -------------------------------------------------
-            // DURUM 1: OYUN AKTİF (ACTIVE)
+            // DURUM: OYUN AKTİF (ACTIVE)
             // -------------------------------------------------
             if (data.status === 'active') {
                 document.getElementById('lobbyPanel').classList.add('hidden');
                 document.getElementById('gamePanel').classList.remove('hidden');
                 document.getElementById('gameOverPanel').classList.add('hidden');
 
-                // Elementleri seç
-                const classicArea = document.getElementById('classicLetterSelectionArea');
-                const randomDisplay = document.getElementById('randomLetterDisplay');
-                const turnBadge = document.getElementById('turnStatusBadge');
-
-                // 1. Önce Klasik Alanı Gizle (Temizlik)
-                if (classicArea) classicArea.classList.add('hidden');
-                if (randomDisplay) randomDisplay.classList.add('hidden'); // Varsayılan gizli
-
                 const isMyTurn = (data.turn === myPlayerId);
+                const myMoveDone = data.moves && data.moves[myPlayerId];
 
-                // --- KLASİK MOD KONTROLÜ ---
+                // ====================================================
+                // MOD A: KLASİK MOD (CLASSIC)
+                // ====================================================
                 if (data.gameMode === 'CLASSIC') {
                     
-                    // DURUM A: Harf Seçme Sırası (WAITING_FOR_LETTER)
+                    // 1. Harf Seçme Aşaması
                     if (data.status === 'WAITING_FOR_LETTER') {
                         if (isMyTurn) {
-                            // SIRA SİZDE: Alfabeyi Göster
+                            // Sıra Bende: Alfabeyi Göster
                             if (classicArea) {
                                 classicArea.classList.remove('hidden');
-                                renderClassicAlphabet(); // Fonksiyon çağrısı
+                                renderClassicAlphabet(); // Alfabeyi çiz
                                 
-                                // Onay butonunu sıfırla
                                 const confirmBtn = document.getElementById('confirmLetterBtn');
-                                if (confirmBtn) {
+                                if (confirmBtn && !selectedClassicLetter) {
                                     confirmBtn.disabled = true;
                                     confirmBtn.textContent = "BİR HARF SEÇİNİZ";
                                 }
-                                selectedClassicLetter = null;
                             }
-                            if (turnBadge) {
-                                turnBadge.textContent = "Sıra Sizde: Harf Seçin";
-                                turnBadge.className = "status-badge your-turn";
-                                turnBadge.classList.remove('hidden');
-                            }
+                            turnBadge.textContent = "Sıra Sizde: Harf Seçin";
+                            turnBadge.className = "status-badge your-turn";
                         } else {
-                            // SIRA RAKİPTE
-                            if (turnBadge) {
-                                turnBadge.textContent = "Rakip Harf Seçiyor...";
-                                turnBadge.className = "status-badge opponent-turn";
-                                turnBadge.classList.remove('hidden');
-                            }
+                            // Sıra Rakipte
+                            turnBadge.textContent = "Rakip Harf Seçiyor...";
+                            turnBadge.className = "status-badge opponent-turn";
                         }
                     } 
                     
-                    // DURUM B: Harf Seçildi, Yerleştirme Zamanı (WAITING_FOR_MOVE)
+                    // 2. Harf Yerleştirme Aşaması
                     else if (data.status === 'WAITING_FOR_MOVE') {
-                        // Seçilen harfi turuncu kutuda göster
+                        // Seçilen harfi göster
                         if (randomDisplay) {
                             randomDisplay.textContent = data.currentLetter;
                             randomDisplay.classList.remove('hidden');
                         }
-                        
-                        // Hamle kontrolü
-                        const myMoveDone = data.moves && data.moves[myPlayerId];
-                        
+
                         if (!myMoveDone) {
-                            if (turnBadge) {
-                                turnBadge.textContent = `"${data.currentLetter}" Harfini Yerleştirin`;
-                                turnBadge.className = "status-badge your-turn";
-                            }
-                            placementMode = true;
+                            turnBadge.textContent = `"${data.currentLetter}" Harfini Yerleştirin`;
+                            turnBadge.className = "status-badge your-turn";
+                            placementMode = true; // <--- KRİTİK: Tıklamayı aç
                         } else {
-                            if (turnBadge) {
-                                turnBadge.textContent = "Rakip Yerleştiriyor...";
-                                turnBadge.className = "status-badge opponent-turn";
-                            }
+                            turnBadge.textContent = "Rakip Yerleştiriyor...";
+                            turnBadge.className = "status-badge opponent-turn";
                             placementMode = false;
                         }
-                        if (turnBadge) turnBadge.classList.remove('hidden');
                     }
                 }
 
-                // --- RANDOM MOD KONTROLÜ (ESKİ MANTIK) ---
+                // ====================================================
+                // MOD B: RANDOM MODLAR (MULTIPLAYER & SINGLE)
+                // ====================================================
                 else {
-                    // Random Modda (veya Tek Kişilikte) Klasik alan zaten gizlendi.
-                    
-                    // Harfi göster
+                    // Random Modda (veya Single Player) harf her zaman bellidir
                     if (randomDisplay) {
                         randomDisplay.textContent = data.currentLetter;
                         randomDisplay.classList.remove('hidden');
                     }
 
-                    // Durum Badge'i ve Placement Mode
-                    // Burada eski handleTurnLogic mantığını manuel işletiyoruz:
-                    
-                    if (isMyTurn) { // Random'da teknik olarak turn hep 'SYSTEM' gibidir ama moves kontrolü önemli
-                         const myMoveDone = data.moves && data.moves[myPlayerId];
-                         if (!myMoveDone) {
-                             if (turnBadge) {
-                                 turnBadge.textContent = "Sıra Sizde: Yerleştirin";
-                                 turnBadge.className = "status-badge your-turn";
-                                 turnBadge.classList.remove('hidden');
-                             }
-                             placementMode = true;
-                         } else {
-                             if (turnBadge) {
-                                 turnBadge.textContent = "Rakip Bekleniyor...";
-                                 turnBadge.className = "status-badge opponent-turn";
-                                 turnBadge.classList.remove('hidden');
-                             }
-                             placementMode = false;
-                         }
+                    // Tek Kişilik Mod Kontrolü
+                    if (data.isSinglePlayer) {
+                        if (!myMoveDone) {
+                            turnBadge.textContent = "Sıra Sizde: Yerleştirin";
+                            turnBadge.className = "status-badge your-turn";
+                            placementMode = true; // <--- KRİTİK: Single modda tıklamayı aç
+                        } else {
+                             turnBadge.textContent = "Lütfen bekleyin...";
+                        }
+                    } 
+                    // Multiplayer Random Kontrolü
+                    else {
+                        if (!myMoveDone) {
+                            turnBadge.textContent = "Sıra Sizde: Yerleştirin";
+                            turnBadge.className = "status-badge your-turn";
+                            placementMode = true; // <--- KRİTİK: Random modda tıklamayı aç
+                        } else {
+                            turnBadge.textContent = "Rakip Bekleniyor...";
+                            turnBadge.className = "status-badge opponent-turn";
+                            placementMode = false;
+                        }
                     }
-                    // Eğer data.turn sistem tarafından yönetiliyorsa, Random modda herkes aynı anda oynar
-                    // Bu yüzden placementMode genelde moves kontrolüne bağlıdır.
                 }
-            }
+            } 
             
             // -------------------------------------------------
-            // DURUM 2: OYUN BİTTİ (FINISHED)
+            // DURUM: OYUN BİTTİ (FINISHED)
             // -------------------------------------------------
             else if (data.status === 'finished') {
-                // Puanları Hesapla
-                const resultA = calculateScore(data.gridA);
-                const resultB = calculateScore(data.gridB);
-
-                // Skorları Yaz
-                document.getElementById('scoreA').textContent = resultA.score;
-                document.getElementById('scoreB').textContent = resultB.score;
-
-                // Kelime Listelerini Doldur
-                const listA = document.getElementById('wordsListA');
-                const listB = document.getElementById('wordsListB');
-                
-                listA.innerHTML = resultA.words.map(w => `<li>${w}</li>`).join('');
-                listB.innerHTML = resultB.words.map(w => `<li>${w}</li>`).join('');
-
-              // --- KRİTİK DEĞİŞİKLİK: YENİ PUAN GRIDİNİ ÇİZ ---
-                renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
-                renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
-                
-                // --- YENİ EKLENEN KISIM: TEK KİŞİLİK / ÇOK KİŞİLİK AYRIMI ---
-                const finalMsgElement = document.getElementById('finalResultMsg');
-                const resultCards = document.querySelectorAll('.result-card'); // Kartları bul (0: A, 1: B)
-
-               // 1. OYUN SONU MESAJINI HER DURUMDA GİZLE
-    // Hem tek kişilikte hem multiplayer'da yazı görünmesin
-    finalMsgElement.style.display = 'none'; 
-    finalMsgElement.textContent = ''; 
-
-    if (data.isSinglePlayer) {
-        // --- TEK KİŞİLİK MOD ---
-        
-        // Sadece ikinci oyuncunun kartını GİZLE
-        if (resultCards[1]) {
-            resultCards[1].style.display = 'none';
-        }
-    } else {
-        // --- ÇOK OYUNCULU MOD ---
-        
-        // Sadece ikinci oyuncunun kartını GÖSTER (Gizliyse aç)
-        if (resultCards[1]) {
-            resultCards[1].style.display = 'flex';
-        }
-        
-        // Kazananı belirleyen yazı kodları SİLİNDİ.
-        // Artık sadece skor kartları ve gridler görünecek.
-    }
-
-                // Panelleri Değiştir
-                document.getElementById('gamePanel').classList.add('hidden');
-                document.getElementById('gameOverPanel').classList.remove('hidden');
+                showResults(data); // Sonuç ekranını göster
             }
         });
 }
@@ -10051,6 +9981,7 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     document.getElementById('classicLetterSelectionArea').classList.add('hidden');
 }
+
 
 
 
