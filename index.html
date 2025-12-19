@@ -16,7 +16,7 @@
         <h2 class="panel-title">Kelime Oyunu</h2>
 
         <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: left; margin-bottom: 10px;">
-        <button id="howToPlayBtn" class="icon-info-btn" title="Nasıl Oynanır?">?</button>
+        <button id="howToPlayBtn" class="icon-info-btn" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
     </div>
         
         <div class="lobby-controls">
@@ -138,8 +138,6 @@
             <button id="restartBtn" onclick="window.location.reload()">TEKRAR OYNA</button>
         </div>
     </div>
-    
-    <script src="script.js"></script>
 
     <div id="howToPlayModal" class="modal hidden">
     <div class="modal-content">
@@ -169,9 +167,11 @@
         </div>
     </div>
 </div>
-    
+        
+    <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
