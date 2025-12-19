@@ -9963,7 +9963,7 @@ function showResults(data) {
         }
     }
 }
-} // showResults bitişi
+// showResults bitişi
 
 // ==========================================
 // GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
@@ -10216,6 +10216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 }
+
 
 
 
