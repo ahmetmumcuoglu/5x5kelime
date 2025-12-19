@@ -2997,7 +2997,6 @@ const WORD_ARRAY = [
 "GÖRÜ",
 "GÖRÜM",
 "GÖRÜŞ",
-"GÖT",
 "GÖVDE",
 "GÖVEK",
 "GÖVEL",
@@ -6748,7 +6747,6 @@ const WORD_ARRAY = [
 "SİH",
 "SİHİR",
 "SİİRT",
-"SİK",
 "SİKKE",
 "SİKME",
 "SİLAH",
@@ -9891,6 +9889,7 @@ function enableControls(isLetterSelectionMode = true) {
         actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
     }
 }
+
 
 
 
