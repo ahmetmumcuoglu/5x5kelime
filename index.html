@@ -170,31 +170,36 @@
 </div>
 
     <div id="statsModal" class="modal hidden" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width: 500px;">
         <span class="close-modal" onclick="window.closeStatsModal()">&times;</span>
-        <h2 style="color:#8e44ad; text-align:center; margin-top:0;">İSTATİSTİKLER</h2>
+        <h2 style="color:#8e44ad; text-align:center; margin-top:0;">RANDOM MOD İSTATİSTİKLERİ</h2>
         
         <div class="stats-container">
-            <div class="stat-box">
-                <span id="statPlayed" class="stat-number">0</span>
-                <span class="stat-label">Oynanan</span>
+            <div class="stat-box" style="width: 120px;">
+                <span id="statLifeTimeAvg" class="stat-number">-</span>
+                <span class="stat-label">Genel Ort.</span>
             </div>
-            <div class="stat-box">
-                <span id="statWins" class="stat-number">0</span>
-                <span class="stat-label">Galibiyet</span>
+            <div class="stat-box" style="width: 120px;">
+                <span id="statLast10Avg" class="stat-number">-</span>
+                <span class="stat-label">Son 10 Ort.</span>
             </div>
-            <div class="stat-box">
-                <span id="statWinRate" class="stat-number">%0</span>
-                <span class="stat-label">Kazanma %</span>
-            </div>
-            <div class="stat-box">
-                <span id="statStreak" class="stat-number">0</span>
-                <span class="stat-label">Seri</span>
-            </div>
-            <div class="stat-box">
-                <span id="statMaxStreak" class="stat-number">0</span>
-                <span class="stat-label">En İyi Seri</span>
-            </div>
+        </div>
+
+        <div class="leaderboard-section">
+            <h3 style="text-align:center; color:#2c3e50; margin-bottom: 10px;">🏆 BU AYIN LİDERLERİ 🏆</h3>
+            <p style="text-align:center; font-size:0.8rem; color:#7f8c8d; margin-top:-10px;">(En az 10 oyun oynayanlar)</p>
+            
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th width="15%">#</th>
+                        <th width="50%">Oyuncu</th> <th width="35%">Ortalama</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr><td colspan="3">Yükleniyor...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -202,6 +207,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
