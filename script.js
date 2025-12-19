@@ -28,7 +28,7 @@ window.openInfoModal = function() {
         // CSS yüklenmese bile açılması için zorluyoruz:
         modal.style.display = "flex"; 
     }
-}
+};
 
 // Pencereyi KAPATAN Fonksiyon
 window.closeInfoModal = function() {
@@ -37,7 +37,7 @@ window.closeInfoModal = function() {
         modal.classList.add("hidden");
         modal.style.display = "none";
     }
-}
+};
 
 // Sayfa yüklendiğinde: Pencerenin dışına (siyah alana) tıklayınca kapatma
 window.addEventListener('load', () => {
@@ -46,7 +46,7 @@ window.addEventListener('load', () => {
         if (event.target === modal) {
             window.closeInfoModal();
         }
-    }
+    };
 });
 
 // ==========================================
@@ -157,7 +157,7 @@ window.openStatsModal = function() {
 
     // --- LİDER TABLOSUNU ÇEK ---
     fetchLeaderboard();
-}
+};
 
 // 6. Lider Tablosunu Getir
 function fetchLeaderboard() {
@@ -218,7 +218,7 @@ function fetchLeaderboard() {
 window.closeStatsModal = function() {
     document.getElementById("statsModal").classList.add("hidden");
     document.getElementById("statsModal").style.display = "none";
-}
+};
 
 // ==========================================
 // 1.1. PUANLAMA VE SÖZLÜK TANIMLARI
@@ -10221,13 +10221,13 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault(); // Form submit olmasın diye
             modal.classList.remove("hidden");
             modal.style.display = "flex"; // CSS çakışması olursa garanti olsun
-        }
+        };
 
         // Çarpıya basınca kapat
         closeSpan.onclick = () => {
             modal.classList.add("hidden");
             modal.style.display = "none";
-        }
+        };
 
         // Boşluğa basınca kapat
         window.onclick = (event) => {
@@ -10235,10 +10235,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 modal.classList.add("hidden");
                 modal.style.display = "none";
             }
-        }
+        };
     }
-  })
+  });
 }
+
 
 
 
