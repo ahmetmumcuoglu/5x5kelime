@@ -50,6 +50,101 @@ window.addEventListener('load', () => {
 });
 
 // ==========================================
+// İSTATİSTİK SİSTEMİ (ANONYMOUS & LOCAL)
+// ==========================================
+
+// 1. Kullanıcı ID'si Al (Yoksa Oluştur)
+function getMyStatsId() {
+    let id = localStorage.getItem('kelimelik_user_id');
+    if (!id) {
+        // Rastgele benzersiz bir ID oluştur
+        id = 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        localStorage.setItem('kelimelik_user_id', id);
+    }
+    return id;
+}
+
+// 2. İstatistikleri Yükle (Local Storage'dan)
+function loadLocalStats() {
+    const defaultStats = {
+        played: 0,
+        wins: 0,
+        losses: 0,
+        currentStreak: 0,
+        maxStreak: 0
+    };
+    const stored = localStorage.getItem('kelimelik_stats');
+    return stored ? JSON.parse(stored) : defaultStats;
+}
+
+// 3. İstatistikleri Güncelle (Oyun Sonu Çalışacak)
+function updateStats(result) { 
+    // result: 'WIN', 'LOSS', 'DRAW', 'SINGLE'
+    
+    let stats = loadLocalStats();
+    stats.played += 1;
+
+    if (result === 'WIN') {
+        stats.wins += 1;
+        stats.currentStreak += 1;
+        if (stats.currentStreak > stats.maxStreak) {
+            stats.maxStreak = stats.currentStreak;
+        }
+    } else if (result === 'LOSS') {
+        stats.losses += 1;
+        stats.currentStreak = 0; // Seriyi sıfırla
+    } 
+    // Beraberlikte veya Tek Kişilikte seri bozulmaz ama artmaz da (Tercihe bağlı)
+
+    // Local Storage'a Kaydet
+    localStorage.setItem('kelimelik_stats', JSON.stringify(stats));
+
+    // Firebase'e Yedekle (Opsiyonel ama önerilir)
+    saveStatsToFirebase(stats);
+}
+
+// 4. Firebase'e Kaydet
+function saveStatsToFirebase(stats) {
+    const userId = getMyStatsId();
+    // 'users' koleksiyonuna yazıyoruz
+    db.collection('users').doc(userId).set({
+        ...stats,
+        lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(err => console.error("Stat sync error:", err));
+}
+
+// 5. Pencereyi Aç ve Verileri Göster
+window.openStatsModal = function() {
+    const modal = document.getElementById("statsModal");
+    if (modal) {
+        const stats = loadLocalStats();
+        
+        // Hesaplamalar
+        const winRate = stats.played > 0 
+            ? Math.round((stats.wins / stats.played) * 100) 
+            : 0;
+
+        // HTML'e Yaz
+        document.getElementById('statPlayed').textContent = stats.played;
+        document.getElementById('statWins').textContent = stats.wins;
+        document.getElementById('statWinRate').textContent = `%${winRate}`;
+        document.getElementById('statStreak').textContent = stats.currentStreak;
+        document.getElementById('statMaxStreak').textContent = stats.maxStreak;
+
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+    }
+}
+
+window.closeStatsModal = function() {
+    const modal = document.getElementById("statsModal");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+    }
+}
+
+// ==========================================
 // 1.1. PUANLAMA VE SÖZLÜK TANIMLARI
 // ==========================================
 const SCORE_RULES = { 3: 5, 4: 9, 5: 15 };
@@ -9792,6 +9887,42 @@ function showResults(data) {
     if (unsubscribe) {
         unsubscribe();
         unsubscribe = null;
+
+      // --- İSTATİSTİK GÜNCELLEME ---
+    // Bu fonksiyonun birden fazla kez çalışmasını engellemek için basit bir kontrol
+    // (Snapshot dinleyicisi bazen üst üste çalışabilir)
+    
+    // Sadece oyun yeni bittiyse ve veritabanı yazma işlemi değilse
+    // Bunu LocalStorage'da son kaydedilen oyun ID'si ile kontrol edebiliriz
+    const lastProcessedGame = localStorage.getItem('last_processed_game_id');
+    
+    if (lastProcessedGame !== currentGameId) {
+        localStorage.setItem('last_processed_game_id', currentGameId);
+        
+        let matchResult = 'DRAW'; // Varsayılan
+
+        if (data.isSinglePlayer) {
+            matchResult = 'SINGLE'; 
+            // Tek kişilikte sadece 'Oynanan' artar, kazanma/kaybetme sayılmaz
+            // İsterseniz Tek Kişilik için ayrı mantık kurabiliriz.
+        } else {
+            // Multiplayer Sonuç Kontrolü
+            if (resultA.score > resultB.score) {
+                // A Kazandı
+                if (myPlayerId === 'PlayerA') matchResult = 'WIN';
+                else matchResult = 'LOSS';
+            } else if (resultB.score > resultA.score) {
+                // B Kazandı
+                if (myPlayerId === 'PlayerB') matchResult = 'WIN';
+                else matchResult = 'LOSS';
+            } else {
+                matchResult = 'DRAW';
+            }
+        }
+        
+        // İstatistiği İşle
+        updateStats(matchResult);
+        console.log("İstatistik güncellendi:", matchResult);
     }
 }
 
@@ -10045,6 +10176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
 
 
 
