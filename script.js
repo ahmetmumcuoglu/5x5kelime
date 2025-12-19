@@ -9919,7 +9919,7 @@ function showResults(data) {
                 matchResult = 'DRAW';
             }
         }
-        
+        }
         // İstatistiği İşle
         updateStats(matchResult);
         console.log("İstatistik güncellendi:", matchResult);
@@ -10176,6 +10176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
 
 
 
