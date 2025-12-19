@@ -168,10 +168,41 @@
         </div>
     </div>
 </div>
+
+    <div id="statsModal" class="modal hidden" style="display: none;">
+    <div class="modal-content">
+        <span class="close-modal" onclick="window.closeStatsModal()">&times;</span>
+        <h2 style="color:#8e44ad; text-align:center; margin-top:0;">İSTATİSTİKLER</h2>
         
+        <div class="stats-container">
+            <div class="stat-box">
+                <span id="statPlayed" class="stat-number">0</span>
+                <span class="stat-label">Oynanan</span>
+            </div>
+            <div class="stat-box">
+                <span id="statWins" class="stat-number">0</span>
+                <span class="stat-label">Galibiyet</span>
+            </div>
+            <div class="stat-box">
+                <span id="statWinRate" class="stat-number">%0</span>
+                <span class="stat-label">Kazanma %</span>
+            </div>
+            <div class="stat-box">
+                <span id="statStreak" class="stat-number">0</span>
+                <span class="stat-label">Seri</span>
+            </div>
+            <div class="stat-box">
+                <span id="statMaxStreak" class="stat-number">0</span>
+                <span class="stat-label">En İyi Seri</span>
+            </div>
+        </div>
+    </div>
+</div>
+    
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
