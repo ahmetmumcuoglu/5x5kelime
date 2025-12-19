@@ -4077,6 +4077,7 @@ const WORD_ARRAY = [
 "KARNE",
 "KARNİ",
 "KARO",
+"KAROT",
 "KARS",
 "KARST",
 "KARŞI",
@@ -10011,6 +10012,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
 
 
 
