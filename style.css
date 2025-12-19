@@ -780,6 +780,21 @@ button:focus, .cell:focus, input:focus {
     box-shadow: 0 1px 0 #219150;
 }
 
+/* Tabela Renkleri */
+.status-badge {
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.your-turn, .badge-success { background-color: #2ecc71; } /* Yeşil */
+.opponent-turn, .badge-warning { background-color: #f39c12; } /* Turuncu */
+.badge-info { background-color: #3498db; } /* Mavi */
+.badge-neutral { background-color: #95a5a6; } /* Gri */
+.hidden { display: none !important; }
 
 
 
