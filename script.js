@@ -10237,8 +10237,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-  }
+  })
 });
+
 
 
 
