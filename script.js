@@ -9486,21 +9486,21 @@ function listenToGame() {
 }
 
 // ==========================================
-// 15. UI DURUM YÖNETİMİ (KESİN MOD AYRIMI)
+// 15. UI DURUM YÖNETİMİ (DÜZELTİLMİŞ)
 // ==========================================
 function updateGameUI(data) {
     const turnBadge = document.getElementById('turnStatusBadge');
     const randomDisplay = document.getElementById('randomLetterDisplay');
     const actionArea = document.getElementById('actionArea');
     
-    // UI Yardımcısı
+    // UI Yardımcısı (Kod tekrarını önlemek için)
     const setUI = (text, badgeClass, canPlay) => {
         if (turnBadge) {
             turnBadge.textContent = text;
             turnBadge.className = `status-badge ${badgeClass}`;
             turnBadge.classList.remove('hidden');
         }
-        placementMode = canPlay; // Tıklama izni
+        placementMode = canPlay; // Global tıklama izni
         
         const grid = document.getElementById('myGrid');
         if (grid) {
@@ -9518,7 +9518,7 @@ function updateGameUI(data) {
         }
     };
 
-    // 1. RAKİP BEKLENİYOR
+    // 1. RAKİP BEKLENİYOR (Oyun başlamamışsa)
     if (data.status === 'waiting') {
         if(randomDisplay) randomDisplay.classList.add('hidden');
         if(actionArea) actionArea.classList.add('hidden');
@@ -9526,28 +9526,48 @@ function updateGameUI(data) {
         return;
     }
 
-    // 2. TEK KİŞİLİK MOD (SORUN 1 ÇÖZÜMÜ)
+    // 2. TEK KİŞİLİK MOD (BURASI DÜZELTİLDİ)
     if (data.isSinglePlayer) {
-        if (randomDisplay) {
-            randomDisplay.textContent = data.currentLetter || "?";
-            randomDisplay.classList.remove('hidden');
-        }
-        
-        // Dolu hücre sayısı ile Hamle sayısını kıyasla
-        const myFilled = myGridData.filter(c => c !== '').length;
-        
-        // Eğer gridimdeki dolu sayısı, olması gereken hamle sayısından azsa -> HALA YERLEŞTİRMEDİM
-        // Örn: Hamle 1, Dolu 0 -> Yerleştir. 
-        if (myFilled < data.moveNumber) {
-            setUI("HARFİ YERLEŞTİRİN", "badge-success", true);
-        } else {
-            // Örn: Hamle 1, Dolu 1 -> Bekle (Firebase transaction bitiyor demektir)
-            setUI("KAYDEDİLİYOR...", "badge-neutral", false);
+        // --- A. JOKER TURU (25. Tur) ---
+        if (data.moveNumber === 25) {
+            if (randomDisplay) randomDisplay.classList.remove('hidden');
+            
+            // Eğer henüz harf seçmediyse KLAVYEYİ GÖSTER
+            if (!myFinalLetter) {
+                renderAlphabetSelector(); // Klavyeyi çiz
+                setUI("JOKER HARFİ SEÇİN", "badge-info", false); // Henüz grid'e koyamaz, önce harf seçmeli
+            } 
+            // Harf seçildiyse YERLEŞTİRME MODUNA GEÇ
+            else {
+                // Not: renderAlphabetSelector içinde seçim yapılınca UI güncelleniyor ama
+                // sayfa yenilenirse diye burası da garanti olsun:
+                setUI(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
+            }
+        } 
+        // --- B. NORMAL TURLAR (1-24) ---
+        else {
+            if (randomDisplay) {
+                randomDisplay.textContent = data.currentLetter || "?";
+                randomDisplay.classList.remove('hidden');
+                // Klavyeyi temizle (önceki oyunlardan kalma ihtimaline karşı)
+                if(randomDisplay.querySelector('.joker-keyboard')) {
+                     randomDisplay.innerHTML = data.currentLetter; 
+                }
+            }
+            
+            // Dolu hücre sayısı ile Hamle sayısını kıyasla
+            const myFilled = myGridData.filter(c => c !== '').length;
+            
+            if (myFilled < data.moveNumber) {
+                setUI("HARFİ YERLEŞTİRİN", "badge-success", true);
+            } else {
+                setUI("KAYDEDİLİYOR...", "badge-neutral", false);
+            }
         }
         return;
     }
 
-    // 3. MULTIPLAYER RANDOM (SORUN 2 & 5 ÇÖZÜMÜ)
+    // 3. MULTIPLAYER RANDOM
     if (data.gameMode === 'RANDOM') {
         const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
         
@@ -9567,7 +9587,7 @@ function updateGameUI(data) {
                 if (!myFinalLetter) setUI("JOKER SEÇİN", "badge-info", false);
                 else setUI(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
             } else {
-                setUI("HARFİ YERLEŞTİRİN", "badge-success", true); // <--- BURASI ARTIK TURN OWNER'A BAKMIYOR
+                setUI("HARFİ YERLEŞTİRİN", "badge-success", true);
             }
         } else if (myStatus === 'timedout') {
             setUI("SÜRE DOLDU! (PAS)", "badge-danger", false);
@@ -9605,7 +9625,6 @@ function updateGameUI(data) {
         }
     }
 }
-
 // ==========================================
 // 16. EKRAN ÇİZİM (GÜNCEL renderGrid)
 // ==========================================
@@ -9942,6 +9961,7 @@ function renderAlphabetSelector() {
     });
     displayBox.appendChild(kbd);
 }
+
 
 
 
