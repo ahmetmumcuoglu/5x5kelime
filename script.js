@@ -28,6 +28,7 @@ let placementMode = false;   // Grid'e tıklama izni
 let selectedDraftIndex = null; // 'Önce seç sonra onayla' mekanizması için
 let selectedClassicLetter = null; // Klasik modda seçilen harf
 let unsubscribe = null;      // Firebase dinleyicisi
+let countdownInterval = null;
 
 // ZAMANLAYICI (TIMER) AYARLARI
 let timerInterval = null;
@@ -9098,47 +9099,51 @@ function setupGameUI(gameId) {
 }
 
 // ==========================================
-// 10. ZAMANLAYICI (TIMER) MANTIĞI (DÜZELTİLMİŞ)
+// 10. ZAMANLAYICI (DÜZELTİLMİŞ - TEK KİŞİLİKTE ÇIKMAZ)
 // ==========================================
-
 function startTimer(data) {
+    // Önce varsa eski sayacı temizle
     if (timerInterval) clearInterval(timerInterval);
     
     const timerEl = document.getElementById('gameTimer');
     if (!timerEl) return;
 
-    // Timer SADECE 'active' durumunda ve RANDOM modunda çalışmalı
-    // Tek kişilik oyunda da çalışmalı
-    if (data.status !== 'active' || data.gameMode !== 'RANDOM') {
+    // KURAL: Tek kişilik oyunda veya oyun henüz başlamadıysa timer GİZLİ
+    if (data.isSinglePlayer || data.status !== 'active') {
         timerEl.classList.add('hidden');
         return;
     }
     
-    timerEl.classList.remove('hidden');
-    const duration = (data.moveNumber === 25) ? TIMER_JOKER : TIMER_NORMAL;
-    
-    timerInterval = setInterval(() => {
-        if (!data.turnStartTime) return;
-
-        const now = Date.now();
-        const startTime = data.turnStartTime.toMillis();
-        const elapsed = Math.floor((now - startTime) / 1000);
-        const remaining = duration - elapsed;
-
-        timerEl.textContent = remaining > 0 ? remaining : 0;
+    // Sadece Multiplayer Random modunda aç
+    if (data.gameMode === 'RANDOM') {
+        timerEl.classList.remove('hidden');
+        const duration = (data.moveNumber === 25) ? TIMER_JOKER : TIMER_NORMAL;
         
-        if (remaining <= 5) timerEl.classList.add('timer-danger');
-        else timerEl.classList.remove('timer-danger');
+        timerInterval = setInterval(() => {
+            if (!data.turnStartTime) return;
 
-        // SÜRE DOLDU KONTROLÜ
-        const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
-        
-        // Eğer sürem bittiyse VE hala hamle yapmadıysam (waiting)
-        if (remaining <= 0 && myStatus === 'waiting') {
-            clearInterval(timerInterval);
-            handleTimeout(); 
-        }
-    }, 1000);
+            const now = Date.now();
+            const startTime = data.turnStartTime.toMillis();
+            const elapsed = Math.floor((now - startTime) / 1000);
+            const remaining = duration - elapsed;
+
+            timerEl.textContent = remaining > 0 ? remaining : 0;
+            
+            if (remaining <= 5) timerEl.classList.add('timer-danger');
+            else timerEl.classList.remove('timer-danger');
+
+            // Süre bitti ve hala hamle yapmadıysam (waiting)
+            const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
+            
+            if (remaining <= 0 && myStatus === 'waiting') {
+                clearInterval(timerInterval);
+                handleTimeout(); 
+            }
+        }, 1000);
+    } else {
+        // Klasik modda timer gizli
+        timerEl.classList.add('hidden');
+    }
 }
 
 // ==========================================
@@ -9336,7 +9341,6 @@ function calculateScore(gridData) {
 // ==========================================
 // 14. OYUN DİNLEYİCİSİ (GÜNCELLENMİŞ - 5SN GERİ SAYIM EKLİ)
 // ==========================================
-
 function listenToGame() {
     if (unsubscribe) unsubscribe();
 
@@ -9347,41 +9351,50 @@ function listenToGame() {
                 window.location.reload();
                 return;
             }
-
             const data = doc.data();
 
-            // 1. Grid Verilerini Güncelle
+            // 1. Gridleri Çiz
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-
             renderGrid(myGridData, 'myGrid');
-            if (typeof renderGrid === 'function') {
-                renderGrid(oppGridData, 'opponentGrid');
+            if (typeof renderGrid === 'function') renderGrid(oppGridData, 'opponentGrid');
+
+            // 2. DURUM KONTROLLERİ
+            
+            // A. Oyun Henüz Bekliyorsa (Host tek başına)
+            if (data.status === 'waiting') {
+                // UI Güncellemesini çağır ki "Rakip Bekleniyor" desin
+                updateGameUI(data); 
+                return;
             }
 
-            // --- 5 SANİYE GERİ SAYIM MANTIĞI ---
+            // B. Geri Sayım Modu (İkinci oyuncu geldi)
             if (data.status === 'starting') {
                 handleStartingCountdown(data);
-                return; // Başka işlem yapma
+                return; 
+            }
+            
+            // Eğer geri sayım bittiyse intervali temizle
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
             }
 
-            // 2. ZAMANLAYICIYI BAŞLAT (Sadece Active ise çalışır)
+            // C. Oyun Aktif
             startTimer(data);
-
-            // 3. UI DURUMUNU YÖNET
             updateGameUI(data);
 
-            // 4. OYUN BİTİŞ KONTROLÜ
-            if (data.status === 'finished') {
-                showResults(data);
-            }
+            if (data.status === 'finished') showResults(data);
         });
 }
 
-// YENİ: Başlangıç Geri Sayımı (5'ten Geriye)
+// YENİ: Yerel Geri Sayım Yöneticisi
 function handleStartingCountdown(data) {
     const overlay = document.getElementById('turnStatusBadge');
     if (!overlay) return;
+
+    // Önceki interval varsa temizle (Çakışmayı önle)
+    if (countdownInterval) clearInterval(countdownInterval);
 
     overlay.classList.remove('hidden');
     overlay.className = "status-badge badge-info";
@@ -9391,43 +9404,47 @@ function handleStartingCountdown(data) {
     const grid = document.getElementById('myGrid');
     if (grid) grid.classList.add('waiting-turn');
 
-    const now = Date.now();
-    const start = data.turnStartTime.toMillis();
-    const elapsed = Math.floor((now - start) / 1000);
-    const countdown = 5 - elapsed;
+    // Saniyede bir ekrana yazan yerel sayaç
+    countdownInterval = setInterval(() => {
+        const now = Date.now();
+        const start = data.turnStartTime.toMillis();
+        const elapsed = Math.floor((now - start) / 1000);
+        const countdown = 5 - elapsed; // 5 saniyeden geriye
 
-    if (countdown > 0) {
-        overlay.textContent = `OYUN BAŞLIYOR: ${countdown}`;
-    } else {
-        // Süre bitti, 'active' moduna geçir
-        // Bunu sadece Kurucu (PlayerA) yapsın ki çakışma olmasın
-        if (myPlayerId === 'PlayerA') {
-             db.collection('games').doc(currentGameId).update({
-                 status: 'active',
-                 turnStartTime: firebase.firestore.FieldValue.serverTimestamp() // Oyun süresi şimdi başlasın
-             });
+        if (countdown > 0) {
+            overlay.textContent = `OYUN BAŞLIYOR: ${countdown}`;
+        } else {
+            clearInterval(countdownInterval);
+            overlay.textContent = "BAŞLIYOR!";
+            
+            // Süre bittiğinde SADECE HOST (PlayerA) durumu 'active' yapar
+            if (myPlayerId === 'PlayerA') {
+                 db.collection('games').doc(currentGameId).update({
+                     status: 'active',
+                     // Asıl oyun süresi şimdi başlar
+                     turnStartTime: firebase.firestore.FieldValue.serverTimestamp() 
+                 });
+            }
         }
-        overlay.textContent = "BAŞLIYOR!";
-    }
+    }, 100); // 100ms'de bir kontrol et ki akıcı olsun
 }
 
 // ==========================================
-// 15. UI DURUM GÜNCELLEYİCİ (TAMAMEN YENİLENDİ)
+// 15. UI DURUM GÜNCELLEYİCİ (SORUNSUZ VERSİYON)
 // ==========================================
 function updateGameUI(data) {
     const turnBadge = document.getElementById('turnStatusBadge');
     const randomDisplay = document.getElementById('randomLetterDisplay');
     const actionArea = document.getElementById('actionArea');
     
-    // Helper: Rozet ve Grid Durumu Ayarla
+    // Rozet Ayarlayıcı
     const setBadge = (text, type, interactive) => {
         if (turnBadge) {
             turnBadge.textContent = text;
             turnBadge.className = `status-badge ${type}`;
             turnBadge.classList.remove('hidden');
         }
-        
-        placementMode = interactive;
+        placementMode = interactive; // Global tıklama izni
         
         const grid = document.getElementById('myGrid');
         if (grid) {
@@ -9445,32 +9462,52 @@ function updateGameUI(data) {
         }
     };
 
-    // --- TEK KİŞİLİK MOD KONTROLÜ ---
+    // ------------------------------------------
+    // SENARYO 1: TEK KİŞİLİK OYUN (Sorun 4 Çözümü)
+    // ------------------------------------------
     if (data.isSinglePlayer) {
         if (randomDisplay) {
             randomDisplay.textContent = data.currentLetter || "?";
             randomDisplay.classList.remove('hidden');
         }
         
-        // Hamle sayısı Griddeki dolu sayımdan büyükse, hamle yapabilirim
+        // Hamle Kontrolü: Gridimdeki dolu sayısı, hamle numarasından azsa sıramı savmamışımdır.
         const myFilled = myGridData.filter(c => c !== '').length;
         
         if (myFilled < data.moveNumber) {
-            setBadge("HARFİ YERLEŞTİRİN", "badge-success", true);
+            setBadge("HARFİ YERLEŞTİRİN", "badge-success", true); // Grid AÇIK
         } else {
-            setBadge("KAYDEDİLİYOR...", "badge-neutral", false);
+            setBadge("KAYDEDİLİYOR...", "badge-neutral", false); // Grid KAPALI
         }
+        return; // Tek kişilik mantığı burada biter
+    }
+
+    // ------------------------------------------
+    // SENARYO 2: RAKİP BEKLENİYOR (Sorun 1 Çözümü)
+    // ------------------------------------------
+    if (data.status === 'waiting') {
+        if (randomDisplay) randomDisplay.classList.add('hidden'); // Harfi gizle
+        if (actionArea) actionArea.classList.add('hidden');
+        setBadge("RAKİP BEKLENİYOR...", "badge-warning", false);
+        
+        // Oda kodunu kopyalaması için hatırlatma (Opsiyonel)
+        const codeDisplay = document.getElementById('gameCodeDisplay');
+        if(codeDisplay) codeDisplay.parentElement.style.animation = "pulse 2s infinite";
+        
         return;
     }
 
-    // --- RANDOM MULTIPLAYER MODU ---
-    // En önemli düzeltme: Burada artık "turnOwner"a bakmıyoruz!
+    // ------------------------------------------
+    // SENARYO 3: OYUN AKTİF (MULTIPLAYER)
+    // ------------------------------------------
+    
+    // RANDOM MOD
     if (data.gameMode === 'RANDOM') {
         const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
         
+        // Harfi Göster
         if (randomDisplay) {
             if (data.moveNumber === 25) {
-                // Joker turu ise alfabeyi göster
                 if (myStatus === 'waiting') renderAlphabetSelector();
             } else {
                 randomDisplay.textContent = data.currentLetter;
@@ -9478,6 +9515,7 @@ function updateGameUI(data) {
             }
         }
 
+        // Duruma Göre Mesaj
         if (myStatus === 'waiting') {
             if (data.moveNumber === 25) {
                 if (!myFinalLetter) setBadge("JOKER SEÇİN", "badge-info", false);
@@ -9488,19 +9526,19 @@ function updateGameUI(data) {
         } else if (myStatus === 'timedout') {
             setBadge("SÜRE DOLDU! (Pas Geçildi)", "badge-danger", false);
         } else {
-            // Placed (Ben koydum, rakibi bekliyorum)
-            setBadge("RAKİP BEKLENİYOR...", "badge-warning", false);
+            // Placed
+            setBadge("RAKİP BEKLENİYOR...", "badge-neutral", false);
         }
         return;
     }
 
-    // --- KLASİK MOD ---
+    // KLASİK MOD (Eski mantık aynen kalıyor)
     if (data.gameMode === 'CLASSIC') {
+        // ... (Klasik mod kodları PART 4'teki gibi kalabilir veya buraya ekleyebilirsin)
         const isMyTurn = (data.turnOwner === myPlayerId);
         const letterSelected = (data.currentLetter && data.currentLetter !== '');
 
         if (!letterSelected) {
-            // Harf Seçme Aşaması
             if (isMyTurn) {
                 setBadge("SIRA SİZDE: HARF SEÇİN", "badge-info", false);
                 renderClassicAlphabet(); 
@@ -9509,15 +9547,12 @@ function updateGameUI(data) {
                 hideClassicAlphabet();
             }
         } else {
-            // Yerleştirme Aşaması
             hideClassicAlphabet();
             if (randomDisplay) {
                 randomDisplay.textContent = data.currentLetter;
                 randomDisplay.classList.remove('hidden');
             }
-            
             const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
-            
             if (myStatus === 'waiting') {
                 setBadge("HARFİ YERLEŞTİRİN", "badge-success", true);
             } else {
@@ -9792,5 +9827,6 @@ function fetchLeaderboard() {
             tbody.innerHTML = html || '<tr><td colspan="3">Veri yok.</td></tr>';
         });
 }
+
 
 
