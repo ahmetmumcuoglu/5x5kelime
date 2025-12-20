@@ -9626,51 +9626,76 @@ function updateGameUI(data) {
 }
 
 // ==========================================
-// 16. EKRAN ÇİZİM (DRAFT & HAYALET HARF)
+// 16. EKRAN ÇİZİM (GÜNCEL renderGrid)
 // ==========================================
 function renderGrid(gridData, elementId, gameData = null) {
     const gridEl = document.getElementById(elementId);
     if (!gridEl) return;
+    
+    // Grid'i temizle
     gridEl.innerHTML = '';
 
     gridData.forEach((letter, index) => {
         const cell = document.createElement('div');
         cell.className = 'cell';
-        cell.textContent = letter;
+        
+        // 1. MEVCUT HARFİ YAZ
+        // Eğer harf varsa direkt yaz, yoksa boş kalsın (birazdan hayalet harf bakacağız)
+        if (letter !== '') {
+            cell.textContent = letter;
+            cell.classList.add('filled'); // Dolu olduğunu belirten css (opsiyonel)
+        }
 
-        // DRAFT GÖRÜNÜMÜ: Seçili hücre
+        // 2. DRAFT (TASLAK) VE HAYALET HARF MANTIĞI
+        // Sadece kendi gridimizde ve seçili olan hücrede çalışır
         if (elementId === 'myGrid' && index === selectedDraftIndex) {
-            cell.classList.add('selected-draft');
+            cell.classList.add('selected-draft'); // Sarı/Turuncu çerçeve efekti
             
-            // Eğer hücre boşsa, HAYALET HARFİ göster
-            if (!letter) {
-                // Öncelik: Joker var mı?
+            // Eğer hücre aslında boşsa, oyuncuya "koyacağı harfi" silik gösterelim
+            if (letter === '') {
+                let ghostChar = '';
+                
+                // A. Joker Seçimi Yapıldıysa onu göster
                 if (myFinalLetter) {
-                    cell.textContent = myFinalLetter;
+                    ghostChar = myFinalLetter;
                 } 
-                // Yoksa: GameData'dan gelen harf var mı?
+                // B. Oyun Verisinden Gelen Harf (Normal Tur)
                 else if (gameData && gameData.currentLetter) {
-                    cell.textContent = gameData.currentLetter;
+                    ghostChar = gameData.currentLetter;
                 }
-                // Yoksa: Ekrandaki kutudan al (Fallback)
+                // C. Fallback (UI'dan oku - senkronizasyon gecikmesi ihtimaline karşı)
                 else {
                     const display = document.getElementById('randomLetterDisplay');
-                    if (display && display.textContent.length === 1) {
-                         cell.textContent = display.textContent;
+                    if (display && display.textContent.length === 1 && display.textContent !== '?') {
+                        ghostChar = display.textContent;
                     }
                 }
-                
-                // Hayalet harf olduğu belli olsun diye rengini biraz soluk yapabiliriz (Opsiyonel)
-                cell.style.color = "#888"; 
+
+                if (ghostChar) {
+                    cell.textContent = ghostChar;
+                    cell.style.color = "rgba(0, 0, 0, 0.4)"; // Silik gri renk (Hayalet efekti)
+                }
             }
         }
 
-        // Tıklanabilirlik
-        const isClickable = (elementId === 'myGrid' && placementMode);
-        // Tıklanabilir olması için: Ya boş olmalı YA DA şu anki seçili draft olmalı (onaylamak için)
-        if (isClickable && (letter === '' || index === selectedDraftIndex)) {
-            cell.classList.add('clickable');
-            cell.onclick = () => handleCellClick(index);
+        // 3. TIKLANABİLİRLİK MANTIĞI
+        // Sadece 'myGrid' tıklanabilir ve sadece 'placementMode' açıkken.
+        const isMyGrid = (elementId === 'myGrid');
+        
+        if (isMyGrid && placementMode) {
+            // Hücre boşsa VEYA zaten seçtiğimiz (draft) hücreyse tıklayabiliriz.
+            // (Dolu hücreye tıklamayı engelliyoruz)
+            if (letter === '' || index === selectedDraftIndex) {
+                cell.classList.add('clickable');
+                cell.onclick = () => handleCellClick(index);
+            }
+        }
+
+        // 4. PAS GEÇİLEN (BOŞ KALAN) HÜCRELER
+        // Sadece Oyun Bittiyse boş kalan yerleri kırmızı/işaretli gösterelim.
+        // Oyun devam ederken boş yerler "henüz dolmamış" demektir, pas geçmiş demek değildir.
+        if (gameData && gameData.status === 'finished' && letter === '') {
+            cell.classList.add('skipped'); // CSS'te tanımladığımız kırmızı stil
         }
 
         gridEl.appendChild(cell);
@@ -9936,6 +9961,7 @@ function renderAlphabetSelector() {
     });
     displayBox.appendChild(kbd);
 }
+
 
 
 
