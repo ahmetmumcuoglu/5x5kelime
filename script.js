@@ -9902,7 +9902,7 @@ function submitClassicLetter() {
     hideClassicAlphabet();
 }
 // ==========================================
-// JOKER SEÇİCİ (25. Tur İçin - GÜNCELLENMİŞ)
+// 20. JOKER SEÇİCİ (25. Tur İçin - GÜNCELLENMİŞ)
 // ==========================================
 function renderAlphabetSelector() {
     const displayBox = document.getElementById('randomLetterDisplay');
@@ -9916,47 +9916,64 @@ function renderAlphabetSelector() {
     }
 
     displayBox.innerHTML = '';
-    // Mobilde kutunun genişlemesi için bu sınıf çok önemli
+    // Genişleme ve mobil görünüm için gerekli sınıflar
     displayBox.className = 'random-letter-box expanded'; 
 
     const kbd = document.createElement('div');
     kbd.className = 'joker-keyboard';
     
-    // Alfabedeki Türkçe karakterler dahil
     const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
     
     // Başlık
     const title = document.createElement('div');
-    title.textContent = "JOKER SEÇ:";
+    title.textContent = "JOKER HARFİ SEÇ:";
     title.className = "joker-title";
     displayBox.appendChild(title);
 
     alphabet.split('').forEach(char => {
-        const btn = document.createElement('button'); // span yerine button daha iyidir
+        const btn = document.createElement('button');
         btn.className = 'joker-key';
         btn.textContent = char;
         
-        // --- TIKLAMA OLAYI ---
-      btn.onclick = (e) => {
+        // --- HARF SEÇME OLAYI ---
+        btn.onclick = async (e) => {
             e.preventDefault(); 
             e.stopPropagation();
 
-            myFinalLetter = char; // Seçilen harfi kaydet
+            // 1. Seçilen harfi hafızaya al
+            myFinalLetter = char;
             
-            // 1. Görsel seçim efekti (Klavyedeki tuş yeşil olur)
+            // 2. Klavyedeki tuşu görsel olarak seçili yap
             document.querySelectorAll('.joker-key').forEach(k => k.classList.remove('active-key'));
             btn.classList.add('active-key');
             
-            // 2. KRİTİK DÜZELTME: placementMode'u aç ve UI'yı GÜNCELLE
+            // 3. Grid'i anında aktif et (PlacementMode aç)
             placementMode = true; 
             
-            // Veritabanından gelen son veriyi kullanarak UI'yı tekrar hesapla
-            // Bu, grid'in "waiting-turn" (soluk) sınıfını silip "active-turn" (yeşil) yapmasını sağlar.
-            db.collection('games').doc(currentGameId).get().then(doc => {
-                if(doc.exists) {
-                    updateGameUI(doc.data()); // UI durumunu zorla güncelle
-                    renderGrid(myGridData, 'myGrid', doc.data()); // Gridi tekrar çiz
+            // 4. UI'ı anında güncelle (Grid'in yeşile dönmesi için)
+            // Firebase'den güncel veriyi çekip UI fonksiyonuna paslıyoruz
+            try {
+                const doc = await db.collection('games').doc(currentGameId).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    // Grid'in solukluğunu gideren ve "Harfi Yerleştir" diyen fonksiyon
+                    updateGameUI(data); 
+                    
+                    // Grid'i "Hayalet Harf" ile birlikte tekrar çiz
+                    renderGrid(myGridData, 'myGrid', data);
                 }
-            });
+            } catch (error) {
+                console.error("Joker seçim hatası:", error);
+                // Hata olsa bile manuel zorla:
+                placementMode = true;
+                const turnBadge = document.getElementById('turnStatusBadge');
+                if(turnBadge) turnBadge.textContent = `SEÇİLEN: ${char} - ŞİMDİ YERLEŞTİR`;
+            }
         };
+        kbd.appendChild(btn);
+    });
+    
+    displayBox.appendChild(kbd);
+}
 
