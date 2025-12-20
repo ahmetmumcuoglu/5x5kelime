@@ -325,31 +325,83 @@ input[type="text"] {
     border-color: var(--dark);
 }
 
-/* JOKER KLAVYESİ (Random Mod) */
+/* ================================================= */
+/* JOKER KLAVYESİ (RESPONSIVE DÜZELTME) */
+/* ================================================= */
+
+/* Normalde küçük olan kutuyu Joker turunda genişletiyoruz */
 .random-letter-box.expanded {
-    width: auto;
-    height: auto;
-    font-size: 16px;
+    width: 100%;           /* Genişliği serbest bırak */
+    max-width: 400px;      /* Çok yayılmasın */
+    height: auto;          /* Yüksekliği içeriğe göre ayarla */
+    aspect-ratio: auto;    /* Kare olma zorunluluğunu kaldır */
+    border-radius: 12px;
     padding: 10px;
     flex-direction: column;
+    z-index: 100;          /* Diğer öğelerin üstünde görünsün */
+    background: white;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    margin: 0 auto 15px auto; /* Merkeze al */
 }
+
+.joker-title {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
 .joker-keyboard {
     display: flex;
     flex-wrap: wrap;
-    gap: 3px;
+    gap: 4px;
     justify-content: center;
-    max-width: 280px;
 }
+
 .joker-key {
-    display: inline-flex;
-    width: 24px;
-    height: 24px;
+    width: 30px;        /* Masaüstü boyutu */
+    height: 30px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    background: #fff;
-    border: 1px solid #999;
-    border-radius: 3px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 12px;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s;
 }
+
+.joker-key:hover {
+    background: #e0e0e0;
+}
+
+.joker-key.active-key {
+    background: #2ecc71; /* Yeşil */
+    color: white;
+    border-color: #27ae60;
+    transform: scale(1.1);
+}
+
+/* --- MOBİL ÖZEL AYARLAR --- */
+@media (max-width: 600px) {
+    .random-letter-box.expanded {
+        position: fixed;   /* Ekrana sabitle (Modal gibi) */
+        bottom: 20px;      /* Aşağıdan biraz boşluk */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95%;        /* Ekranı kaplasın */
+        max-width: 95%;
+        border: 2px solid #2ecc71;
+    }
+    
+    .joker-key {
+        width: 11%;       /* Yan yana yaklaşık 8-9 harf sığsın */
+        height: 35px;     /* Parmakla basmak için biraz daha yüksek */
+        font-size: 16px;
+    }
+}
+
