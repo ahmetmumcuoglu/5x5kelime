@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kelimelik 5x5 Online</title>
+    
     <link rel="stylesheet" href="style.css"> 
+    
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
-
+    
     <div id="lobbyPanel" class="panel">
         <h2 class="panel-title">Kelime Oyunu</h2>
 
-        <div class="lobby-top-actions">
-            <button id="howToPlayBtn" class="icon-btn info" onclick="openInfoModal()" title="Nasıl Oynanır?">?</button>
-            <button id="statsBtn" class="icon-btn stats" onclick="openStatsModal()" title="İstatistikler">📊</button>
-        </div>
+        <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: left; margin-bottom: 10px;">
+        <button id="howToPlayBtn" class="icon-info-btn" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
+        <button id="statsBtn" class="icon-info-btn" onclick="window.openStatsModal()" title="İstatistikler" style="margin-left: 10px; background-color: #8e44ad;">📊</button>
+    </div>
         
         <div class="lobby-controls">
+            
             <div class="control-group">
-                <label for="gameModeSelect">Oyun Modu:</label>
+                <label for="gameModeSelect" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Oyun Modu:</label>
                 <select id="gameModeSelect">
                     <option value="CLASSIC">KLASİK (SIRAYLA SEÇMELİ)</option>
                     <option value="RANDOM">RANDOM (RASTGELE HARF)</option>
@@ -37,34 +40,52 @@
             
             <div class="lobby-divider">- VEYA -</div>
             
-            <button id="singlePlayerBtn" class="secondary-btn" onclick="startSinglePlayerGame()">
-                Tek Başına Oyna (Random)
-            </button>
+            <div class="control-group">
+                <button id="singlePlayerBtn" onclick="startSinglePlayerGame()">
+                    Tek Başına Oyna (Random)
+                </button>
+            </div>
         </div>
 
-        <div id="lobbyStatus" class="status-error"></div>
+        <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
     </div>
         
     <div id="gamePanel" class="panel hidden">
+        
         <div class="game-header">
-            <div class="room-info">Oda: <b id="gameCodeDisplay">--</b></div>
-            <div id="gameTimer" class="game-timer hidden">20</div>
-            <div id="turnStatusBadge" class="status-badge">Yükleniyor...</div>
+            <div class="game-info">
+                <span>Oda: <b id="gameCodeDisplay">--</b></span>  
+                 
+            </div>
         </div>
+
+        <div class="controls-top">
+    <div id="turnStatusBadge" class="status-badge hidden">Durum Yükleniyor...</div>
+    
+    </div>
         
         <div class="game-container">
             <div class="grid-section">
-                <div id="myGrid" class="grid"></div>
+            <div id="myGrid" class="grid"></div>
             </div>
 
             <div class="controls-section">
+                
                 <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
 
                 <div id="classicLetterSelectionArea" class="hidden">
-                    <p class="section-label">Harf Seç ve Onayla:</p>
-                    <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
-                    <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>ONAYLA</button>
-                </div>
+        <p style="text-align:center; margin-bottom:5px; font-weight:bold; color:#2c3e50;">
+            Bir Harf Seç ve Onayla:
+        </p>
+        
+        <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
+        
+        <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>
+            SEÇİMİ ONAYLA
+        </button>
+    </div>
+                
+                <div id="statusMsg" style="display:none;"></div> 
             </div>
 
             <div class="grid-section" id="opponentSection">
@@ -73,33 +94,41 @@
         </div>
     </div>
         
-    <div id="gameOverPanel" class="panel hidden">
-        <h3 id="finalResultMsg" class="result-message">Oyun Tamamlandı!</h3>
+         <div id="gameOverPanel" class="panel hidden">
+        <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
              
         <div class="results-container">
-            <div class="result-card" id="cardA">
+            <div class="result-card">
                 <div class="card-header">
-                    <h4 id="resultTitleA">OYUNCU A</h4>
+                    <h4 id="resultTitleA">Kurucu (A)</h4>
                     <div class="final-score" id="scoreA">0</div>
                 </div>
+                
                 <div class="card-body">
-                    <div id="finalGridA" class="grid mini-grid"></div>
+                    <div class="mini-grid-wrapper">
+                        <div id="finalGridA" class="grid mini-grid"></div>
+                    </div>
+                    
                     <div class="word-list-wrapper">
-                        <h5>Kelimeler</h5>
+                        <h5>Bulunan Kelimeler</h5>
                         <ul id="wordsListA" class="word-list"></ul>
                     </div>
                 </div>
             </div>
 
-            <div class="result-card" id="cardB">
+            <div class="result-card">
                 <div class="card-header">
-                    <h4 id="resultTitleB">OYUNCU B</h4>
+                    <h4 id="resultTitleB">Katılımcı (B)</h4>
                     <div class="final-score" id="scoreB">0</div>
                 </div>
+                
                 <div class="card-body">
-                    <div id="finalGridB" class="grid mini-grid"></div>
+                    <div class="mini-grid-wrapper">
+                        <div id="finalGridB" class="grid mini-grid"></div>
+                    </div>
+                    
                     <div class="word-list-wrapper">
-                        <h5>Kelimeler</h5>
+                        <h5>Bulunan Kelimeler</h5>
                         <ul id="wordsListB" class="word-list"></ul>
                     </div>
                 </div>
@@ -107,71 +136,73 @@
         </div>
 
         <div class="panel-footer">
-            <button class="restart-btn" onclick="window.location.reload()">TEKRAR OYNA</button>
+            <button id="restartBtn" onclick="window.location.reload()">TEKRAR OYNA</button>
         </div>
     </div>
 
     <div id="howToPlayModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeInfoModal()">&times;</span>
-            <h2>NASIL OYNANIR?</h2>
-            <div class="rules-text">
-                </div>
+    <div class="modal-content">
+        <span class="close-modal" onclick="window.closeInfoModal()">&times;</span>
+        <h2 style="color:#2c3e50; text-align:center;">NASIL OYNANIR?</h2>
+        <div class="rules-text">
+            <h3>🎯 Oyunun Amacı</h3>
+            <p>5x5'lik grid üzerinde, verilen harfleri kullanarak yatay veya dikey anlamlı kelimeler oluşturmak ve en yüksek puanı toplamaktır.</p>
+
+            <h3>🕹️ Oyun Modları</h3>
+            <ul>
+                <li><strong>Klasik Mod:</strong> Sırası gelen oyuncu bir harf seçer. Seçilen harfi her iki oyuncu da kullanmak zorundadır.</li>
+                <li><strong>Random Mod:</strong> Sistem rastgele harfler verir. Hız ve strateji önemlidir.</li>
+                <li><strong>Tek Kişilik:</strong> Kendi rekorunuzu kırmak için rastgele gelen harflerle oynarsınız.</li>
+            </ul>
+
+            <h3>⭐ Puanlama</h3>
+            <ul>
+                <li><strong>5 Harfli:</strong> 15 Puan (Büyük Ödül!)</li>
+                <li><strong>4 Harfli:</strong> 9 Puan</li>
+                <li><strong>3 Harfli:</strong> 5 Puan</li>
+                <li><strong>2 Harfli:</strong> 2 Puan</li>
+            </ul>
+
+            <h3>🃏 Joker Kuralı</h3>
+            <p>24 harf yerleştirildikten sonra, son kalan 25. kare için <strong>JOKER</strong> hakkınız vardır. İstediğiniz harfi seçip oyunun kaderini değiştirebilirsiniz!</p>
         </div>
     </div>
+</div>
 
-    <div id="statsModal" class="modal hidden">
-        <div class="modal-content stats-modal">
-            <span class="close-modal" onclick="closeStatsModal()">&times;</span>
+    <div id="statsModal" class="modal hidden" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close-modal" onclick="window.closeStatsModal()">&times;</span>
+        <h2 style="color:#8e44ad; text-align:center; margin-top:0;">RANDOM MOD İSTATİSTİKLERİ</h2>
+        
+        <div class="stats-container">
+            <div class="stat-box" style="width: 120px;">
+                <span id="statLifeTimeAvg" class="stat-number">-</span>
+                <span class="stat-label">Genel Ort.</span>
+            </div>
+            <div class="stat-box" style="width: 120px;">
+                <span id="statLast10Avg" class="stat-number">-</span>
+                <span class="stat-label">Son 10 Ort.</span>
+            </div>
+        </div>
+
+        <div class="leaderboard-section">
+            <h3 style="text-align:center; color:#2c3e50; margin-bottom: 10px;">🏆 BU AYIN LİDERLERİ 🏆</h3>
+            <p style="text-align:center; font-size:0.8rem; color:#7f8c8d; margin-top:-10px;">(En az 10 oyun oynayanlar)</p>
             
-            <div class="stats-tabs">
-                <button class="tab-btn active" onclick="switchStatsTab('classic')">KLASİK</button>
-                <button class="tab-btn" onclick="switchStatsTab('random')">RANDOM</button>
-            </div>
-
-            <div id="statsContent">
-                <h3 class="stats-subtitle">GENEL İSTATİSTİKLER</h3>
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-icon">🎮</span>
-                        <span id="statTotalGames" class="stat-val">-</span>
-                        <span class="stat-lbl">Oyun</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">🏆</span>
-                        <span id="statWinRate" class="stat-val">-%</span>
-                        <span class="stat-lbl">Galibiyet</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-icon">🎯</span>
-                        <span id="statAvgScore" class="stat-val">-</span>
-                        <span class="stat-lbl">Ortalama</span>
-                    </div>
-                    <div class="stat-card highlight">
-                        <span class="stat-icon">🔥</span>
-                        <span id="statMaxScore" class="stat-val">-</span>
-                        <span class="stat-lbl">Rekor</span>
-                    </div>
-                </div>
-
-                <h3 class="stats-subtitle">BU AYIN SIRALAMASI</h3>
-                <div class="leaderboard-section">
-                    <table class="leaderboard-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Oyuncu</th>
-                                <th>Ortalama</th>
-                            </tr>
-                        </thead>
-                        <tbody id="leaderboardBody">
-                            <tr><td colspan="3">Yükleniyor...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th width="15%">#</th>
+                        <th width="50%">Oyuncu</th> <th width="35%">Ortalama</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr><td colspan="3">Yükleniyor...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
     
     <script src="script.js"></script>
 </body>
