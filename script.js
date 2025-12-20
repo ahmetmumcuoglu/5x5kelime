@@ -9526,38 +9526,30 @@ function updateGameUI(data) {
         return;
     }
 
-    // 2. TEK KİŞİLİK MOD (BURASI DÜZELTİLDİ)
+  // 2. TEK KİŞİLİK MOD
     if (data.isSinglePlayer) {
-        // --- A. JOKER TURU (25. Tur) ---
         if (data.moveNumber === 25) {
             if (randomDisplay) randomDisplay.classList.remove('hidden');
             
-            // Eğer henüz harf seçmediyse KLAVYEYİ GÖSTER
+            // Eğer Joker harfi henüz SEÇİLMEDİYSE
             if (!myFinalLetter) {
-                renderAlphabetSelector(); // Klavyeyi çiz
-                setUI("JOKER HARFİ SEÇİN", "badge-info", false); // Henüz grid'e koyamaz, önce harf seçmeli
+                renderAlphabetSelector();
+                // Grid kapalı kalmalı, çünkü harf seçilmedi
+                setUI("JOKER HARFİ SEÇİN", "badge-info", false); 
             } 
-            // Harf seçildiyse YERLEŞTİRME MODUNA GEÇ
+            // Joker harfi SEÇİLDİYSE
             else {
-                // Not: renderAlphabetSelector içinde seçim yapılınca UI güncelleniyor ama
-                // sayfa yenilenirse diye burası da garanti olsun:
+                // ARTIK BURASI TRUE: Grid yeşil olmalı ve tıklanabilmeli
                 setUI(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
             }
         } 
-        // --- B. NORMAL TURLAR (1-24) ---
         else {
+            // Normal 1-24 turlar arası işlemler aynı kalıyor...
             if (randomDisplay) {
                 randomDisplay.textContent = data.currentLetter || "?";
                 randomDisplay.classList.remove('hidden');
-                // Klavyeyi temizle (önceki oyunlardan kalma ihtimaline karşı)
-                if(randomDisplay.querySelector('.joker-keyboard')) {
-                     randomDisplay.innerHTML = data.currentLetter; 
-                }
             }
-            
-            // Dolu hücre sayısı ile Hamle sayısını kıyasla
             const myFilled = myGridData.filter(c => c !== '').length;
-            
             if (myFilled < data.moveNumber) {
                 setUI("HARFİ YERLEŞTİRİN", "badge-success", true);
             } else {
@@ -9945,36 +9937,26 @@ function renderAlphabetSelector() {
         btn.textContent = char;
         
         // --- TIKLAMA OLAYI ---
-        btn.onclick = (e) => {
-            // Butonun varsayılan davranışını engelle
+      btn.onclick = (e) => {
             e.preventDefault(); 
             e.stopPropagation();
 
-            myFinalLetter = char;
+            myFinalLetter = char; // Seçilen harfi kaydet
             
-            // 1. Görsel Seçim Efekti
+            // 1. Görsel seçim efekti (Klavyedeki tuş yeşil olur)
             document.querySelectorAll('.joker-key').forEach(k => k.classList.remove('active-key'));
             btn.classList.add('active-key');
             
-            // 2. Kullanıcıya Bilgi Ver (Anlık)
-            const badge = document.getElementById('turnStatusBadge');
-            if(badge) {
-                badge.textContent = `SEÇİLEN: ${char} -> ŞİMDİ HÜCREYE TIKLA`;
-                badge.className = "status-badge badge-success";
-            }
-            
-            // 3. KRİTİK: Yerleştirme Modunu Manuel Aç
+            // 2. KRİTİK DÜZELTME: placementMode'u aç ve UI'yı GÜNCELLE
             placementMode = true; 
             
-            // 4. Grid'i Yenile (Hayalet harfi göstermek için)
-            // myGridData ve gameData olmadığı için null geçiyoruz,
-            // renderGrid içinde myFinalLetter kontrolü zaten var.
-            renderGrid(myGridData, 'myGrid');
+            // Veritabanından gelen son veriyi kullanarak UI'yı tekrar hesapla
+            // Bu, grid'in "waiting-turn" (soluk) sınıfını silip "active-turn" (yeşil) yapmasını sağlar.
+            db.collection('games').doc(currentGameId).get().then(doc => {
+                if(doc.exists) {
+                    updateGameUI(doc.data()); // UI durumunu zorla güncelle
+                    renderGrid(myGridData, 'myGrid', doc.data()); // Gridi tekrar çiz
+                }
+            });
         };
-        kbd.appendChild(btn);
-    });
-    
-    displayBox.appendChild(kbd);
-}
-
 
