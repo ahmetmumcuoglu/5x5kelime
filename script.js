@@ -9454,12 +9454,20 @@ function listenToGame() {
                 return;
             }
 
-            if (data.status === 'starting') {
-                handleStartingCountdown(data);
-                // Sayaç sırasında da grid görünsün
-                renderGrid(myGridData, 'myGrid', data);
-                return;
-            }
+           if (data.status === 'starting') {
+    // BURASI HATA VEREN YERDİ: Artık handleStartingCountdown tanımlı olduğu için hata vermeyecek
+    handleStartingCountdown(data); 
+    return; // Önemli: Starting aşamasındayken aşağıya devam etme
+}
+
+if (data.status === 'active') {
+    // Normal oyun UI güncellemeleri
+    updateGameUI(data);
+    
+    // Font boyutunu geri sayım modundan normal harf moduna döndür
+    const randomDisplay = document.getElementById('randomLetterDisplay');
+    if(randomDisplay) randomDisplay.style.fontSize = "2.5rem"; 
+}
             
             // Aktif oyun durumunu güncelle (Bu işlem global 'placementMode' değişkenini true yapar)
             updateGameUI(data);
@@ -9485,8 +9493,41 @@ function listenToGame() {
         });
 }
 
+// ====================================================
+// 15. Oyun başlarken 3-2-1 geri sayımını yöneten fonksiyon
+// ====================================================
+function handleStartingCountdown(data) {
+    const turnBadge = document.getElementById('turnStatusBadge');
+    const randomDisplay = document.getElementById('randomLetterDisplay');
+    
+    // Gridleri çiz (boş olarak görünsünler)
+    renderGrid(myGridData, 'myGrid', data);
+    const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
+    renderGrid(oppGridData, 'opponentGrid', data);
+
+    if (turnBadge) {
+        turnBadge.textContent = "OYUN BAŞLIYOR...";
+        turnBadge.className = "status-badge badge-warning";
+    }
+
+    if (randomDisplay) {
+        randomDisplay.classList.remove('hidden');
+        // Firebase'deki 'startTime' ile şu anki zaman arasındaki farkı bul
+        const now = Date.now();
+        const start = data.startTime; // Firestore'dan gelen timestamp
+        const diff = Math.ceil((start - now) / 1000);
+        
+        if (diff > 0) {
+            randomDisplay.textContent = diff; // 3, 2, 1 yazdır
+            randomDisplay.style.fontSize = "4rem";
+        } else {
+            randomDisplay.textContent = "BAŞLA!";
+        }
+    }
+}
+
 // ==========================================
-// 15. UI DURUM YÖNETİMİ (DÜZELTİLMİŞ)
+// 16. UI DURUM YÖNETİMİ (DÜZELTİLMİŞ)
 // ==========================================
 function updateGameUI(data) {
     const turnBadge = document.getElementById('turnStatusBadge');
@@ -9618,7 +9659,7 @@ function updateGameUI(data) {
     }
 }
 // ==========================================
-// 16. EKRAN ÇİZİM (GÜNCEL renderGrid)
+// 17. EKRAN ÇİZİM (GÜNCEL renderGrid)
 // ==========================================
 function renderGrid(gridData, elementId, gameData = null) {
     const gridEl = document.getElementById(elementId);
@@ -9695,7 +9736,7 @@ function renderGrid(gridData, elementId, gameData = null) {
 }
 
 // ==========================================
-// 17. OYUN SONU VE İSTATİSTİKLER
+// 18. OYUN SONU VE İSTATİSTİKLER
 // ==========================================
 
 function showResults(data) {
@@ -9780,7 +9821,7 @@ function getScoreColorClass(score) {
 }
 
 // ==========================================
-// 18. İSTATİSTİK FONKSİYONLARI
+// 19. İSTATİSTİK FONKSİYONLARI
 // ==========================================
 
 function updateRandomStats(score) {
@@ -9850,7 +9891,7 @@ function fetchLeaderboard() {
 }
 
 // ==========================================
-// 19. EKSİK UI PARÇALARI (Klavye vb.)
+// 20. EKSİK UI PARÇALARI (Klavye vb.)
 // ==========================================
 
 // KLASİK MOD KLAVYESİ
@@ -9902,7 +9943,7 @@ function submitClassicLetter() {
     hideClassicAlphabet();
 }
 // ==========================================
-// 20. JOKER SEÇİCİ (25. Tur İçin - GÜNCELLENMİŞ)
+// 21. JOKER SEÇİCİ (25. Tur İçin - GÜNCELLENMİŞ)
 // ==========================================
 function renderAlphabetSelector() {
     const displayBox = document.getElementById('randomLetterDisplay');
@@ -9976,4 +10017,5 @@ function renderAlphabetSelector() {
     
     displayBox.appendChild(kbd);
 }
+
 
