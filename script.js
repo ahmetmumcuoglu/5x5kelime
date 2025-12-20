@@ -9424,7 +9424,7 @@ function calculateScore(gridData) {
 }
 
 // ==========================================
-// 14. DİNLEYİCİ
+// 14. DİNLEYİCİ (DÜZELTİLMİŞ VERSİYON)
 // ==========================================
 function listenToGame() {
     if (unsubscribe) unsubscribe();
@@ -9438,70 +9438,51 @@ function listenToGame() {
             }
             const data = doc.data();
 
-            // Gridleri Çiz (Data'yı da gönderiyoruz ki harfi bilelim)
+            // 1. ÖNCE VERİLERİ GÜNCELLE
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-            
-            renderGrid(myGridData, 'myGrid', data); 
-            if (typeof renderGrid === 'function') renderGrid(oppGridData, 'opponentGrid', data);
 
-            // A. BEKLEME DURUMU
+            // 2. KRİTİK ADIM: ÖNCE UI VE İZİNLERİ (placementMode) GÜNCELLE
+            // Eğer bunu renderGrid'den sonraya bırakırsak, grid çizilirken tıklama izni henüz kapalı olur.
+            
+            // Bekleme veya Başlama durumları için özel kontrol
             if (data.status === 'waiting') {
                 updateGameUI(data);
+                // Beklerken de boş grid çizilsin
+                renderGrid(myGridData, 'myGrid', data);
+                if (typeof renderGrid === 'function') renderGrid(oppGridData, 'opponentGrid', data);
                 return;
             }
 
-            // B. GERİ SAYIM
             if (data.status === 'starting') {
                 handleStartingCountdown(data);
+                // Sayaç sırasında da grid görünsün
+                renderGrid(myGridData, 'myGrid', data);
                 return;
             }
             
+            // Aktif oyun durumunu güncelle (Bu işlem global 'placementMode' değişkenini true yapar)
+            updateGameUI(data);
+
+            // 3. ŞİMDİ GRİDİ ÇİZ (Artık placementMode true olduğu için tıklanabilir olacak)
+            renderGrid(myGridData, 'myGrid', data);
+            
+            // Rakip gridini çiz
+            if (typeof renderGrid === 'function') {
+                renderGrid(oppGridData, 'opponentGrid', data);
+            }
+
+            // Geri sayım sayacını temizle (eğer kaldıysa)
             if (countdownInterval) {
                 clearInterval(countdownInterval);
                 countdownInterval = null;
             }
 
-            // C. AKTİF OYUN
+            // 4. DİĞER İŞLEMLER
             startTimer(data);
-            updateGameUI(data);
 
             if (data.status === 'finished') showResults(data);
         });
-}
-
-function handleStartingCountdown(data) {
-    const overlay = document.getElementById('turnStatusBadge');
-    if (!overlay) return;
-    if (countdownInterval) clearInterval(countdownInterval);
-
-    overlay.classList.remove('hidden');
-    overlay.className = "status-badge badge-info";
-    
-    // Grid kilitle
-    placementMode = false;
-    const grid = document.getElementById('myGrid');
-    if (grid) grid.classList.add('waiting-turn');
-
-    countdownInterval = setInterval(() => {
-        const now = Date.now();
-        const start = data.turnStartTime.toMillis();
-        const elapsed = Math.floor((now - start) / 1000);
-        const countdown = 5 - elapsed;
-
-        if (countdown > 0) {
-            overlay.textContent = `OYUN BAŞLIYOR: ${countdown}`;
-        } else {
-            clearInterval(countdownInterval);
-            overlay.textContent = "BAŞLIYOR!";
-            if (myPlayerId === 'PlayerA') {
-                 db.collection('games').doc(currentGameId).update({
-                     status: 'active',
-                     turnStartTime: firebase.firestore.FieldValue.serverTimestamp()
-                 });
-            }
-        }
-    }, 100);
 }
 
 // ==========================================
@@ -9961,6 +9942,7 @@ function renderAlphabetSelector() {
     });
     displayBox.appendChild(kbd);
 }
+
 
 
 
