@@ -9377,9 +9377,6 @@ function calculateScore(gridData) {
     };
 }
 
-// GLOBAL DEĞİŞKEN
-let countdownInterval = null; 
-
 // ==========================================
 // 14. OYUN DİNLEYİCİSİ
 // ==========================================
@@ -9770,6 +9767,7 @@ function fetchLeaderboard() {
             tbody.innerHTML = html || '<tr><td colspan="3">Veri yok.</td></tr>';
         });
 }
+
 
 
 
