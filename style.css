@@ -281,3 +281,18 @@ input[type="text"] {
     .grid { grid-template-columns: repeat(5, 45px); }
     .cell { width: 45px; height: 45px; font-size: 20px; }
 }
+
+.single-player-mode #cardB {
+    display: none;
+}
+.single-player-mode .results-container {
+    justify-content: center;
+}
+
+/* Hücre zaman aşımından dolayı boş kaldıysa */
+.cell.skipped {
+    background-color: #ffebee;
+    border: 2px dashed #e57373;
+    color: #c0392b;
+    font-size: 14px; /* "PAS" yazısı için */
+}
