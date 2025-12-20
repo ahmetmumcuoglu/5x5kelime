@@ -289,10 +289,67 @@ input[type="text"] {
     justify-content: center;
 }
 
-/* Hücre zaman aşımından dolayı boş kaldıysa */
+/* PAS GEÇİLEN HÜCRE (Süre bitince) */
 .cell.skipped {
     background-color: #ffebee;
     border: 2px dashed #e57373;
     color: #c0392b;
-    font-size: 14px; /* "PAS" yazısı için */
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cell.skipped::after {
+    content: "PAS";
+}
+
+/* KLASİK MOD KLAVYE */
+.alphabet-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    margin: 10px 0;
+}
+.alphabet-key {
+    width: 30px;
+    height: 30px;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.alphabet-key.selected {
+    background: var(--primary);
+    color: white;
+    border-color: var(--dark);
+}
+
+/* JOKER KLAVYESİ (Random Mod) */
+.random-letter-box.expanded {
+    width: auto;
+    height: auto;
+    font-size: 16px;
+    padding: 10px;
+    flex-direction: column;
+}
+.joker-keyboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    justify-content: center;
+    max-width: 280px;
+}
+.joker-key {
+    display: inline-flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #999;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
 }
