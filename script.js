@@ -9909,63 +9909,72 @@ function submitClassicLetter() {
     selectedClassicLetter = null;
     hideClassicAlphabet();
 }
-
-// JOKER SEÇİCİ (25. Tur İçin)
+// ==========================================
+// JOKER SEÇİCİ (25. Tur İçin - GÜNCELLENMİŞ)
+// ==========================================
 function renderAlphabetSelector() {
-    // Random modda, harf kutusunun ( ? ) olduğu yere klavye açacağız veya modal açacağız.
-    // Pratik olması için "randomLetterDisplay" yerine küçük bir klavye render edelim.
-    
     const displayBox = document.getElementById('randomLetterDisplay');
     if (!displayBox) return;
 
-    // Eğer zaten render edildiyse tekrar etme
-    if (displayBox.querySelector('.joker-keyboard')) return;
+    // Eğer zaten klavye çizildiyse tekrar çizme, sadece görünürlüğünü kontrol et
+    if (displayBox.querySelector('.joker-keyboard')) {
+        displayBox.classList.remove('hidden');
+        displayBox.classList.add('expanded');
+        return;
+    }
 
     displayBox.innerHTML = '';
-    displayBox.className = 'random-letter-box expanded'; // Genişletmek için CSS lazım
+    // Mobilde kutunun genişlemesi için bu sınıf çok önemli
+    displayBox.className = 'random-letter-box expanded'; 
 
     const kbd = document.createElement('div');
     kbd.className = 'joker-keyboard';
     
+    // Alfabedeki Türkçe karakterler dahil
     const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
     
     // Başlık
     const title = document.createElement('div');
-    title.textContent = "JOKER SEÇİNİZ:";
-    title.style.fontSize = "14px";
-    title.style.marginBottom = "5px";
+    title.textContent = "JOKER SEÇ:";
+    title.className = "joker-title";
     displayBox.appendChild(title);
 
     alphabet.split('').forEach(char => {
-        const btn = document.createElement('span');
+        const btn = document.createElement('button'); // span yerine button daha iyidir
         btn.className = 'joker-key';
         btn.textContent = char;
-        btn.onclick = () => {
+        
+        // --- TIKLAMA OLAYI ---
+        btn.onclick = (e) => {
+            // Butonun varsayılan davranışını engelle
+            e.preventDefault(); 
+            e.stopPropagation();
+
             myFinalLetter = char;
-            // Görsel geri bildirim
-            document.querySelectorAll('.joker-key').forEach(k => k.style.background = '#eee');
-            btn.style.background = '#f1c40f';
             
-            // Kullanıcıya bilgi ver
+            // 1. Görsel Seçim Efekti
+            document.querySelectorAll('.joker-key').forEach(k => k.classList.remove('active-key'));
+            btn.classList.add('active-key');
+            
+            // 2. Kullanıcıya Bilgi Ver (Anlık)
             const badge = document.getElementById('turnStatusBadge');
             if(badge) {
-                badge.textContent = `SEÇİLEN: ${char} - ŞİMDİ YERLEŞTİR!`;
+                badge.textContent = `SEÇİLEN: ${char} -> ŞİMDİ HÜCREYE TIKLA`;
                 badge.className = "status-badge badge-success";
             }
-            placementMode = true; // Artık grid'e koyabilir
             
-            // Grid'i tazele (Hayalet harf görünsün diye)
+            // 3. KRİTİK: Yerleştirme Modunu Manuel Aç
+            placementMode = true; 
+            
+            // 4. Grid'i Yenile (Hayalet harfi göstermek için)
+            // myGridData ve gameData olmadığı için null geçiyoruz,
+            // renderGrid içinde myFinalLetter kontrolü zaten var.
             renderGrid(myGridData, 'myGrid');
         };
         kbd.appendChild(btn);
     });
+    
     displayBox.appendChild(kbd);
 }
-
-
-
-
-
-
 
 
