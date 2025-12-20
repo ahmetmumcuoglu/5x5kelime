@@ -9298,43 +9298,129 @@ function checkAndAdvanceTurn(data, updatePayload) {
 }
 
 // ==========================================
-// 13. PUANLAMA (Aynı)
+// 13. PUANLAMA (GELİŞMİŞ VERSİYON)
 // ==========================================
 function calculateScore(gridData) {
     let totalScore = 0;
-    let foundWords = new Set();
+    let foundWords = []; // Hangi kelimelerin bulunduğunu tutar
     const rowScores = Array(5).fill(0);
     const colScores = Array(5).fill(0);
 
-    const scanLine = (indices, isRow, idx) => {
-        const lineStr = indices.map(i => gridData[i] || ' ').join('');
-        const segments = lineStr.replace(/\s+/g, ' ').split(' ');
+    // Satır veya Sütun tarama fonksiyonu
+    const processLine = (indices, scoreIndex, isRow) => {
+        // 1. Hattaki harfleri ve durumlarını hazırla
+        // usedFlags: Harf kullanıldı mı? (true/false)
+        let lineChars = indices.map(i => gridData[i] || '');
+        let usedFlags = Array(5).fill(false);
+        let lineScore = 0;
+
+        // 2. Önce 5 Harfli Kelime Ara
+        // Eğer 5 harfin hepsi doluysa ve kelimeyse
+        if (lineChars.every(c => c !== '')) {
+            let word = lineChars.join('');
+            if (isValidWord(word)) {
+                lineScore += 15;
+                totalScore += 15;
+                foundWords.push(word);
+                usedFlags.fill(true); // Tüm harfler kullanıldı
+            }
+        }
+
+        // 3. Eğer 5'li bulunamadıysa, 4 Harfli Ara
+        if (!usedFlags.includes(true)) { // Hala hiçbiri kullanılmadıysa
+            // 4 harfli kombinasyonlar: [0,1,2,3] ve [1,2,3,4]
+            for (let start = 0; start <= 1; start++) {
+                let sub = lineChars.slice(start, start + 4);
+                if (sub.every(c => c !== '')) {
+                    let word = sub.join('');
+                    if (isValidWord(word)) {
+                        lineScore += 9;
+                        totalScore += 9;
+                        foundWords.push(word);
+                        // Kullanılanları işaretle
+                        for(let k=start; k<start+4; k++) usedFlags[k] = true;
+                        break; // Bir satırda en fazla bir 4'lü olabilir (kalan 1 harfle kelime olmaz)
+                    }
+                }
+            }
+        }
+
+        // 4. Kalan boşta harflerle 3 ve 2 harfli kelimeleri ara
+        // Bu kısım biraz daha karmaşık çünkü parça parça olabilir.
+        // Örn: [DOLU, DOLU, BOŞ, DOLU, DOLU] -> İki ayrı 2'li kelime olabilir.
         
-        segments.forEach(segment => {
-            // 2 harfli ve üzeri kelimeler
-            if (segment.length >= 2) {
-                 // 3+ harfliler kurallarda var
-                 if (SCORE_RULES[segment.length] && isValidWord(segment)) {
-                     const score = SCORE_RULES[segment.length];
-                     totalScore += score;
-                     foundWords.add(segment);
-                     if (isRow) rowScores[idx] += score; else colScores[idx] += score;
-                 } 
-                 // 2 harfliler (Manuel kural)
-                 else if (segment.length === 2 && isValidWord(segment)) {
-                     const score = 2;
-                     totalScore += score;
-                     foundWords.add(segment);
-                     if (isRow) rowScores[idx] += score; else colScores[idx] += score;
+        // Kullanılmayan ardışık harf gruplarını bul
+        let segments = [];
+        let currentSegment = [];
+        
+        for (let i = 0; i < 5; i++) {
+            if (!usedFlags[i] && lineChars[i] !== '') {
+                currentSegment.push({ char: lineChars[i], index: i });
+            } else {
+                if (currentSegment.length > 0) segments.push(currentSegment);
+                currentSegment = [];
+            }
+        }
+        if (currentSegment.length > 0) segments.push(currentSegment);
+
+        // Her segment içinde arama yap (Greedy: Önce en uzunu al)
+        segments.forEach(seg => {
+            let txt = seg.map(x => x.char).join('');
+            
+            // Segment içinde 3 harfli ara
+            let found3 = false;
+            if (txt.length >= 3) {
+                 // Sadece baştan veya sondan olabilir (max 3 zaten)
+                 // Ancak senin kuralında 3 harf varsa direkt bakılır
+                 for (let s = 0; s <= txt.length - 3; s++) {
+                     let sub = txt.substr(s, 3);
+                     if (isValidWord(sub)) {
+                         lineScore += 5;
+                         totalScore += 5;
+                         foundWords.push(sub);
+                         found3 = true;
+                         // 3'lü bulduysak, kalan 1 harf varsa (txt 4 ise) ona bakmayalım veya
+                         // algoritma çok karışmasın diye burada kesebiliriz.
+                         // Basitlik adına: Segmentten puanı aldık, çıkıyoruz.
+                         // Daha detaylı istersen burayı recursive yapabiliriz.
+                         break; 
+                     }
                  }
             }
+
+            // Eğer 3'lü bulunmadıysa 2'lilere bak
+            if (!found3 && txt.length >= 2) {
+                // Burada birden fazla 2'li çıkabilir mi? 
+                // Segment max 5 olabilir (teorik). 
+                // Örn: A B C D (hepsi boşta). AB(2) + CD(2) olabilir mi?
+                // Evet, senin kuralın: "başka 2 harfli kelime daha varsa o da geçerli"
+                
+                // Basit iterasyon:
+                let i = 0;
+                while (i < txt.length - 1) {
+                    let sub = txt.substr(i, 2);
+                    if (isValidWord(sub)) {
+                        lineScore += 2;
+                        totalScore += 2;
+                        foundWords.push(sub);
+                        i += 2; // Bu iki harfi atla
+                    } else {
+                        i++; // Bir yana kay
+                    }
+                }
+            }
         });
+
+        if (isRow) rowScores[scoreIndex] = lineScore;
+        else colScores[scoreIndex] = lineScore;
     };
 
-    for (let r = 0; r < 5; r++) scanLine(Array.from({length: 5}, (_, i) => r * 5 + i), true, r);
-    for (let c = 0; c < 5; c++) scanLine(Array.from({length: 5}, (_, i) => i * 5 + c), false, c);
+    // Tüm satırları tara
+    for (let r = 0; r < 5; r++) processLine(Array.from({length: 5}, (_, i) => r * 5 + i), r, true);
+    // Tüm sütunları tara
+    for (let c = 0; c < 5; c++) processLine(Array.from({length: 5}, (_, i) => i * 5 + c), c, false);
 
-    return { score: totalScore, words: Array.from(foundWords), rowScores, colScores };
+    return { score: totalScore, words: foundWords, rowScores, colScores };
 }
 
 // ==========================================
@@ -9746,6 +9832,110 @@ function fetchLeaderboard() {
         });
 }
 
+// ==========================================
+// 19. EKSİK UI PARÇALARI (Klavye vb.)
+// ==========================================
+
+// KLASİK MOD KLAVYESİ
+function renderClassicAlphabet() {
+    const container = document.getElementById('classicAlphabetContainer');
+    const area = document.getElementById('classicLetterSelectionArea');
+    if (!container || !area) return;
+
+    area.classList.remove('hidden');
+    container.innerHTML = '';
+
+    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    alphabet.split('').forEach(char => {
+        const btn = document.createElement('button');
+        btn.className = 'alphabet-key'; // CSS'e bu sınıfı ekleyeceğiz
+        btn.textContent = char;
+        btn.onclick = () => {
+             // Görsel seçim
+             document.querySelectorAll('.alphabet-key').forEach(b => b.classList.remove('selected'));
+             btn.classList.add('selected');
+             
+             // Değişkeni güncelle
+             selectedClassicLetter = char;
+             
+             // Onayla butonunu aktif et
+             const confirmBtn = document.getElementById('confirmLetterBtn');
+             if(confirmBtn) confirmBtn.disabled = false;
+        };
+        container.appendChild(btn);
+    });
+}
+
+function hideClassicAlphabet() {
+    const area = document.getElementById('classicLetterSelectionArea');
+    if(area) area.classList.add('hidden');
+}
+
+// Seçimi Gönder (Klasik Mod)
+function submitClassicLetter() {
+    if (!selectedClassicLetter) return;
+    
+    // Firebase'e gönder
+    db.collection('games').doc(currentGameId).update({
+        currentLetter: selectedClassicLetter
+    });
+    
+    // UI temizle
+    selectedClassicLetter = null;
+    hideClassicAlphabet();
+}
+
+// JOKER SEÇİCİ (25. Tur İçin)
+function renderAlphabetSelector() {
+    // Random modda, harf kutusunun ( ? ) olduğu yere klavye açacağız veya modal açacağız.
+    // Pratik olması için "randomLetterDisplay" yerine küçük bir klavye render edelim.
+    
+    const displayBox = document.getElementById('randomLetterDisplay');
+    if (!displayBox) return;
+
+    // Eğer zaten render edildiyse tekrar etme
+    if (displayBox.querySelector('.joker-keyboard')) return;
+
+    displayBox.innerHTML = '';
+    displayBox.className = 'random-letter-box expanded'; // Genişletmek için CSS lazım
+
+    const kbd = document.createElement('div');
+    kbd.className = 'joker-keyboard';
+    
+    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    
+    // Başlık
+    const title = document.createElement('div');
+    title.textContent = "JOKER SEÇİNİZ:";
+    title.style.fontSize = "14px";
+    title.style.marginBottom = "5px";
+    displayBox.appendChild(title);
+
+    alphabet.split('').forEach(char => {
+        const btn = document.createElement('span');
+        btn.className = 'joker-key';
+        btn.textContent = char;
+        btn.onclick = () => {
+            myFinalLetter = char;
+            // Görsel geri bildirim
+            document.querySelectorAll('.joker-key').forEach(k => k.style.background = '#eee');
+            btn.style.background = '#f1c40f';
+            
+            // Kullanıcıya bilgi ver
+            const badge = document.getElementById('turnStatusBadge');
+            if(badge) {
+                badge.textContent = `SEÇİLEN: ${char} - ŞİMDİ YERLEŞTİR!`;
+                badge.className = "status-badge badge-success";
+            }
+            placementMode = true; // Artık grid'e koyabilir
+            
+            // Grid'i tazele (Hayalet harf görünsün diye)
+            renderGrid(myGridData, 'myGrid');
+        };
+        kbd.appendChild(btn);
+    });
+    displayBox.appendChild(kbd);
+}
 
 
 
