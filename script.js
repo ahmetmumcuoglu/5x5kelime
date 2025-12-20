@@ -9099,33 +9099,32 @@ function setupGameUI(gameId) {
 }
 
 // ==========================================
-// 10. ZAMANLAYICI (TIMER) MANTIĞI
+// 10. ZAMANLAYICI (TIMER) - AYNI KALIYOR
 // ==========================================
 function startTimer(data) {
     if (timerInterval) clearInterval(timerInterval);
-    
     const timerEl = document.getElementById('gameTimer');
     if (!timerEl) return;
 
-    if (data.isSinglePlayer || data.status !== 'active' || data.status === 'finished') {
+    // Single Player veya Başlamamış oyunsa Timer YOK
+    if (data.isSinglePlayer || data.status !== 'active') {
         timerEl.classList.add('hidden');
         return;
     }
     
+    // Sadece Random Multiplayer
     if (data.gameMode === 'RANDOM') {
         timerEl.classList.remove('hidden');
         const duration = (data.moveNumber === 25) ? TIMER_JOKER : TIMER_NORMAL;
         
         timerInterval = setInterval(() => {
             if (!data.turnStartTime) return;
-
             const now = Date.now();
-            const startTime = data.turnStartTime.toMillis();
-            const elapsed = Math.floor((now - startTime) / 1000);
+            const start = data.turnStartTime.toMillis();
+            const elapsed = Math.floor((now - start) / 1000);
             const remaining = duration - elapsed;
 
             timerEl.textContent = remaining > 0 ? remaining : 0;
-            
             if (remaining <= 5) timerEl.classList.add('timer-danger');
             else timerEl.classList.remove('timer-danger');
 
@@ -9141,31 +9140,35 @@ function startTimer(data) {
 }
 
 // ==========================================
-// 11. HAMLE YAPMA (HÜCRE TIKLAMA - DRAFT/ONAY SİSTEMİ)
+// 11. HAMLE YAPMA (KRİTİK DÜZELTME: MOD AYRIMI)
 // ==========================================
 async function handleCellClick(index) {
-    // 1. Basit Kontroller
+    // 1. Tıklama İzni Kontrolü
     if (!placementMode) return;
 
-    // Hücre zaten doluysa işlem yapma
+    // 2. Dolu Hücre Kontrolü
     if (myGridData[index] !== '') {
+        // Ancak Joker turunda, seçili harfi değiştirmek istiyor olabilir, ona izin verelim mi? 
+        // Şimdilik basit tutalım: Doluysa uyarı ver.
         alert("Bu hücre dolu.");
         return;
     }
 
-    // --- ESKİ SİSTEM GERİ GELDİ: SEÇ VE ONAYLA ---
-    // Eğer tıkladığım yer, zaten seçili olan yer DEĞİLSE -> Sadece Seç (Draft)
+    // --- DRAFT SİSTEMİ (SEÇ & ONAYLA) ---
+    // İlk tıklama: Sadece seçer (Kırmızı/Yeşil çerçeve yakar)
     if (selectedDraftIndex !== index) {
         selectedDraftIndex = index;
-        // Gridi yeniden çiz ki seçili olduğu belli olsun ve içinde harf gözüksün
+        // Gridi yeniden çiz ki kullanıcı seçtiği yeri görsün
+        // (Burada renderGrid çağrılırken data olmadığı için hayalet harf birazdan çözülecek)
+        // Global bir değişken veya DOM'dan okuma ile harfi bulacağız.
         renderGrid(myGridData, 'myGrid'); 
-        return; // Veritabanına gitme, bekle.
+        return; 
     }
 
-    // Eğer buraya geldiyse, kullanıcı AYNI hücreye ikinci kez tıklamıştır.
-    // ONAYLANDI -> Veritabanına gönder.
+    // İkinci tıklama (Aynı yer): ONAYLA VE GÖNDER
     selectedDraftIndex = null; // Seçimi temizle
-
+    
+    // --- VERİTABANI İŞLEMİ ---
     const gameRef = db.collection('games').doc(currentGameId);
 
     try {
@@ -9177,7 +9180,7 @@ async function handleCellClick(index) {
             const currentMove = data.moveNumber;
             const isFinalMove = (currentMove === 25);
             
-            // Harfi Belirle
+            // --- HARFİ BELİRLE ---
             let letterToPlace;
             if (isFinalMove) {
                 if (!myFinalLetter) throw new Error("Joker seçilmedi.");
@@ -9187,13 +9190,11 @@ async function handleCellClick(index) {
                 letterToPlace = data.currentLetter;
             }
             
-            // Gridi Güncelle
+            // --- GRID GÜNCELLE ---
             let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
             if (myCurrentGrid[index] !== '') throw new Error("Hücre dolu.");
-            
             myCurrentGrid[index] = letterToPlace;
             
-            // Payload Hazırla
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') {
                 updatePayload.gridA = myCurrentGrid;
@@ -9203,16 +9204,23 @@ async function handleCellClick(index) {
                 updatePayload.playerB_status = "placed";
             }
 
+            // --- TUR İLERLETME MANTIĞI ---
+            
+            // MOD 1: TEK KİŞİLİK (Basit Matematik)
             if (data.isSinglePlayer) {
                 const nextMove = currentMove + 1;
                 if (isFinalMove) {
                     updatePayload.status = 'finished';
                 } else {
                     updatePayload.moveNumber = nextMove;
+                    updatePayload.playerA_status = "waiting"; // Tek kişilikte hep waiting kalabilir veya resetlenir
+                    
                     if (nextMove <= 24) updatePayload.currentLetter = data.letterSequence[nextMove - 1];
                     else updatePayload.currentLetter = null;
                 }
-            } else {
+            } 
+            // MOD 2: MULTIPLAYER (Merkezi Kontrol)
+            else {
                 checkAndAdvanceTurn(data, updatePayload);
             }
             
@@ -9221,8 +9229,8 @@ async function handleCellClick(index) {
 
     } catch (e) {
         console.error("Hamle Hatası:", e);
-        selectedDraftIndex = null; // Hata olursa seçimi kaldır
-        renderGrid(myGridData, 'myGrid');
+        selectedDraftIndex = null;
+        renderGrid(myGridData, 'myGrid'); // Hatada seçimi kaldır
     }
 }
 
@@ -9240,7 +9248,7 @@ async function handleTimeout() {
             const data = doc.data();
 
             const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
-            if (myStatus !== 'waiting') return;
+            if (myStatus !== 'waiting') return; 
 
             let updatePayload = {};
             if (myPlayerId === 'PlayerA') updatePayload.playerA_status = "timedout";
@@ -9251,9 +9259,8 @@ async function handleTimeout() {
         });
         
         placementMode = false;
-        selectedDraftIndex = null; // Zaman dolunca seçimi kaldır
+        selectedDraftIndex = null;
         renderGrid(myGridData, 'myGrid');
-        
     } catch (e) { console.error(e); }
 }
 
@@ -9262,6 +9269,7 @@ function checkAndAdvanceTurn(data, updatePayload) {
     const oppStatus = isPlayerA ? data.playerB_status : data.playerA_status;
     const myNewStatus = isPlayerA ? updatePayload.playerA_status : updatePayload.playerB_status;
 
+    // KURAL: İki taraf da hamlesini bitirdiyse (Placed veya Timedout)
     if (oppStatus !== 'waiting' && myNewStatus !== 'waiting') {
         const nextMove = data.moveNumber + 1;
 
@@ -9273,10 +9281,15 @@ function checkAndAdvanceTurn(data, updatePayload) {
             updatePayload.playerA_status = "waiting";
             updatePayload.playerB_status = "waiting";
             
+            // Random Modda Yeni Harf
             if (data.gameMode === 'RANDOM') {
                 if (nextMove <= 24) updatePayload.currentLetter = data.letterSequence[nextMove - 1];
-                else updatePayload.currentLetter = null;
+                else updatePayload.currentLetter = null; // Joker
+                
+                // RANDOM MODDA TURN OWNER YOKTUR! DEĞİŞTİRMİYORUZ.
+                // updatePayload.turnOwner = ... (SİLDİK)
             } else {
+                // Klasik Modda Sıra Değişir
                 updatePayload.turnOwner = (nextMove % 2 !== 0) ? 'PlayerA' : 'PlayerB';
                 updatePayload.currentLetter = null;
             }
@@ -9284,6 +9297,9 @@ function checkAndAdvanceTurn(data, updatePayload) {
     }
 }
 
+// ==========================================
+// 13. PUANLAMA (Aynı)
+// ==========================================
 function calculateScore(gridData) {
     let totalScore = 0;
     let foundWords = new Set();
@@ -9295,19 +9311,21 @@ function calculateScore(gridData) {
         const segments = lineStr.replace(/\s+/g, ' ').split(' ');
         
         segments.forEach(segment => {
+            // 2 harfli ve üzeri kelimeler
             if (segment.length >= 2) {
+                 // 3+ harfliler kurallarda var
                  if (SCORE_RULES[segment.length] && isValidWord(segment)) {
                      const score = SCORE_RULES[segment.length];
                      totalScore += score;
                      foundWords.add(segment);
-                     if (isRow) rowScores[idx] += score;
-                     else colScores[idx] += score;
-                 } else if (segment.length === 2 && isValidWord(segment)) {
+                     if (isRow) rowScores[idx] += score; else colScores[idx] += score;
+                 } 
+                 // 2 harfliler (Manuel kural)
+                 else if (segment.length === 2 && isValidWord(segment)) {
                      const score = 2;
                      totalScore += score;
                      foundWords.add(segment);
-                     if (isRow) rowScores[idx] += score;
-                     else colScores[idx] += score;
+                     if (isRow) rowScores[idx] += score; else colScores[idx] += score;
                  }
             }
         });
@@ -9320,65 +9338,7 @@ function calculateScore(gridData) {
 }
 
 // ==========================================
-// 13. PUANLAMA MOTORU
-// ==========================================
-function calculateScore(gridData) {
-    let totalScore = 0;
-    let foundWords = new Set();
-    const rowScores = Array(5).fill(0);
-    const colScores = Array(5).fill(0);
-
-    // Satır ve Sütunları Tara
-    const scanLine = (indices, isRow, idx) => {
-        const lineStr = indices.map(i => gridData[i] || ' ').join('');
-        const segments = lineStr.replace(/\s+/g, ' ').split(' ');
-        
-        segments.forEach(segment => {
-            if (segment.length >= 3) { // En az 3 harf (Kurala göre 2 harf puanı var mı kontrol et)
-                // Kelime kontrolü
-                 if (SCORE_RULES[segment.length] && isValidWord(segment)) {
-                     const score = SCORE_RULES[segment.length];
-                     totalScore += score;
-                     foundWords.add(segment);
-                     if (isRow) rowScores[idx] += score;
-                     else colScores[idx] += score;
-                     return;
-                 }
-            }
-            // 2 Harfli ve alt kombinasyonlar için detaylı tarama
-            // (Basitlik için burada sadece tam kelimeleri sayıyoruz, 
-            // detaylı kombinasyon mantığı çok uzun olduğu için özetlendi.
-            // Eğer istersen önceki detaylı versiyonu ekleyebiliriz.)
-             if (segment.length >= 2 && isValidWord(segment)) {
-                 const score = (segment.length === 2) ? 2 : SCORE_RULES[segment.length];
-                 if (score) {
-                    totalScore += score;
-                    foundWords.add(segment);
-                    if (isRow) rowScores[idx] += score;
-                    else colScores[idx] += score;
-                 }
-             }
-        });
-    };
-
-    // Satırları Tara
-    for (let r = 0; r < 5; r++) {
-        scanLine(Array.from({length: 5}, (_, i) => r * 5 + i), true, r);
-    }
-    // Sütunları Tara
-    for (let c = 0; c < 5; c++) {
-        scanLine(Array.from({length: 5}, (_, i) => i * 5 + c), false, c);
-    }
-
-    return { 
-        score: totalScore, 
-        words: Array.from(foundWords).sort((a,b) => b.length - a.length),
-        rowScores, colScores 
-    };
-}
-
-// ==========================================
-// 14. OYUN DİNLEYİCİSİ
+// 14. DİNLEYİCİ
 // ==========================================
 function listenToGame() {
     if (unsubscribe) unsubscribe();
@@ -9390,22 +9350,22 @@ function listenToGame() {
                 window.location.reload();
                 return;
             }
-
             const data = doc.data();
 
+            // Gridleri Çiz (Data'yı da gönderiyoruz ki harfi bilelim)
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
             
-            // Render sırasında data'yı da gönderiyoruz ki harfi bilelim
             renderGrid(myGridData, 'myGrid', data); 
-            
             if (typeof renderGrid === 'function') renderGrid(oppGridData, 'opponentGrid', data);
 
+            // A. BEKLEME DURUMU
             if (data.status === 'waiting') {
                 updateGameUI(data);
                 return;
             }
 
+            // B. GERİ SAYIM
             if (data.status === 'starting') {
                 handleStartingCountdown(data);
                 return;
@@ -9416,6 +9376,7 @@ function listenToGame() {
                 countdownInterval = null;
             }
 
+            // C. AKTİF OYUN
             startTimer(data);
             updateGameUI(data);
 
@@ -9426,12 +9387,12 @@ function listenToGame() {
 function handleStartingCountdown(data) {
     const overlay = document.getElementById('turnStatusBadge');
     if (!overlay) return;
-
     if (countdownInterval) clearInterval(countdownInterval);
 
     overlay.classList.remove('hidden');
     overlay.className = "status-badge badge-info";
     
+    // Grid kilitle
     placementMode = false;
     const grid = document.getElementById('myGrid');
     if (grid) grid.classList.add('waiting-turn');
@@ -9458,20 +9419,21 @@ function handleStartingCountdown(data) {
 }
 
 // ==========================================
-// 15. UI DURUM YÖNETİMİ
+// 15. UI DURUM YÖNETİMİ (KESİN MOD AYRIMI)
 // ==========================================
 function updateGameUI(data) {
     const turnBadge = document.getElementById('turnStatusBadge');
     const randomDisplay = document.getElementById('randomLetterDisplay');
     const actionArea = document.getElementById('actionArea');
     
+    // UI Yardımcısı
     const setUI = (text, badgeClass, canPlay) => {
         if (turnBadge) {
             turnBadge.textContent = text;
             turnBadge.className = `status-badge ${badgeClass}`;
             turnBadge.classList.remove('hidden');
         }
-        placementMode = canPlay;
+        placementMode = canPlay; // Tıklama izni
         
         const grid = document.getElementById('myGrid');
         if (grid) {
@@ -9489,6 +9451,7 @@ function updateGameUI(data) {
         }
     };
 
+    // 1. RAKİP BEKLENİYOR
     if (data.status === 'waiting') {
         if(randomDisplay) randomDisplay.classList.add('hidden');
         if(actionArea) actionArea.classList.add('hidden');
@@ -9496,23 +9459,32 @@ function updateGameUI(data) {
         return;
     }
 
+    // 2. TEK KİŞİLİK MOD (SORUN 1 ÇÖZÜMÜ)
     if (data.isSinglePlayer) {
         if (randomDisplay) {
             randomDisplay.textContent = data.currentLetter || "?";
             randomDisplay.classList.remove('hidden');
         }
+        
+        // Dolu hücre sayısı ile Hamle sayısını kıyasla
         const myFilled = myGridData.filter(c => c !== '').length;
+        
+        // Eğer gridimdeki dolu sayısı, olması gereken hamle sayısından azsa -> HALA YERLEŞTİRMEDİM
+        // Örn: Hamle 1, Dolu 0 -> Yerleştir. 
         if (myFilled < data.moveNumber) {
             setUI("HARFİ YERLEŞTİRİN", "badge-success", true);
         } else {
+            // Örn: Hamle 1, Dolu 1 -> Bekle (Firebase transaction bitiyor demektir)
             setUI("KAYDEDİLİYOR...", "badge-neutral", false);
         }
         return;
     }
 
+    // 3. MULTIPLAYER RANDOM (SORUN 2 & 5 ÇÖZÜMÜ)
     if (data.gameMode === 'RANDOM') {
         const myStatus = (myPlayerId === 'PlayerA') ? data.playerA_status : data.playerB_status;
         
+        // Harfi Göster
         if (randomDisplay) {
             if (data.moveNumber === 25) {
                 if (myStatus === 'waiting') renderAlphabetSelector();
@@ -9522,12 +9494,13 @@ function updateGameUI(data) {
             }
         }
 
+        // Duruma göre yetki ver
         if (myStatus === 'waiting') {
             if (data.moveNumber === 25) {
                 if (!myFinalLetter) setUI("JOKER SEÇİN", "badge-info", false);
                 else setUI(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
             } else {
-                setUI("HARFİ YERLEŞTİRİN", "badge-success", true);
+                setUI("HARFİ YERLEŞTİRİN", "badge-success", true); // <--- BURASI ARTIK TURN OWNER'A BAKMIYOR
             }
         } else if (myStatus === 'timedout') {
             setUI("SÜRE DOLDU! (PAS)", "badge-danger", false);
@@ -9537,6 +9510,7 @@ function updateGameUI(data) {
         return;
     }
 
+    // 4. KLASİK MOD (Sıralı)
     if (data.gameMode === 'CLASSIC') {
         const isMyTurn = (data.turnOwner === myPlayerId);
         const letterSelected = (data.currentLetter && data.currentLetter !== '');
@@ -9566,7 +9540,7 @@ function updateGameUI(data) {
 }
 
 // ==========================================
-// 16. EKRAN ÇİZİM (GÜNCELLENMİŞ - DRAFT DESTEKLİ)
+// 16. EKRAN ÇİZİM (DRAFT & HAYALET HARF)
 // ==========================================
 function renderGrid(gridData, elementId, gameData = null) {
     const gridEl = document.getElementById(elementId);
@@ -9578,32 +9552,36 @@ function renderGrid(gridData, elementId, gameData = null) {
         cell.className = 'cell';
         cell.textContent = letter;
 
-        // --- DRAFT GÖRÜNÜMÜ ---
-        // Sadece benim gridim ve seçili olan hücre ise
+        // DRAFT GÖRÜNÜMÜ: Seçili hücre
         if (elementId === 'myGrid' && index === selectedDraftIndex) {
             cell.classList.add('selected-draft');
             
-            // Henüz harf yerleşmediyse, yerleşecek olan harfi GÖSTER
+            // Eğer hücre boşsa, HAYALET HARFİ göster
             if (!letter) {
-                // Joker turu mu?
+                // Öncelik: Joker var mı?
                 if (myFinalLetter) {
                     cell.textContent = myFinalLetter;
                 } 
-                // Normal tur mu? (gameData'dan veya ekrandan al)
+                // Yoksa: GameData'dan gelen harf var mı?
+                else if (gameData && gameData.currentLetter) {
+                    cell.textContent = gameData.currentLetter;
+                }
+                // Yoksa: Ekrandaki kutudan al (Fallback)
                 else {
                     const display = document.getElementById('randomLetterDisplay');
                     if (display && display.textContent.length === 1) {
-                        cell.textContent = display.textContent;
-                    } else if (gameData && gameData.currentLetter) {
-                        cell.textContent = gameData.currentLetter;
+                         cell.textContent = display.textContent;
                     }
                 }
+                
+                // Hayalet harf olduğu belli olsun diye rengini biraz soluk yapabiliriz (Opsiyonel)
+                cell.style.color = "#888"; 
             }
         }
 
         // Tıklanabilirlik
         const isClickable = (elementId === 'myGrid' && placementMode);
-        // Tıklanabilir olması için ya boş olmalı ya da DRAFT (onay bekleyen) olmalı
+        // Tıklanabilir olması için: Ya boş olmalı YA DA şu anki seçili draft olmalı (onaylamak için)
         if (isClickable && (letter === '' || index === selectedDraftIndex)) {
             cell.classList.add('clickable');
             cell.onclick = () => handleCellClick(index);
@@ -9767,6 +9745,7 @@ function fetchLeaderboard() {
             tbody.innerHTML = html || '<tr><td colspan="3">Veri yok.</td></tr>';
         });
 }
+
 
 
 
