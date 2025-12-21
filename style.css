@@ -572,7 +572,7 @@ body.dark-mode .clickable:hover {
 
 .active-turn {
     box-shadow: none !important;           /* Glow/Parlamayı iptal et */
-    border: 4px solid #2ecc71 !important;  /* Net, kalın yeşil çerçeve */
+    border: 2px solid #2ecc71 !important;  /* Net, kalın yeşil çerçeve */
     opacity: 1 !important;
     cursor: pointer;
     transform: none !important;            /* Büyüme/küçülme efektini de kapattım, sabit dursun */
@@ -794,5 +794,6 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 .joker-title {
     font-size:
+
 
 
