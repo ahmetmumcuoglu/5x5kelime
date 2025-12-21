@@ -222,29 +222,25 @@ body.dark-mode button:disabled {
     align-items: center;
 }
 
-/* Grid Yapısı (Düzeltilmiş) */
+/* 1. Kapsayıcı (Gri Kutu) */
 .grid {
-    display: grid;
+    /* 'grid' yerine 'inline-grid' kullanıyoruz. 
+       Bu özellik, kutunun içeriği (hücreler) kadar küçülmesini ve 
+       tam olarak onları sarmasını sağlar. */
+    display: inline-grid; 
+    
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(5, 50px);
-    gap: 4px;
+    
+    gap: 4px;    /* Hücreler arası boşluk */
+    padding: 4px; /* Dış çerçeve boşluğu (Gri alan) */
+    
     background-color: var(--grid-bg);
-    padding: 4px;
     border-radius: 6px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-
-    /* --- YENİ EKLENENLER --- */
     
-    /* 1. Hücreleri gri kutunun tam ortasına çivile */
-    justify-content: center; 
-    align-content: center;
-    
-    /* 2. Gri kutunun boyutunu, içindeki hücrelere tam oturacak şekilde ayarla */
-    /* Böylece gereksiz boşluk kalmaz */
-    width: max-content;
-    height: max-content;
-    
-    /* 3. Grid'in kendisini de dışarıya göre ortala */
+    /* Gereksiz kodları sildik (width, height, justify-content vb.) */
+    /* Sadece dış ortalama kalsın */
     margin: 0 auto;
 }
 
@@ -253,6 +249,7 @@ body.dark-mode button:disabled {
 .cell {
     width: 50px;
     height: 50px;
+    box-sizing: border-box;
     background-color: var(--cell-bg); /* Değişken */
     display: flex;
     justify-content: center;
@@ -852,6 +849,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .hidden {
     display: none !important;
 }
+
 
 
 
