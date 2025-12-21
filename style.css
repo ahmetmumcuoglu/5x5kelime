@@ -449,7 +449,7 @@ body.dark-mode .clickable:hover {
 .cell.selected-draft {
     background-color: #f1c40f !important;
     color: #333 !important;
-    border: 3px solid #d35400 !important;
+    border: 1px solid transparent !important;
     transform: scale(1.05);
     box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
 }
@@ -849,6 +849,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .hidden {
     display: none !important;
 }
+
 
 
 
