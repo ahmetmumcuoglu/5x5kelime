@@ -594,7 +594,7 @@ body.dark-mode .clickable:hover {
     opacity: 0.6 !important;
     filter: grayscale(60%);
     pointer-events: none;
-    transform: scale(0.98);
+    transform: scale(1.00);
     transition: all 0.3s ease-in-out;
 }
 
@@ -849,6 +849,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .hidden {
     display: none !important;
 }
+
 
 
 
