@@ -591,7 +591,6 @@ body.dark-mode .clickable:hover {
     padding: 10px 25px;
     border-radius: 30px;
     font-weight: 800;
-    color: white;
     font-size: 1.2rem;
     margin-bottom: 15px;
     display: inline-block;
@@ -599,12 +598,33 @@ body.dark-mode .clickable:hover {
     text-transform: uppercase;
     letter-spacing: 1px;
     animation: fadeIn 0.5s ease;
+
+    /* KRİTİK DÜZELTME: Varsayılan Renkler */
+    color: white !important;       /* Yazı her modda BEYAZ olsun */
+    background-color: #95a5a6;     /* Varsayılan GRİ arka plan (Sınıf gelmezse bu görünür) */
 }
 
-.badge-success { background-color: var(--secondary); }
-.badge-warning { background-color: #f39c12; }
-.badge-info    { background-color: var(--primary); }
-.badge-neutral { background-color: #95a5a6; }
+.badge-warning { 
+    background-color: #f39c12 !important; /* Turuncu */
+    color: white !important;
+} 
+.badge-info { 
+    background-color: #3498db !important; /* Mavi */
+    color: white !important;
+} 
+.badge-neutral { 
+    background-color: #95a5a6 !important; /* Gri */
+    color: white !important;
+}
+.badge-danger { 
+    background-color: #e74c3c !important; /* Kırmızı */
+    color: white !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -818,6 +838,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .hidden {
     display: none !important;
 }
+
 
 
 
