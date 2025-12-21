@@ -145,29 +145,32 @@ body.dark-mode button:disabled {
 
 /* LOBİ ÜST BUTONLAR (Dark Mode butonu için stil) */
 .lobby-top-actions {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin-bottom: 20px;
+    display: flex;             /* Esnek kutu yapısı */
+    justify-content: center;   /* Yatayda ortala */
+    align-items: center;       /* Dikeyde ortala */
+    gap: 15px;                 /* Butonlar arası boşluk */
+    margin-bottom: 20px;       /* Alt kısımla mesafe */
+    width: 100%;               /* Panelin tamamını kapsa */
 }
 .icon-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+    width: 45px;               /* Genişlik sabit */
+    height: 45px;              /* Yükseklik sabit */
+    border-radius: 50%;        /* Tam yuvarlak */
     border: none;
     cursor: pointer;
     font-size: 20px;
-    display: flex;
+    display: flex;             /* İkonu butonun içinde ortalamak için */
     align-items: center;
     justify-content: center;
-    transition: 0.3s;
+    transition: transform 0.2s, background-color 0.3s;
     color: white;
+    margin: 0;                 /* Dış boşlukları sıfırla ki kayma yapmasın */
 }
 .icon-btn:hover { transform: scale(1.1); }
 /* Renk atamaları */
-.icon-btn.info { background: var(--dark); }
-.icon-btn.stats { background: #8e44ad; }
-#darkModeBtn { background: #f39c12; color: white; } /* Güneş/Ay Rengi */
+.icon-btn.info { background: #2c3e50; }     /* Koyu Gri */
+.icon-btn.stats { background: #8e44ad; }    /* Mor */
+#darkModeBtn { background: #f39c12; }       /* Turuncu */
 
 
 /* ================================================= */
@@ -791,3 +794,4 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 .joker-title {
     font-size:
+
