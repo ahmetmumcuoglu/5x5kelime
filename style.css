@@ -1,15 +1,68 @@
 /* ================================================= */
-/* 1. GENEL AYARLAR VE LOBİ STİLLERİ */
+/* 1. RENK TANIMLAMALARI VE DEĞİŞKENLER (YENİ) */
+/* ================================================= */
+:root {
+    /* --- LIGHT MODE (Varsayılan) --- */
+    --bg-body: #f4f6f8;
+    --bg-panel: #ffffff;
+    --bg-secondary: #f8f9fa; /* Kartlar, kutular vb. */
+    
+    --text-main: #333333;
+    --text-muted: #666666;
+    
+    --grid-bg: #dfe4ea;     /* Gridin arka planı (boşluk rengi) */
+    --cell-bg: #ffffff;     /* Hücre içi */
+    --cell-border: #bdc3c7;
+    
+    --input-bg: #ffffff;
+    --input-border: #ddd;
+    
+    --modal-overlay: rgba(0, 0, 0, 0.6);
+    --shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+    /* Sabit Renkler (Değişmez) */
+    --primary: #3498db;
+    --primary-hover: #2980b9;
+    --secondary: #2ecc71;
+    --secondary-hover: #27ae60;
+    --accent: #e67e22;
+    --danger: #e74c3c;
+    --dark: #2c3e50;
+    --purple: #9b59b6;
+}
+
+/* --- DARK MODE RENKLERİ --- */
+body.dark-mode {
+    --bg-body: #121212;       /* Çok koyu arka plan */
+    --bg-panel: #1e1e1e;      /* Panel rengi */
+    --bg-secondary: #2c2c2c;  /* Kartlar */
+    
+    --text-main: #e0e0e0;     /* Açık gri yazı */
+    --text-muted: #a0a0a0;
+    
+    --grid-bg: #333333;       /* Grid çizgileri */
+    --cell-bg: #252525;       /* Hücre içi koyu */
+    --cell-border: #444444;
+    
+    --input-bg: #2c2c2c;
+    --input-border: #444;
+    
+    --shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* ================================================= */
+/* 2. GENEL AYARLAR VE LOBİ STİLLERİ */
 /* ================================================= */
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f8;
-    color: #333;
+    background-color: var(--bg-body); /* Değişken */
+    color: var(--text-main);          /* Değişken */
     display: flex;
     justify-content: center;
     padding: 20px;
     margin: 0;
+    transition: background-color 0.3s, color 0.3s; /* Yumuşak geçiş */
 }
 
 .main-wrapper {
@@ -20,11 +73,12 @@ body {
 
 /* Paneller */
 .panel {
-    background: white;
+    background: var(--bg-panel);      /* Değişken */
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow);
     margin-top: 20px;
+    transition: background-color 0.3s;
 }
 
 .hidden { 
@@ -34,7 +88,9 @@ body {
 /* Butonlar ve Inputlar */
 input[type="text"], select {
     padding: 10px;
-    border: 2px solid #ddd;
+    background-color: var(--input-bg); /* Değişken */
+    color: var(--text-main);           /* Değişken */
+    border: 2px solid var(--input-border);
     border-radius: 6px;
     font-size: 16px;
     text-align: center;
@@ -44,6 +100,7 @@ input[type="text"], select {
 input[type="text"] {
     width: 120px;
 }
+
 button {
     padding: 10px 20px;
     border: none;
@@ -52,86 +109,108 @@ button {
     cursor: pointer;
     font-weight: bold;
     transition: 0.2s;
+    color: white; /* Buton yazıları genelde beyaz kalır */
 }
+
 .btn-primary { 
-    background-color: #3498db; 
-    color: white; 
+    background-color: var(--primary); 
 }
 .btn-primary:hover { 
-    background-color: #2980b9; 
+    background-color: var(--primary-hover); 
 }
 .btn-secondary { 
-    background-color: #2ecc71; 
-    color: white; 
+    background-color: var(--secondary); 
 }
 .btn-secondary:hover { 
-    background-color: #27ae60; 
+    background-color: var(--secondary-hover); 
 }
 button:disabled { 
     background-color: #ccc; 
     cursor: not-allowed; 
 }
+/* Dark mode'da disabled butonun çok parlamaması için */
+body.dark-mode button:disabled {
+    background-color: #555;
+    color: #888;
+}
 
 .separator {
     margin: 15px 0;
-    color: #999;
+    color: var(--text-muted);
 }
 .status-text {
     font-weight: bold;
     margin-top: 15px;
 }
 
-/* ================================================= */
-/* 2. OYUN ALANI (GAME PANEL) STİLLERİ */
-/* ================================================= */
-
-/* BİLGİ ÇUBUĞU */
-.info-bar {
+/* LOBİ ÜST BUTONLAR (Dark Mode butonu için stil) */
+.lobby-top-actions {
     display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
+    justify-content: center;
+    gap: 15px;
     margin-bottom: 20px;
-    font-size: 1.1em;
-    color: #555;
-    border-bottom: 1px solid #eee;
 }
-.info-bar b {
-    color: #3498db;
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+    color: white;
 }
+.icon-btn:hover { transform: scale(1.1); }
+/* Renk atamaları */
+.icon-btn.info { background: var(--dark); }
+.icon-btn.stats { background: #8e44ad; }
+#darkModeBtn { background: #f39c12; color: white; } /* Güneş/Ay Rengi */
 
-/* KONTROL ALANI */
+
+/* ================================================= */
+/* 3. OYUN ALANI (GAME PANEL) STİLLERİ */
+/* ================================================= */
+
+.info-bar { display: none !important; }
+
 .controls-top {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 25px;
+    justify-content: center;
+    gap: 5px !important; 
+    margin-bottom: 25px !important;
 }
 
 #actionArea {
     display: flex;
     gap: 15px;
     align-items: center;
+    margin-top: 20px !important;
 }
 
 #randomLetterDisplay {
     font-size: 2.5em; 
     font-weight: bold; 
-    color: #e67e22; 
-    border: 3px solid #e67e22; 
+    color: var(--accent); 
+    border: 3px solid var(--accent); 
     padding: 5px 25px; 
     border-radius: 8px; 
-    background: #fff;
-    min-width: 50px; /* Harf gelene kadar yer kaplaması için */
+    background: var(--bg-panel); /* Değişken */
+    min-width: 50px;
     text-align: center;
 }
 
 /* Grid Konteynerleri */
 .grids-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     gap: 30px; 
     margin: 20px 0;
+    margin-bottom: 50px !important;
 }
 
 .grid-box {
@@ -146,31 +225,18 @@ button:disabled {
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(5, 50px);
     gap: 4px;
-    /* DÜZELTME: Siyah arka plan yerine yumuşak gri boşluklar */
-    background-color: #ddd; 
+    background-color: var(--grid-bg); /* Değişken */
     padding: 4px;
     border-radius: 6px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* Yeni kural: Rakip gridini oyun sırasında tamamen gizle */
-.hidden-during-game {
-    display: none !important;
-}
-
-/* Kendi gridini ortalamak için grids-container'ı güncelle */
-.grids-container {
-    display: flex;
-    /* justify-content ayarını merkeze alıyoruz, gizli element olmadığı için kendi gridimiz ortalanacak */
-    justify-content: center;
-    gap: 30px; 
-    margin: 20px 0;
-}
+.hidden-during-game { display: none !important; }
 
 .cell {
     width: 50px;
     height: 50px;
-    background-color: white;
+    background-color: var(--cell-bg); /* Değişken */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -178,30 +244,43 @@ button:disabled {
     font-weight: bold;
     cursor: default;
     border-radius: 3px;
-    /* Türkçe karakter görüntüleme düzeltmesi */
     font-family: Tahoma, Arial, sans-serif;
-    color: #333;
+    color: var(--text-main);          /* Değişken */
     transition: 0.1s;
+    border: 1px solid transparent; /* Border yeri hazır olsun */
+}
+/* Dark modda hücre sınırları belli olsun diye */
+body.dark-mode .cell {
+    border: 1px solid var(--cell-border);
 }
 
 /* Etkileşimler */
 .clickable {
     cursor: pointer;
     background-color: #e8f8f5; 
-    border: 2px solid #2ecc71;
-    box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
+    border: 2px solid var(--secondary);
+    color: #333; /* Tıklanabilir alan her zaman okunabilir olsun */
 }
+body.dark-mode .clickable {
+    background-color: #2c3e50; /* Dark modda tıklanabilir renk */
+    color: #fff;
+    border-color: #2ecc71;
+}
+
 .clickable:hover { 
     background-color: #d1f2eb; 
     transform: scale(1.03);
 }
+body.dark-mode .clickable:hover {
+    background-color: #34495e;
+}
 
 /* ================================================= */
-/* 3. OYUN SONU EKRANI (DÜZELTİLMİŞ & SIKIŞTIRILMIŞ) */
+/* 4. OYUN SONU EKRANI */
 /* ================================================= */
 
 #gameOverPanel {
-    max-width: 950px; /* Paneli biraz daha genişlettik */
+    max-width: 950px;
     margin: 0 auto;
     text-align: center;
     padding: 20px;
@@ -211,34 +290,32 @@ button:disabled {
     font-size: 1.8rem;
     margin-bottom: 30px;
     font-weight: bold;
+    color: var(--text-main);
 }
 
-/* KARTLARI YAN YANA DİZEN KONTEYNER */
 .results-container {
     display: flex;
     justify-content: center;
-    gap: 30px; /* Kartlar arası boşluk */
-    flex-wrap: wrap; /* Mobilde alt alta geçsin */
+    gap: 30px;
+    flex-wrap: wrap;
 }
 
-/* BİREYSEL SONUÇ KARTI */
 .result-card {
-    background: #f8f9fa; /* Kartın arka planı */
-    border: 1px solid #ddd;
+    background: var(--bg-secondary); /* Değişken */
+    border: 1px solid var(--input-border);
     border-radius: 12px;
     padding: 20px;
-    width: 450px; /* Kart genişliğini sabitledik */
+    width: 450px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
 }
 
-/* KART BAŞLIĞI */
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #e9ecef;
+    border-bottom: 2px solid var(--input-border);
     padding-bottom: 15px;
     margin-bottom: 15px;
 }
@@ -246,7 +323,7 @@ button:disabled {
 .card-header h4 {
     margin: 0;
     font-size: 1.2rem;
-    color: #333;
+    color: var(--text-main);
     font-weight: bold;
 }
 
@@ -254,56 +331,52 @@ button:disabled {
     font-size: 1.5rem;
     font-weight: bold;
     color: #fff;
-    background: #2c3e50; /* Puan arka planı koyu */
+    background: var(--dark);
     padding: 5px 15px;
     border-radius: 20px;
 }
 
-/* KART GÖVDESİ (Grid ve Listenin Yan Yana Durduğu Yer) */
 .card-body {
     display: flex;
-    flex-direction: row; /* Yan yana olmayı garanti et */
-    align-items: flex-start; /* Yukarı hizala */
-    gap: 15px; /* Grid ile Liste arasındaki boşluk */
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 15px;
 }
 
-/* GRİD KAPSAYICISI */
 .mini-grid-wrapper {
-    flex: 0 0 auto; /* Büyüme veya küçülme yapma, boyutu sabitle */
+    flex: 0 0 auto;
     width: auto;
 }
 
-/* SONUÇ EKRANINDAKİ KÜÇÜK GRİD */
-/* !important kullanarak ana oyun stillerini eziyoruz */
 .mini-grid {
-    width: 270px !important;  /* Genişliği küçült ve sabitle */
-    height: 270px !important; /* Yüksekliği küçült ve sabitle */
+    width: 270px !important; 
+    height: 270px !important;
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(6, 1fr);
-    gap: 3px !important; /* Hücreler arası boşluğu azalt */
+    gap: 3px !important;
     padding: 5px !important;
-    background-color: #eee; /* Gridin kendi arka planı */
+    background-color: var(--grid-bg) !important; /* Değişken */
 }
 
 .mini-grid .cell {
-    font-size: 1.1rem !important; /* Harfleri küçült */
+    font-size: 1.1rem !important;
     width: auto !important;
     height: auto !important;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    background: #fff;
-    border: 1px solid #ccc;
+    background: var(--cell-bg); /* Değişken */
+    color: var(--text-main);    /* Değişken */
+    border: 1px solid var(--cell-border);
 }
 
-/* KELİME LİSTESİ ALANI (O boş gri alana gelecek kısım) */
 .word-list-wrapper {
-    flex: 1; /* Kalan tüm boşluğu kapla */
-    height: 220px; /* Grid ile aynı yükseklikte olsun */
-    overflow-y: auto; /* Çok kelime varsa içinde scroll çıksın */
-    background: #fff;
-    border: 1px solid #ddd;
+    flex: 1;
+    height: 220px;
+    overflow-y: auto;
+    background: var(--cell-bg); /* Değişken */
+    border: 1px solid var(--input-border);
     border-radius: 8px;
     padding: 10px;
     text-align: left;
@@ -312,22 +385,21 @@ button:disabled {
 .word-list-wrapper h5 {
     margin: 0 0 8px 0;
     font-size: 0.9rem;
-    color: #777;
+    color: var(--text-muted);
     text-transform: uppercase;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--input-border);
     padding-bottom: 5px;
-    position: sticky; /* Başlık kaybolmasın */
+    position: sticky;
     top: 0;
-    background: #fff;
+    background: var(--cell-bg); /* Kaydırma sırasında arka plan */
 }
 
-/* Kelime Etiketleri */
 .word-list {
     list-style: none;
     padding: 0;
     margin: 0;
     display: flex;
-    flex-wrap: wrap; /* Kelimeler sığmazsa alt satıra geçsin */
+    flex-wrap: wrap;
     gap: 5px;
 }
 
@@ -336,18 +408,14 @@ button:disabled {
     padding: 3px 8px;
     border-radius: 12px;
     font-weight: 600;
-    /* Varsayılan renk (3 harfliler için) */
-    background-color: #e0e0e0; 
-    color: #333;
+    background-color: var(--grid-bg); /* Koyu tema için uyumlu */
+    color: var(--text-main);
 }
-
-/* Kelime uzunluklarına göre renklendirme (Opsiyonel ama şık durur) */
-/* CSS'te doğrudan seçemeyiz ama genel stil böyle kalsın */
 
 /* MOBİL UYUMLULUK */
 @media (max-width: 768px) {
     .card-body {
-        flex-direction: column; /* Mobilde alt alta geçsin */
+        flex-direction: column;
         align-items: center;
     }
     .mini-grid {
@@ -356,7 +424,7 @@ button:disabled {
     }
     .word-list-wrapper {
         width: 100%;
-        height: 150px; /* Mobilde liste boyunu kıs */
+        height: 150px;
     }
     .result-card {
         width: 100%;
@@ -365,10 +433,10 @@ button:disabled {
 
 /* Seçili (Onay Bekleyen) Hücre Stili */
 .cell.selected-draft {
-    background-color: #f1c40f !important; /* Sarı renk */
+    background-color: #f1c40f !important;
     color: #333 !important;
-    border: 3px solid #d35400 !important; /* Turuncu çerçeve */
-    transform: scale(1.05); /* Hafif büyüme efekti */
+    border: 3px solid #d35400 !important;
+    transform: scale(1.05);
     box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
 }
 
@@ -377,11 +445,10 @@ button:disabled {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-width: 400px; /* Genişliği sınırlayalım ki butonlar çok uzamasın */
-    margin: 0 auto;   /* Ortala */
+    max-width: 400px;
+    margin: 0 auto;
 }
 
-/* Her Bir Blok (Grup) */
 .control-group {
     display: flex;
     flex-direction: column;
@@ -389,7 +456,6 @@ button:disabled {
     width: 100%;
 }
 
-/* Ayırıcı Yazılar (- VEYA -) */
 .lobby-divider {
     color: #aaa;
     font-size: 0.9rem;
@@ -398,97 +464,63 @@ button:disabled {
     letter-spacing: 1px;
 }
 
-/* Buton ve Select Genel Stilleri */
 .lobby-controls button, 
 .lobby-controls select {
-    width: 100%; /* Hepsi kutu genişliğini doldursun */
+    width: 100%;
     padding: 12px;
     font-size: 1rem;
-    box-sizing: border-box; /* Padding dahil genişlik hesaplansın */
+    box-sizing: border-box;
 }
 
-/* Katılma Alanı (Yan Yana Durması Gerekenler) */
 .join-area {
     display: flex;
-    gap: 10px; /* Input ve Buton arası boşluk */
+    gap: 10px;
     width: 100%;
 }
 
 .join-area input {
-    flex: 1; /* Kalan boşluğu doldur */
+    flex: 1;
     padding: 12px;
     font-size: 1rem;
     text-align: center;
     text-transform: uppercase;
-    border: 2px solid #ddd;
+    border: 2px solid var(--input-border);
     border-radius: 8px;
 }
 
 .join-area button {
-    flex: 1; /* Input ile eşit veya dengeli genişlik */
-    white-space: nowrap; /* Yazı alt satıra geçmesin */
+    flex: 1;
+    white-space: nowrap;
 }
 
 /* ========================================= */
 /* BUTON RENKLENDİRMELERİ */
 /* ========================================= */
 
-/* Yeni Oyun Kur Butonu (MAVİ) */
 #createGameBtn {
-    background-color: #3498db;
+    background-color: var(--primary);
     color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s;
 }
+#createGameBtn:hover { background-color: var(--primary-hover); }
 
-#createGameBtn:hover {
-    background-color: #2980b9; /* Üzerine gelince koyulaşır */
-}
-
-/* Oyuna Katıl Butonu (YEŞİL) */
 #joinGameBtn {
-    background-color: #2ecc71;
+    background-color: var(--secondary);
     color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s;
 }
+#joinGameBtn:hover { background-color: var(--secondary-hover); }
 
-#joinGameBtn:hover {
-    background-color: #27ae60; /* Üzerine gelince koyulaşır */
-}
-
-/* Tek Başına Oyna Butonu (MOR) */
-/* HTML içinde style olarak vermiştik ama buradan yönetmek daha temizdir */
 #singlePlayerBtn {
-    background-color: #9b59b6;
+    background-color: var(--purple);
     color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background 0.3s;
 }
+#singlePlayerBtn:hover { filter: brightness(1.1); }
 
-#singlePlayerBtn:hover {
-    background-color: #8e44ad; /* Üzerine gelince koyulaşır */
-}
-
-/* Rakip Alanını Oyun Sırasında Tamamen Gizle */
-#opponentSection {
-    display: none !important;
-}
+#opponentSection { display: none !important; }
 
 /* GENEL SONUÇ GRIDİ STİLİ */
 .final-grid .cell {
-    /* Varsayılan hücre stili (şeffaf bir görünüm için gerekirse arka planı kaldırın) */
-    background-color: #f0f0f0; /* Örneğin hafif gri */
-    border: 1px solid #ccc;
+    background-color: var(--cell-bg);
+    border: 1px solid var(--cell-border);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -496,90 +528,62 @@ button:disabled {
     font-weight: 500;
 }
 
-/* PUAN HÜCRELERİ İÇİN GENEL STİL */
 .final-grid .score-cell-row, 
 .final-grid .score-cell-col {
     background-color: transparent !important;
-    border: none; /* Kenarlığı kaldır */
+    border: none;
     font-weight: bold;
-    font-size: 1.3em; /* Puanları daha büyük göster */
+    font-size: 1.3em;
+    color: var(--text-main);
 }
 
 /* ================================================= */
-/* RENK KODLAMASI (ARKA PLAN TEMELLİ) */
+/* RENK KODLAMASI (Puanlar) */
 /* ================================================= */
 
-/* Tüm puanlar için varsayılan yazı rengini (siyah/koyu) zorla */
 .score-15, .score-9, .score-7, .score-5, .score-4, .score-2, .score-1, .score-0 {
-    color: #333 !important; /* Yazıyı siyah/koyu yap */
+    color: #333 !important; /* Puanların içi her zaman koyu yazı olsun (arkaplan renkli olduğu için) */
     font-weight: bold;
 }
 
-/* 15 Puan için Mavi Arka Plan */
-.score-15 {
-    background-color: #34c5db !important; 
-}
-/* 9 Puan için Yeşil Arka Plan */
-.score-9 {
-    background-color: #21d96f !important; 
-}
-/* 7 Puan için Mor Arka Plan */
-.score-7 {
-    background-color: #9b59b6 !important; 
-}
-/* 5 Puan için Turuncu Arka Plan */
-.score-5 {
-    background-color: #e67e22 !important; 
-}
-/* 4 Puan için Koyu Sarı Arka Plan */
-.score-4 {
-    background-color: #f1d70f !important; 
-}
-/* 2 Puan için Kırmızı Arka Plan */
-.score-2 {
-    background-color: #d768d9 !important; 
-}
-.mini-grid .score-0 {
-    background-color: #abb0b3 !important; /* Açık Gri */
+.score-15 { background-color: #34c5db !important; }
+.score-9 { background-color: #21d96f !important; }
+.score-7 { background-color: #9b59b6 !important; }
+.score-5 { background-color: #e67e22 !important; }
+.score-4 { background-color: #f1d70f !important; }
+.score-2 { background-color: #d768d9 !important; }
+
+.mini-grid .score-0, .final-grid .score-0 {
+    background-color: #abb0b3 !important;
+    color: #333 !important;
 }
 
-.final-grid .score-0,{
-    background-color: #abb0b3 !important; /* Açık Gri */
-    color: #333 !important; /* Yazı rengi siyah */
-}
-
-/* Köşe hücresi için şeffaflık (isteğe bağlı) */
 .final-grid .empty-corner {
     background-color: transparent;
     border: none;
 }
 
 /* ================================================= */
-/* 4. OYUN DURUMU VE GRID EFEKTLERİ (YENİ) */
+/* 4. OYUN DURUMU VE GRID EFEKTLERİ */
 /* ================================================= */
 
-/* --- GRID DURUMLARI --- */
-
-/* Aktif Sıra (Senin Sıran): Parlak, Yeşil Çerçeve, Tıklanabilir */
 .active-turn {
-    box-shadow: 0 0 15px rgba(46, 204, 113, 0.6); /* Yeşil Parlama */
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.6);
     opacity: 1 !important;
-    transform: scale(1.02); /* Çok hafif büyütme efekti */
+    transform: scale(1.02);
     transition: all 0.3s ease-in-out;
     cursor: pointer;
 }
 
-/* Bekleme Modu (Rakip Bekleniyor / Harf Seçimi): Soluk, Gri, Tıklanamaz */
 .waiting-turn {
-    border: 3px solid #bdc3c7 !important; /* Gri Çerçeve */
-    opacity: 0.6 !important; /* Soluklaşma */
-    filter: grayscale(60%); /* Renkleri soldur */
-    pointer-events: none; /* Tıklamayı CSS ile de engelle */
-    transform: scale(0.98); /* Hafif küçülme */
+    border: 3px solid #bdc3c7 !important;
+    opacity: 0.6 !important;
+    filter: grayscale(60%);
+    pointer-events: none;
+    transform: scale(0.98);
     transition: all 0.3s ease-in-out;
 }
 
-/* --- DURUM TABELASI (STATUS BADGE) --- */
 .status-badge {
     padding: 10px 25px;
     border-radius: 30px;
@@ -594,11 +598,10 @@ button:disabled {
     animation: fadeIn 0.5s ease;
 }
 
-/* Tabela Renkleri */
-.badge-success { background-color: #2ecc71; } /* Yeşil (Yerleştir) */
-.badge-warning { background-color: #f39c12; } /* Turuncu (Rakip Bekleniyor) */
-.badge-info    { background-color: #3498db; } /* Mavi (Harf Seç / Joker) */
-.badge-neutral { background-color: #95a5a6; } /* Gri (Bekleme) */
+.badge-success { background-color: var(--secondary); }
+.badge-warning { background-color: #f39c12; }
+.badge-info    { background-color: var(--primary); }
+.badge-neutral { background-color: #95a5a6; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
@@ -606,221 +609,67 @@ button:disabled {
 }
 
 /* ================================================= */
-/* 5. SON RÜTUŞLAR (TEMİZLİK VE MOBİL AYARLARI) */
+/* 5. DİĞER DÜZENLEMELER */
 /* ================================================= */
 
-/* 1. GEREKSİZ YAZILARI GİZLEME */
-/* Üstteki "Rolün:..." ve "Sıra Bekleniyor..." satırını komple gizler */
-.info-bar {
-    display: none !important;
+#gameStatusMsg, #myPlayerRole, #turnIndicator { display: none !important; }
+
+.room-info {
+    margin-bottom: 50px !important;
+    margin-top: 10px !important;
+    text-align: center;
+    width: 100%;
+    color: var(--text-main);
 }
 
-/* Alttaki "Oyun Yükleniyor..." mesajını gizler */
-#gameStatusMsg {
-    display: none !important;
-}
-/* Eğer HTML yapınızda bu ID'ler tek başına duruyorsa garantiye alalım: */
-#myPlayerRole, #turnIndicator {
-    display: none !important;
-}
-
-/* 2. GRID VE HARF KUTUSU ARASINA MESAFE KOYMA */
-/* Grid kutusunun altına boşluk ekleyerek alttaki elementlerin (Ç kutusu) üstüne binmesini engeller */
-.grids-container {
-    margin-bottom: 50px !important; /* Mesafeyi artırdık */
-    margin-top: 20px !important;    /* Üst tarafa da biraz nefes payı */
-}
-
-/* Alternatif: Eğer harf kutusu "randomLetterDisplay" ise onun üstüne de pay verebiliriz */
-#randomLetterDisplay, #actionArea {
-    margin-top: 20px !important;
-}
-
-/* 3. MOBİLDEKİ "FLASH" (MAVİ YANIP SÖNME) EFEKTİNİ KALDIRMA */
-/* Tüm elementler için dokunma vurgusunu şeffaf yapar */
 * {
     -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none; /* iOS'te uzun basınca çıkan menüyü engeller (opsiyonel) */
+    -webkit-touch-callout: none;
 }
-
-/* Tıklanan elementlerdeki varsayılan outline'ı da siler */
 button:focus, .cell:focus, input:focus {
     outline: none !important;
 }
 
+.grid-box h3, .grid-box h4, .grid-box .grid-title { display: none !important; }
+#turnStatusBadge { margin: 0 !important; max-width: 90%; }
 
-/* ================================================= */
-/* 6. BAŞLIKLARI GİZLEME VE HİZALAMA AYARLARI */
-/* ================================================= */
-
-/* 1. "Senin Alanın (A)" Yazısını Kaldırma */
-/* Grid kutularının içindeki tüm başlıkları gizler */
-.grid-box h3, 
-.grid-box h4,
-.grid-box .grid-title {
-    display: none !important;
-}
-
-/* 2. Durum Tabelasını (Badge) Ortalama ve Boşluğu Azaltma */
-.controls-top {
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Yatayda tam ortalar */
-    justify-content: center;
-    gap: 5px !important; /* Elemanlar arasındaki boşluğu azaltır */
-    margin-bottom: 10px !important; /* Grid ile arasındaki mesafeyi kısar */
-}
-
-/* Tabela'nın kendi dış boşluğunu sıfırlayalım */
-#turnStatusBadge {
-    margin: 0 !important;
-    /* Eğer mobilde çok geniş duruyorsa max-width verebiliriz */
-    max-width: 90%; 
-}
-
-/* Oda ve Hamle bilgisinin (Sol üstteki yazıların) sıkışıklığını alalım */
-.room-info {
-    margin-bottom: 5px; /* Badge ile arasına hafif mesafe */
-    text-align: center; /* Eğer ortada durmasını isterseniz */
-    width: 100%;
-}
-
-/* ================================================= */
-/* 7. DİKEY BOŞLUK VE HİZALAMA AYARLARI (GÜNCEL) */
-/* ================================================= */
-
-/* 1. Üstteki Oda ve Hamle Bilgisinin Altını Açma */
-/* Bu kısım, "Oda: XXX Hamle: 1/25" yazısı ile renkli tabela arasına mesafe koyar */
-.room-info {
-    margin-bottom: 50px !important; /* Boşluğu artırdık (Eskisi 5px idi) */
-    margin-top: 10px !important;    /* Panelin en üstüne yapışmasını engeller */
-}
-
-/* 2. Tabela (Badge) ile Grid Arasındaki Mesafeyi Dengeleme */
-/* Renkli tabela ile alttaki gridin birbirine girmesini engeller */
-.controls-top {
-    margin-bottom: 25px !important; /* Grid'den uzaklaştırdık */
-    gap: 15px !important; /* Eğer harf kutusu açılırsa tabela ile yapışmasın */
-}
-
-
-/* ================================================= */
-/* 8. JOKER ALFABE SEÇİCİSİ (GÜNCELLENMİŞ - SEÇ & YERLEŞTİR) */
-/* ================================================= */
-
+/* Joker Klavyesi */
 .alphabet-wrapper {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 5px; /* Boşluğu biraz açtık */
+    gap: 5px;
     max-width: 340px; 
     padding: 5px;
 }
 
-.alpha-btn {
-    width: 34px;
-    height: 34px;
+/* JOKER KLAVYE TUŞLARI */
+/* Eski kodda butonlar için stiller yoktu, buraya ekledik */
+.joker-key, .alpha-btn {
+    width: 30px;
+    height: 30px;
     font-size: 1rem;
     font-weight: 600;
-    color: #444;
-    background: 3498db;
-    border: 1px solid #ccc;
+    color: var(--text-main);
+    background: var(--bg-panel);
+    border: 1px solid var(--cell-border);
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: all 0.2s;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
+.joker-key:hover { background-color: #ddd; }
+body.dark-mode .joker-key:hover { background-color: #444; }
 
-.alpha-btn:hover {
-    background-color: #ecf0f1;
-    border-color: #bdc3c7;
-}
-
-/* SEÇİLİ OLAN HARFİN STİLİ (Mavi ve Parlak) */
-.alpha-btn.selected {
-    background-color: #3498db !important;
+.joker-key.active-key {
+    background-color: var(--primary) !important;
     color: white !important;
-    border-color: #2980b9 !important;
-    transform: scale(1.15); /* Hafifçe büyüsün */
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.4);
-    font-weight: bold;
-    z-index: 10; /* Diğer harflerin önüne geçsin */
+    border-color: var(--primary) !important;
 }
 
-/* Eski animasyon kodlarını silebilirsiniz */
-
-/* Klasik Mod Onay Butonu */
-.confirm-btn {
-    display: block;
-    width: 100%;
-    max-width: 350px;
-    margin: 10px auto;
-    padding: 12px;
-    background-color: #27ae60; /* Yeşil */
-    color: white;
-    font-size: 1.1rem;
-    font-weight: bold;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    opacity: 0.5; /* Seçim yapılana kadar sönük */
-    transition: all 0.3s;
-}
-
-.confirm-btn:not(:disabled) {
-    opacity: 1;
-    box-shadow: 0 4px 0 #219150; /* 3D efekt */
-}
-
-.confirm-btn:not(:disabled):active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #219150;
-}
-
-/* Tabela Renkleri */
-.status-badge {
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 10px;
-    color: white;
-}
-
-.your-turn, .badge-success { background-color: #2ecc71; } /* Yeşil */
-.opponent-turn, .badge-warning { background-color: #f39c12; } /* Turuncu */
-.badge-info { background-color: #3498db; } /* Mavi */
-.badge-neutral { background-color: #95a5a6; } /* Gri */
-.hidden { display: none !important; }
-
-/* --- YUVARLAK BİLGİ BUTONU (?) --- */
-.icon-info-btn {
-    width: 30px;
-    height: 30px;
-    padding: 0;
-    border-radius: 50%; /* Tam yuvarlak */
-    background-color: #34495e; /* Koyu Gri/Mavi */
-    color: white;
-    border: none;
-    font-size: 18px;
-    font-weight: bold;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-.icon-info-btn:hover {
-    background-color: #e67e22; /* Üzerine gelince Turuncu olsun */
-    transform: scale(1.1); /* Hafif büyüsün */
-}
-
-/* --- MODAL STİLLERİ (Öncekilerle aynı) --- */
+/* Modal Stilleri */
 .modal {
     position: fixed;
     z-index: 2000;
@@ -828,16 +677,15 @@ button:focus, .cell:focus, input:focus {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: flex; /* Flex ile tam ortalama */
+    background-color: var(--modal-overlay);
+    display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* CSS dosyanızda .hidden { display: none; } sınıfının olduğundan emin olun */
-
 .modal-content {
-    background-color: white;
+    background-color: var(--bg-panel); /* Değişken */
+    color: var(--text-main);           /* Değişken */
     padding: 25px;
     border-radius: 15px;
     width: 90%;
@@ -847,11 +695,6 @@ button:focus, .cell:focus, input:focus {
     max-height: 85vh;
     overflow-y: auto;
     animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .close-modal {
@@ -864,15 +707,9 @@ button:focus, .cell:focus, input:focus {
     right: 15px;
     top: 5px;
 }
+.close-modal:hover { color: var(--danger); }
 
-.close-modal:hover { color: #e74c3c; }
-
-.rules-text h3 { color: #e67e22; border-bottom: 1px solid #ddd; margin-top: 15px; padding-bottom: 3px; font-size: 1.1rem; }
-.rules-text ul { padding-left: 20px; font-size: 0.95rem; line-height: 1.4; }
-.rules-text p { font-size: 0.95rem; line-height: 1.4; }
-
-
-/* --- İSTATİSTİK PENCERESİ STİLLERİ --- */
+/* İstatistik ve Liderlik Tablosu */
 .stats-container {
     display: flex;
     flex-wrap: wrap;
@@ -888,7 +725,7 @@ button:focus, .cell:focus, input:focus {
     justify-content: center;
     width: 80px;
     padding: 10px;
-    background-color: #f8f9fa;
+    background-color: var(--bg-secondary); /* Değişken */
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
@@ -896,20 +733,19 @@ button:focus, .cell:focus, input:focus {
 .stat-number {
     font-size: 1.8rem;
     font-weight: bold;
-    color: #2c3e50;
+    color: var(--text-main);
 }
 
 .stat-label {
     font-size: 0.8rem;
-    color: #7f8c8d;
+    color: var(--text-muted);
     text-align: center;
     margin-top: 5px;
 }
 
-/* --- LİDER TABLOSU STİLLERİ --- */
 .leaderboard-section {
     margin-top: 25px;
-    border-top: 2px solid #eee;
+    border-top: 2px solid var(--input-border);
     padding-top: 15px;
 }
 
@@ -920,27 +756,38 @@ button:focus, .cell:focus, input:focus {
 }
 
 .leaderboard-table th {
-    background-color: #f8f9fa;
-    color: #2c3e50;
+    background-color: var(--bg-secondary);
+    color: var(--text-main);
     padding: 8px;
     text-align: center;
-    border-bottom: 2px solid #ddd;
+    border-bottom: 2px solid var(--input-border);
 }
 
 .leaderboard-table td {
     padding: 8px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--input-border);
     text-align: center;
-    color: #555;
+    color: var(--text-main);
 }
 
-/* İlk 3 sıraya özel renkler (Altın, Gümüş, Bronz) */
-.leaderboard-table tr:nth-child(1) td:first-child { color: #f1c40f; font-weight: bold; font-size: 1.2rem; }
-.leaderboard-table tr:nth-child(2) td:first-child { color: #95a5a6; font-weight: bold; font-size: 1.1rem; }
-.leaderboard-table tr:nth-child(3) td:first-child { color: #d35400; font-weight: bold; font-size: 1.1rem; }
+/* Liderlik Renkleri */
+.leaderboard-table tr:nth-child(1) td:first-child { color: #f1c40f; font-weight: bold; }
+.leaderboard-table tr:nth-child(2) td:first-child { color: #95a5a6; font-weight: bold; }
+.leaderboard-table tr:nth-child(3) td:first-child { color: #d35400; font-weight: bold; }
 
-
-
-
-
-
+/* JOKER KLAVYESİ (RESPONSIVE DÜZELTME) */
+.random-letter-box.expanded {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    aspect-ratio: auto;
+    border-radius: 12px;
+    padding: 10px;
+    flex-direction: column;
+    z-index: 100;
+    background: var(--bg-panel);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    margin: 0 auto 15px auto;
+}
+.joker-title {
+    font-size:
