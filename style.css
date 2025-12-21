@@ -795,6 +795,29 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .joker-title {
     font-size:
 
+/* --- TABELA RENKLERİ (Bunu style.css'e ekle) --- */
+
+/* Bu sınıflar JS tarafından duruma göre eklenir */
+.badge-success { 
+    background-color: #2ecc71 !important; /* Yeşil */
+} 
+.badge-warning { 
+    background-color: #f39c12 !important; /* Turuncu */
+} 
+.badge-info { 
+    background-color: #3498db !important; /* Mavi */
+} 
+.badge-neutral { 
+    background-color: #95a5a6 !important; /* Gri */
+}
+.badge-danger { 
+    background-color: #e74c3c !important; /* Kırmızı */
+}
+
+/* Varsayılan olarak gizlemek için */
+.hidden {
+    display: none !important;
+}
 
 
 
