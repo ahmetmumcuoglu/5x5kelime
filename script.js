@@ -10410,3 +10410,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+// ==========================================
+// DARK MODE YÖNETİMİ
+// ==========================================
+
+function toggleDarkMode() {
+    const body = document.body;
+    const btn = document.getElementById('darkModeBtn');
+    
+    // Class'ı aç/kapa
+    body.classList.toggle('dark-mode');
+    
+    // Durumu kontrol et
+    const isDark = body.classList.contains('dark-mode');
+    
+    // İkonu değiştir
+    if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+    
+    // Tercihi kaydet
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+// Sayfa Yüklendiğinde Tercihi Hatırla
+window.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    const btn = document.getElementById('darkModeBtn');
+    
+    // Eğer daha önce dark mode seçildiyse
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (btn) btn.textContent = '☀️';
+    }
+});
