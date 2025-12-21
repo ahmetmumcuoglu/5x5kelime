@@ -15,9 +15,11 @@
     <div id="lobbyPanel" class="panel">
         <h2 class="panel-title">Kelime Oyunu</h2>
 
-        <div style="width: 100%; max-width: 300px; margin: 0 auto; text-align: left; margin-bottom: 10px;">
-        <button id="howToPlayBtn" class="icon-info-btn" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
-        <button id="statsBtn" class="icon-info-btn" onclick="window.openStatsModal()" title="İstatistikler" style="margin-left: 10px; background-color: #8e44ad;">📊</button>
+        <div class="lobby-top-actions">
+        <button id="howToPlayBtn" class="icon-btn info" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
+    
+        <button id="statsBtn" class="icon-btn stats" onclick="window.openStatsModal()" title="İstatistikler">📊</button>
+    
         <button id="darkModeBtn" class="icon-btn" onclick="toggleDarkMode()" title="Tema Değiştir">🌙</button>
         </div>
         
@@ -208,5 +210,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
