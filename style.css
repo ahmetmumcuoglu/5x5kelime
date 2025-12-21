@@ -210,10 +210,10 @@ body.dark-mode button:disabled {
 /* Grid Konteynerleri */
 .grids-container {
     display: flex;
-    justify-content: center;
-    gap: 30px; 
-    margin: 20px 0;
-    margin-bottom: 50px !important;
+    justify-content: center; /* Yatayda tam ortala */
+    align-items: center;     /* Dikeyde tam ortala */
+    padding: 10px;           /* İsteğe bağlı: Kenarlardan eşit boşluk bırakmak için */
+    /* Varsa mevcut padding ve margin değerlerini gözden geçirin */
 }
 
 .grid-box {
@@ -222,16 +222,30 @@ body.dark-mode button:disabled {
     align-items: center;
 }
 
-/* Grid Yapısı */
+/* Grid Yapısı (Düzeltilmiş) */
 .grid {
     display: grid;
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(5, 50px);
     gap: 4px;
-    background-color: var(--grid-bg); /* Değişken */
+    background-color: var(--grid-bg);
     padding: 4px;
     border-radius: 6px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+
+    /* --- YENİ EKLENENLER --- */
+    
+    /* 1. Hücreleri gri kutunun tam ortasına çivile */
+    justify-content: center; 
+    align-content: center;
+    
+    /* 2. Gri kutunun boyutunu, içindeki hücrelere tam oturacak şekilde ayarla */
+    /* Böylece gereksiz boşluk kalmaz */
+    width: max-content;
+    height: max-content;
+    
+    /* 3. Grid'in kendisini de dışarıya göre ortala */
+    margin: 0 auto;
 }
 
 .hidden-during-game { display: none !important; }
@@ -838,6 +852,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .hidden {
     display: none !important;
 }
+
 
 
 
