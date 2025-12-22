@@ -812,8 +812,10 @@ button:focus, .cell:focus, input:focus {
 .joker-key:hover { background-color: #ddd; }
 body.dark-mode .joker-key:hover { background-color: #444; }
 
-.joker-key.active-key {
-    background-color: #3498db !important;
+.joker-key.active-key, 
+.alpha-btn.active-key,
+.alpha-btn.selected {
+    background-color: var(--primary) !important;
     color: white !important;
     border-color: var(--primary) !important;
 }
@@ -971,4 +973,5 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     background-color: var(--secondary) !important; /* Yeşil (Secondary) değişkeni */
     color: white !important;
 }
+
 
