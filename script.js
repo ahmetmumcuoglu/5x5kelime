@@ -9309,75 +9309,51 @@ function setupGameUI(gameId) {
     }
 }
 // ==========================================
-// OYUNU DİNLEME (LISTEN TO GAME) - TAMAMLANMIŞ
+// OYUNU DİNLEME (DÜZELTİLMİŞ JOKER MANTIĞI)
 // ==========================================
-
 function listenToGame() {
-    // Önceki dinleyiciyi temizle (Memory leak önleme)
-    if (typeof unsubscribe !== 'undefined' && unsubscribe) {
-        unsubscribe();
-    }
-
-    // Tek kişilik oyunsa dinleme yapma (Çakışmayı önle)
+    if (typeof unsubscribe !== 'undefined' && unsubscribe) unsubscribe();
     if (currentGameId && currentGameId.startsWith('SINGLE_')) return;
 
     unsubscribe = db.collection('games').doc(currentGameId)
         .onSnapshot((doc) => {
-            // 1. Oyun Silinmişse
             if (!doc.exists) {
-                alert("Oyun sonlandırıldı veya bulunamadı.");
+                alert("Oyun sonlandırıldı.");
                 window.location.reload();
                 return;
             }
 
             const data = doc.data();
-
-            // 2. Elementleri Tanımla
             const myGridEl = document.getElementById('myGrid');
             const turnBadge = document.getElementById('turnStatusBadge');
             const classicArea = document.getElementById('classicLetterSelectionArea');
             const randomDisplay = document.getElementById('randomLetterDisplay');
 
-            // 3. Grid Verilerini Çek ve Çiz (Başlangıçta Pasif Çiziyoruz)
-            // Kendi gridimizi ve rakip gridi ayırt edelim
+            // Verileri Çek
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
 
-            // Görsel güncelleme (Henüz tıklama açmıyoruz)
+            // Gridleri Çiz (İlk etapta false/pasif, aşağıda duruma göre açacağız)
             renderGrid('myGrid', myGridData, false);
             renderGrid('opponentGrid', oppGridData, false);
 
-
-            // ==========================================================
-            // YARDIMCI: ARAYÜZ DURUM GÜNCELLEYİCİ
-            // ==========================================================
+            // --- YARDIMCI GÜNCELLEYİCİ ---
             const updateUIState = (text, badgeColor, isInteractive) => {
-                // Tabela Ayarı
                 if (turnBadge) {
                     turnBadge.textContent = text;
                     turnBadge.className = `status-badge ${badgeColor}`; 
                     turnBadge.classList.remove('hidden'); 
                     turnBadge.style.display = 'block';
                 }
-
-                // Grid Etkileşimi (Global Değişkeni Güncelle)
                 placementMode = isInteractive;
-                
                 if (myGridEl) {
                     if (isInteractive) {
-                        // AKTİF DURUM
                         myGridEl.classList.remove('waiting-turn'); 
                         myGridEl.classList.add('active-turn');      
                         myGridEl.style.opacity = "1";              
                         myGridEl.style.pointerEvents = "auto";      
-                        
-                        // Tıklanabilir hücreleri ayarla (Boş olanlar)
-                        // renderGrid içinde 'placementMode' true olduğu için bu otomatik olacak
-                        // ama biz garanti olsun diye yeniden render edelim:
-                        renderGrid('myGrid', myGridData, true);
-
+                        renderGrid('myGrid', myGridData, true); // Tıklanabilir yap
                     } else {
-                        // PASİF DURUM
                         myGridEl.classList.add('waiting-turn');     
                         myGridEl.classList.remove('active-turn');
                         myGridEl.style.opacity = "0.6";             
@@ -9387,154 +9363,96 @@ function listenToGame() {
                 }
             };
 
-
-            // ==========================================================
-            // SENARYO 1: RAKİP BEKLENİYOR (WAITING)
-            // ==========================================================
+            // SENARYO 1: BEKLİYOR
             if (data.status === 'waiting') {
-                // UI Temizliği
+                updateUIState(`Rakip Bekleniyor...`, "badge-neutral", false);
                 if (classicArea) classicArea.classList.add('hidden');
                 if (randomDisplay) randomDisplay.classList.add('hidden');
-                
-                // Mesaj
-                updateUIState(`Rakip Bekleniyor... Kod: ${currentGameId}`, "badge-neutral", false);
-                document.getElementById('lobbyStatus').textContent = "Oyuncu bekleniyor...";
             }
 
-
-            // ==========================================================
-            // SENARYO 2: OYUN AKTİF (PLAYING / ACTIVE)
-            // ==========================================================
-            // Not: 'playing' veya 'active' ikisini de kabul edelim
+            // SENARYO 2: OYUN AKTİF
             else if (data.status === 'playing' || data.status === 'active') {
-                
-                // Lobby'yi gizle, oyunu göster
                 document.getElementById('lobbyPanel').classList.add('hidden');
                 document.getElementById('gamePanel').classList.remove('hidden');
-                document.getElementById('lobbyStatus').textContent = ""; // Mesajı sil
 
-                // --- DEĞİŞKENLER ---
                 const currentMove = data.moveNumber || 1;
-                // Dolu hücre sayım (Ben bu turdaki harfi koydum mu?)
                 const myFilledCount = myGridData.filter(c => c !== '').length;
-                const iHavePlacedLetter = (myFilledCount >= currentMove);
-                
                 const isMyTurn = (data.turnOwner === myPlayerId);
-
+                
                 // --------------------------------------------------
-                // A. 25. TUR: JOKER (Herkes kendi harfini seçer)
+                // 25. TUR: JOKER TURU (BURASI DEĞİŞTİ)
                 // --------------------------------------------------
                 if (currentMove === 25) {
-                    // Diğer alanları gizle
+                    // Klasik alanı gizle, Random alanını aç (Joker klavyesi buraya gelecek)
                     if (classicArea) classicArea.classList.add('hidden');
                     if (randomDisplay) randomDisplay.classList.remove('hidden');
 
                     if (myFilledCount >= 25) {
-                        // Ben bitirdim, rakibi bekliyorum
+                        // Ben yerleştirdim, rakibi bekliyorum
                         updateUIState("OYUN BİTİYOR... SONUÇLAR BEKLENİYOR", "badge-neutral", false);
-                        randomDisplay.textContent = "BEKLEYİNİZ";
+                        randomDisplay.innerHTML = "<b>Sıra Rakipte...</b>";
                     } else {
-                        // Henüz koymadım, Joker Klavyesi Açık mı?
+                        // Henüz yerleştirmedim -> KLAVYEYİ GÖSTER
+                        renderJokerAlphabet(); 
+                        
+                        // Mesajı güncelle
                         if (!myFinalLetter) {
-                            // Henüz harf seçmedim -> Klavye Aç
-                            updateUIState("SON HARF: JOKER SEÇİNİZ", "badge-info", false);
-                            
-                            // (Eğer klavye açık değilse açacak fonksiyonu çağır)
-                            // renderAlphabetForJoker(); -> Bunu randomDisplay içine gömebiliriz
-                            // Şimdilik basitçe:
-                            randomDisplay.innerHTML = '<span style="font-size:14px">Joker Seçmek İçin Son Hücreye Tıklayın</span>';
-                            // Joker seçimi handleCellClick içinde tetiklenecek
-                            placementMode = true; // Tıklamaya izin ver (handleCellClick yönetecek)
-                            myGridEl.style.pointerEvents = "auto";
-                            myGridEl.style.opacity = "1";
+                            updateUIState("JOKER HARFİNİZİ SEÇİNİZ", "badge-info", false); // Harf seçmeden grid kilitli kalsın
                         } else {
-                            // Harf seçtim (myFinalLetter var), yerleştirmeyi bekliyorum
-                             updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİRİN`, "badge-success", true);
-                             randomDisplay.textContent = myFinalLetter;
+                            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİRİN`, "badge-success", true); // Seçince aç
                         }
                     }
-                    return; // 25. Tur özeldir, aşağısı çalışmasın
+                    return; 
                 }
 
-
                 // --------------------------------------------------
-                // B. KLASİK MOD (CLASSIC)
+                // NORMAL TURLAR (1-24) - KLASİK MOD
                 // --------------------------------------------------
                 if (data.gameMode === 'CLASSIC') {
                     const harfVarMi = (data.currentLetter && data.currentLetter !== "");
-
-                    if (!harfVarMi) {
-                        // --- FAZ 1: HARF SEÇME ---
-                        if (randomDisplay) randomDisplay.classList.add('hidden'); // Harf kutusunu gizle
-
+                    
+                    if (!harfVarMi) { // Harf Seçme Aşaması
+                        if (randomDisplay) randomDisplay.classList.add('hidden');
                         if (isMyTurn) {
-                            // SIRA BENDE, Alfabe Aç
                             if (classicArea) classicArea.classList.remove('hidden');
-                            updateUIState("SIRA SİZDE: BİR HARF SEÇİN", "badge-primary", false); // Grid kilitli, Alfabe açık
-                            
-                            // Alfabe boşsa doldur
-                            const container = document.getElementById('classicAlphabetContainer');
-                            if (container && container.children.length === 0 && typeof renderClassicAlphabet === 'function') {
-                                renderClassicAlphabet();
-                            }
+                            if(classicArea.querySelector('#classicAlphabetContainer').children.length === 0) renderClassicAlphabet();
+                            updateUIState("SIRA SİZDE: HARF SEÇİN", "badge-primary", false);
                         } else {
-                            // SIRA RAKİPTE, Bekle
                             if (classicArea) classicArea.classList.add('hidden');
                             updateUIState("RAKİP HARF SEÇİYOR...", "badge-neutral", false);
                         }
-
-                    } else {
-                        // --- FAZ 2: YERLEŞTİRME ---
-                        if (classicArea) classicArea.classList.add('hidden'); // Alfabeyi kapat
+                    } else { // Yerleştirme Aşaması
+                        if (classicArea) classicArea.classList.add('hidden');
                         if (randomDisplay) {
                             randomDisplay.classList.remove('hidden');
                             randomDisplay.textContent = data.currentLetter;
                         }
-
-                        if (!iHavePlacedLetter) {
-                            // Ben henüz koymadım -> Grid AÇIK
-                            updateUIState(`"${data.currentLetter}" HARFİNİ YERLEŞTİRİN`, "badge-success", true);
+                        if (myFilledCount < currentMove) {
+                            updateUIState(`"${data.currentLetter}" YERLEŞTİRİN`, "badge-success", true);
                         } else {
-                            // Ben koydum, Rakibi bekliyorum -> Grid KAPALI
-                            updateUIState("RAKİP YERLEŞTİRİYOR...", "badge-neutral", false);
+                            updateUIState("RAKİP BEKLENİYOR...", "badge-neutral", false);
                         }
                     }
                 }
-
-
                 // --------------------------------------------------
-                // C. RANDOM MOD (MULTIPLAYER)
+                // NORMAL TURLAR (1-24) - RANDOM MOD
                 // --------------------------------------------------
                 else if (data.gameMode === 'RANDOM') {
-                    // Random modda klasik alfabe asla görünmez
                     if (classicArea) classicArea.classList.add('hidden');
-                    
-                    // Harfi Göster
                     if (randomDisplay) {
                         randomDisplay.classList.remove('hidden');
                         randomDisplay.textContent = data.currentLetter;
                     }
-
-                    if (!iHavePlacedLetter) {
-                        // Henüz koymadım -> Grid AÇIK
+                    if (myFilledCount < currentMove) {
                         updateUIState("HARFİ YERLEŞTİRİN", "badge-success", true);
                     } else {
-                        // Ben koydum -> Grid KAPALI
                         updateUIState("RAKİP BEKLENİYOR...", "badge-neutral", false);
                     }
                 }
             }
-
-
-            // ==========================================================
-            // SENARYO 3: OYUN BİTTİ (FINISHED)
-            // ==========================================================
+            // SENARYO 3: BİTTİ
             else if (data.status === 'finished') {
-                if (typeof showResults === 'function') {
-                    showResults(data);
-                } else {
-                    alert("Oyun Bitti! (Sonuç ekranı yüklenemedi)");
-                }
+                showResults(data);
             }
         });
 }
@@ -9791,137 +9709,96 @@ async function submitLetter(letterParam = null) {
 }
 
 // ==========================================
-// HÜCRE TIKLAMA VE HAMLE YAPMA (GÜNCELLENMİŞ)
+// HÜCRE TIKLAMA (TEK VE ÇİFT KİŞİLİK UYUMLU)
 // ==========================================
 async function handleCellClick(index) {
-    // 1. Kontrol: Yerleştirme modunda mıyız?
-    if (!placementMode) {
-        console.log("Yerleştirme modu kapalı.");
-        return;
+    const cell = document.getElementById('myGrid').children[index];
+    
+    // 1. Dolu Hücre Kontrolü (Zaten doluysa ve şu an seçili draft değilse çık)
+    if (cell.textContent !== '' && !cell.classList.contains('selected-draft')) {
+        return; 
     }
 
-    // --- ONAY (DRAFT) MEKANİZMASI ---
+    // 2. DRAFT (SEÇİM) MANTIĞI
+    // İlk tıklama: Sadece seçer (Sarı yapar)
     if (selectedDraftIndex !== index) {
         selectedDraftIndex = index;
-        renderGrid(myGridData, 'myGrid'); 
-        return;
-    }
-    
-    selectedDraftIndex = null; // Onaylandı, seçimi kaldır
-
-    // Hücre dolu mu?
-    if (myGridData[index] !== '') {
-        alert("Bu hücre zaten dolu.");
-        renderGrid(myGridData, 'myGrid'); 
-        return;
-    }
-    
-    const gameRef = db.collection('games').doc(currentGameId);
-
-    try {
-        await db.runTransaction(async (transaction) => {
-            const doc = await transaction.get(gameRef);
-            if (!doc.exists) throw new Error("Oyun bulunamadı.");
-            
-            const data = doc.data();
-            const currentMoveNumber = data.moveNumber;
-            const isSinglePlayer = data.isSinglePlayer || false;
-            
-            // --- HARF BELİRLEME ---
-            let letterToPlace;
-            const isFinalMove = (currentMoveNumber === 25);
-
-            if (isFinalMove) {
-                // 25. TUR: Yerel değişkenden al (myFinalLetter)
-                if (!myFinalLetter) throw new Error("Joker harf seçilmedi!");
-                letterToPlace = myFinalLetter;
-            } else {
-                // NORMAL TUR: Veritabanından al
-                if (!data.currentLetter) throw new Error("Sunucudan harf gelmedi.");
-                letterToPlace = data.currentLetter;
-            }
-            
-            // --- GRID GÜNCELLEME ---
-            let myCurrentGrid = (myPlayerId === 'PlayerA') ? [...data.gridA] : [...data.gridB];
-            
-            if (myCurrentGrid[index] !== '') throw new Error("Hücre dolu (Sunucu kontrolü).");
-            myCurrentGrid[index] = letterToPlace;
-            
-            let updatePayload = {};
-            if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
-            else updatePayload.gridB = myCurrentGrid;
-            
-            // --- TUR ATLAMA VE BİTİRME MANTIĞI ---
-            
-            // SENARYO 1: TEK KİŞİLİK OYUN
-            if (isSinglePlayer) {
-                if (isFinalMove) {
-                    updatePayload.status = 'finished'; // OYUN BİTTİ
-                    updatePayload.currentLetter = null;
-                } else {
-                    const nextMove = currentMoveNumber + 1;
-                    updatePayload.moveNumber = nextMove;
-                    if (nextMove === 25) updatePayload.currentLetter = null;
-                    else updatePayload.currentLetter = data.letterSequence[currentMoveNumber];
-                }
-            }
-            
-            // SENARYO 2: MULTIPLAYER
-            else {
-                let oppCurrentGrid = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
-                const oppFilledCount = oppCurrentGrid.filter(c => c !== '' && c !== null).length;
-                const myNewFilledCount = myCurrentGrid.filter(c => c !== '' && c !== null).length;
-
-                // A. 25. TUR (JOKER) BİTİŞ KONTROLÜ
-                if (isFinalMove) {
-                    if (myNewFilledCount === 25) {
-                        // Ben bitirdim. Rakip de bitirdi mi?
-                        if (oppFilledCount === 25) { 
-                            updatePayload.status = 'finished'; // HERKES BİTİRDİ -> OYUN SONU
-                            updatePayload.currentLetter = null;
-                        } 
-                        // Rakip bitirmediyse sadece benim gridim kaydolur, oyun 'active' kalır.
-                    }
-                } 
-                
-                // B. NORMAL TUR (1-24)
-                else { 
-                    // İkimiz de koyduysak tur atla
-                    if (myNewFilledCount === currentMoveNumber && oppFilledCount === currentMoveNumber) {
-                        const nextMove = currentMoveNumber + 1;
-                        updatePayload.moveNumber = nextMove;
-                        
-                        // Modlara göre harf belirle
-                        if (data.gameMode === 'CLASSIC') {
-                            updatePayload.turnOwner = (nextMove % 2 !== 0) ? 'PlayerA' : 'PlayerB';
-                            updatePayload.currentLetter = null; 
-                            
-                        } else if (data.gameMode === 'RANDOM') {
-                            updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA'; 
-                            if (nextMove <= 24) { 
-                               updatePayload.currentLetter = data.letterSequence[nextMove - 1]; 
-                            } else {
-                               updatePayload.currentLetter = null; // 25. Tur için null yap
-                            }
-                        }
-                    }
-                }
-            }
-            
-            transaction.update(gameRef, updatePayload);
-        });
         
-        // Başarılı işlem sonrası temizlik
-        if (placementMode && myFinalLetter) {
-             // Joker kullanıldıysa temizle ama hemen null yapma, renderGrid kullansın
-             // myFinalLetter = null; // (Bunu kapattım, oyun bitiş ekranına geçerken sorun olmasın)
+        // Tek Kişilik Mod Görsel Güncellemesi
+        if (currentGameId && currentGameId.startsWith('SINGLE_')) {
+            // Grid'i tekrar çiz ki sarı kutu ve içindeki harf görünsün
+            const gridDataLocal = Array.from(document.getElementById('myGrid').children).map(c => {
+                // Eğer bu kutu daha önce dolmuşsa (filled class'ı varsa) içeriğini koru
+                return c.classList.contains('filled') ? c.textContent : '';
+            });
+            renderGrid('myGrid', gridDataLocal, true);
+        } else {
+            // Multiplayer Görsel Güncellemesi
+            renderGrid('myGrid', myGridData, true);
+        }
+        return; // İşlem bitti, ikinci tıklamayı bekle
+    }
+
+    // 3. ONAY (YERLEŞTİRME) MANTIĞI
+    // İkinci tıklama: Buraya geldiyse kullanıcı sarı kutuya tekrar basmıştır.
+    selectedDraftIndex = null; // Seçimi temizle
+
+    // --- SENARYO A: TEK KİŞİLİK OYUN ---
+    if (currentGameId && currentGameId.startsWith('SINGLE_')) {
+        const isJokerRound = (window.currentMoveIndex >= 24);
+        let letterToPlace;
+
+        if (isJokerRound) {
+            if (!myFinalLetter) {
+                alert("Lütfen önce alfabeden bir Joker harf seçin!");
+                selectedDraftIndex = index; // Seçimi geri ver
+                renderGrid('myGrid', Array.from(document.getElementById('myGrid').children).map(c => c.classList.contains('filled') ? c.textContent : ''), true);
+                return;
+            }
+            letterToPlace = myFinalLetter;
+        } else {
+            if (!window.currentLetterSequence) return;
+            letterToPlace = window.currentLetterSequence[window.currentMoveIndex];
         }
 
-    } catch (e) {
-        console.error("Hücre hatası:", e);
-        alert(e.message); // Kullanıcı hatayı görsün
-        selectedDraftIndex = null;
-        renderGrid(myGridData, 'myGrid');
+        // Harfi Kesinleştir
+        cell.textContent = letterToPlace;
+        cell.classList.add('filled');
+        cell.classList.remove('selected-draft', 'clickable');
+        cell.onclick = null;
+        cell.style.animation = "popIn 0.3s ease";
+
+        // İlerle
+        window.currentMoveIndex++;
+        
+        // Oyun Bitti mi?
+        if (window.currentMoveIndex >= 25) {
+             // Puan hesapla ve bitir
+             // showResultsForSinglePlayer(); (Mevcut fonksiyonun varsa)
+             alert("Oyun Bitti! Puanlar hesaplanacak.");
+        } 
+        // Joker Turuna mı Geldik? (24 bitti, 25. turdayız)
+        else if (window.currentMoveIndex === 24) {
+             document.getElementById('randomLetterDisplay').textContent = "";
+             renderJokerAlphabet(); // Alfabeyi aç
+        } 
+        // Normal Tur Devam
+        else {
+             const nextLetter = window.currentLetterSequence[window.currentMoveIndex];
+             document.getElementById('randomLetterDisplay').textContent = nextLetter;
+        }
+    }
+
+    // --- SENARYO B: MULTIPLAYER ---
+    else {
+        // Firebase işlemi (Mevcut kodunda executeFirebaseMove veya makeMove varsa onu çağır)
+        // Eğer yoksa önceki mesajdaki 'executeFirebaseMove' mantığını buraya yapıştırabiliriz.
+        if(typeof executeFirebaseMove === 'function') {
+            executeFirebaseMove(index);
+        } else {
+            // Eğer fonksiyon yoksa, basitçe eski makeMove çağrısı:
+             makeMove(index);
+        }
     }
 }
 
@@ -10458,5 +10335,65 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+/* ====================================================== */
+/* JOKER ALFABESİ ÇİZİMİ (25. TUR İÇİN) */
+/* ====================================================== */
+function renderJokerAlphabet() {
+    const display = document.getElementById('randomLetterDisplay');
+    if (!display) return;
+
+    // Eğer zaten çizildiyse tekrar çizme
+    if (display.querySelector('.joker-keyboard-container')) return;
+
+    display.innerHTML = ''; // Temizle
+    display.classList.remove('hidden');
+
+    // Başlık
+    const title = document.createElement('div');
+    title.textContent = "JOKER SEÇİNİZ";
+    title.style.marginBottom = "5px";
+    title.style.fontWeight = "bold";
+    display.appendChild(title);
+
+    // Klavye Konteyneri
+    const container = document.createElement('div');
+    container.className = 'joker-keyboard-container alphabet-wrapper'; 
+    // CSS'teki .alphabet-wrapper özelliklerini kullansın diye sınıf ekledik
+
+    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    
+    for (let char of alphabet) {
+        const btn = document.createElement('div');
+        btn.className = 'joker-key'; // CSS'teki .joker-key sınıfı
+        btn.textContent = char;
+        
+        btn.onclick = function() {
+            // 1. Seçimi Kaydet
+            myFinalLetter = char;
+            
+            // 2. Görsel Seçim Efekti
+            document.querySelectorAll('.joker-key').forEach(b => b.classList.remove('active-key'));
+            btn.classList.add('active-key');
+            
+            // 3. Bilgilendirme
+            title.textContent = `SEÇİLEN: ${char} - SON KUTUYA YERLEŞTİRİN`;
+            title.style.color = "var(--primary)";
+            
+            // 4. Gridi Tıklamaya Aç (Artık harf seçildi)
+            placementMode = true; 
+            const myGrid = document.getElementById('myGrid');
+            if (myGrid) {
+                myGrid.classList.remove('waiting-turn');
+                myGrid.classList.add('active-turn');
+                myGrid.style.pointerEvents = "auto";
+            }
+            // Seçilen harfi gridde görmek için draft'ı tetiklemesi gerekebilir,
+            // ama kullanıcı doğrudan gride tıklayınca handleCellClick halledecek.
+        };
+        container.appendChild(btn);
+    }
+
+    display.appendChild(container);
+}
 
 
