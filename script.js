@@ -10359,6 +10359,8 @@ function selectClassicLetter(char, btnElement) {
     if (confirmBtn) {
         confirmBtn.disabled = false;
         confirmBtn.textContent = `"${char}" HARFİNİ GÖNDER`;
+        confirmBtn.style.backgroundColor = "#28a745"; // Yeşil renk
+        confirmBtn.style.color = "white";
     }
 }
 
@@ -10439,6 +10441,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
 
 
