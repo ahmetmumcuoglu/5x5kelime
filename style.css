@@ -9,6 +9,9 @@
     
     --text-main: #333333;
     --text-muted: #666666;
+
+    --puzzle-color: #e84393; /* Pembe tonu, Puzzle için */
+    --pool-bg: #ecf0f1;      /* Havuzun zemin rengi */
     
     --grid-bg: #dfe4ea;     /* Gridin arka planı (boşluk rengi) */
     --cell-bg: #ffffff;     /* Hücre içi */
@@ -39,6 +42,9 @@ body.dark-mode {
     
     --text-main: #e0e0e0;     /* Açık gri yazı */
     --text-muted: #a0a0a0;
+
+    --pool-bg: #2c3e50;
+    --puzzle-color: #fd79a8;
     
     --grid-bg: #333333;       /* Grid çizgileri */
     --cell-bg: #252525;       /* Hücre içi koyu */
@@ -849,6 +855,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 .hidden {
     display: none !important;
 }
+
 
 
 
