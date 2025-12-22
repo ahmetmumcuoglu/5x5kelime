@@ -856,7 +856,129 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     display: none !important;
 }
 
+/* ================================================= */
+/* YENİ LOBİ DÜZENİ */
+/* ================================================= */
 
+.group-title {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    font-weight: bold;
+    margin: 5px 0;
+    text-align: left;
+    width: 100%;
+    border-bottom: 1px solid var(--input-border);
+    padding-bottom: 5px;
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-mode {
+    flex: 1; /* Yan yana eşit dağılsınlar */
+    padding: 15px 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+}
+
+.btn-mode:active { transform: scale(0.95); }
+.btn-mode:hover { filter: brightness(1.1); }
+
+/* Mod Renkleri */
+.btn-mode.classic { background-color: var(--primary); }  /* Mavi */
+.btn-mode.random  { background-color: var(--accent); }   /* Turuncu */
+.btn-mode.puzzle  { background-color: var(--puzzle-color); } /* Pembe */
+
+
+/* ================================================= */
+/* PUZZLE MODU HAVUZ ALANI */
+/* ================================================= */
+
+#poolSection {
+    margin-top: 25px;
+    width: 100%;
+    max-width: 400px;
+    animation: fadeIn 0.4s ease;
+}
+
+.pool-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Havuz Kutusu */
+.pool-container {
+    display: flex;
+    flex-wrap: wrap; /* Harfler sığmazsa alt satıra geçsin */
+    justify-content: center;
+    gap: 6px;
+    background-color: var(--pool-bg);
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid var(--input-border);
+    min-height: 80px; /* İçi boşken bile bir alanı olsun */
+}
+
+/* Havuzdaki Harf (Tile) */
+.pool-tile {
+    width: 40px;
+    height: 40px;
+    background-color: var(--cell-bg);
+    border: 1px solid var(--cell-border);
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-main);
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+/* Mobilde harfler biraz daha küçük olabilir sığması için */
+@media (max-width: 380px) {
+    .pool-tile {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+
+/* Seçili Harf Efekti (Hem Grid hem Havuz için ortak kullanılabilir) */
+.tile-selected {
+    background-color: var(--puzzle-color) !important;
+    color: white !important;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px var(--puzzle-color);
+    border-color: transparent !important;
+    z-index: 10;
+}
+
+/* Onay Butonu (Puzzle Özel) */
+.puzzle-confirm {
+    margin-top: 15px;
+    background-color: var(--secondary);
+    width: 100%;
+}
+.puzzle-confirm:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 
 
 
