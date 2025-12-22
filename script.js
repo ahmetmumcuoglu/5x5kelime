@@ -9079,17 +9079,12 @@ const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
 const randomLetterDisplay = document.getElementById('randomLetterDisplay');
 
 // ==========================================
-// YENİ OYUN KURMA (DÜZELTİLMİŞ)
+// YENİ OYUN KURMA (CREATE)
 // ==========================================
-
 async function createNewGame(mode) {
-    // HTML butonundan gelen modu al (yoksa varsayılan CLASSIC)
     const selectedMode = mode || 'CLASSIC';
-    
-    // Rastgele Oda Kodu Üret
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     
-    // Global Değişkenleri Ayarla
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
@@ -9098,48 +9093,40 @@ async function createNewGame(mode) {
     let sequence = null;
     let initialLetter = "";
 
-    // MODA GÖRE HAZIRLIK
-    // Random veya Puzzle ise harfleri baştan belirle
     if (selectedMode === 'RANDOM' || selectedMode === 'PUZZLE') {
         sequence = generateGameSequence(24);
-        
-        // Random modda ilk harfi hemen "CurrentLetter" yapmalıyız
         if (selectedMode === 'RANDOM') {
             initialLetter = sequence[0];
         }
-        // Puzzle modda harfler havuza gideceği için initialLetter boş kalabilir
     }
 
     try {
-        // Firestore'a Veri Yaz
         await db.collection('games').doc(code).set({
             status: 'waiting',      
             turnOwner: 'PlayerA',   
             moveNumber: 1,  
             isSinglePlayer: false,
-            
-            gameMode: selectedMode, // 'CLASSIC', 'RANDOM' veya 'PUZZLE'
-            letterSequence: sequence, // Klasik'te null, diğerlerinde dolu array
+            gameMode: selectedMode,
+            letterSequence: sequence,
             currentLetter: initialLetter,
-            
-            // Puzzle modu için özel durum takibi (İleride kullanacağız)
             puzzleStatusA: selectedMode === 'PUZZLE' ? 'playing' : null,
             puzzleStatusB: selectedMode === 'PUZZLE' ? 'waiting' : null,
-
             gridA: Array(25).fill(''),
             gridB: Array(25).fill(''),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        console.log(`Oyun kuruldu: ${code} (${selectedMode})`);
+        // 1. Rakip alanını görünür yap
+        const oppSection = document.getElementById('opponentSection');
+        if (oppSection) {
+            oppSection.classList.remove('hidden-during-game');
+            oppSection.style.display = 'flex';
+        }
 
-        // Arayüzü Başlat
+        // 2. Arayüzü Başlat
         setupGameUI(code);
         
-        // Multiplayer olduğu için rakip alanını göster
-        document.getElementById('opponentSection').classList.remove('hidden-during-game');
-        
-        // Firebase Dinlemeyi Başlat
+        // 3. Listener Başlat
         listenToGame();
 
     } catch (error) {
@@ -9149,9 +9136,8 @@ async function createNewGame(mode) {
 }
 
 // ==========================================
-// OYUNA KATILMA FONKSİYONU (DÜZELTİLMİŞ)
+// OYUNA KATILMA (JOIN)
 // ==========================================
-
 async function joinGame() {
     const codeInput = document.getElementById('gameCodeInput');
     const code = codeInput.value.toUpperCase().trim();
@@ -9179,12 +9165,9 @@ async function joinGame() {
             return;
         }
 
-        // Katılım Başarılı
         myPlayerId = 'PlayerB';
         currentGameId = code;
 
-        // Veritabanını Güncelle
-        // Eğer Puzzle moduysa PlayerB de 'playing' durumuna geçer
         let updateData = { status: 'playing' };
         if (data.gameMode === 'PUZZLE') {
             updateData.puzzleStatusB = 'playing';
@@ -9192,11 +9175,17 @@ async function joinGame() {
 
         await docRef.update(updateData);
 
-        // Arayüzü Başlat
+        // 1. Rakip alanını görünür yap
+        const oppSection = document.getElementById('opponentSection');
+        if (oppSection) {
+            oppSection.classList.remove('hidden-during-game');
+            oppSection.style.display = 'flex';
+        }
+
+        // 2. Arayüzü Başlat
         setupGameUI(code);
-        document.getElementById('opponentSection').classList.remove('hidden-during-game');
         
-        // Dinlemeyi Başlat
+        // 3. Listener Başlat
         listenToGame();
 
     } catch (error) {
@@ -9204,109 +9193,109 @@ async function joinGame() {
         document.getElementById('lobbyStatus').textContent = "Bağlantı hatası oluştu.";
     }
 }
-
 // ==========================================
-// TEK KİŞİLİK OYUN BAŞLATMA (GÜNCELLENMİŞ)
+// TEK KİŞİLİK OYUN BAŞLATMA (SINGLE)
 // ==========================================
-
 function startSinglePlayerGame(mode) {
     const selectedMode = mode || 'RANDOM';
     
-    // Yerel değişkenleri ayarla (Firebase yok)
     myPlayerId = 'PlayerA'; 
     currentGameId = 'SINGLE_' + Math.floor(Math.random() * 10000);
     
-    // Harfleri üret
     let sequence = generateGameSequence(24);
     
     console.log(`Tek kişilik oyun başlatılıyor: ${selectedMode}`);
 
     // --- ARAYÜZ AYARLARI ---
-    // 1. Panelleri değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.remove('hidden');
     document.getElementById('gameOverPanel').classList.add('hidden');
     
-    // 2. Multiplayer öğelerini gizle
-    document.querySelector('.room-info').style.display = 'none'; // Oda kodu gizle
-    document.getElementById('opponentSection').classList.add('hidden-during-game'); // Rakip gridi gizle
-    document.getElementById('turnStatusBadge').classList.add('hidden'); // Sıra tabelasını gizle
+    // Multiplayer öğelerini gizle
+    const roomInfo = document.querySelector('.room-info');
+    if (roomInfo) roomInfo.style.display = 'none';
+    
+    const oppSection = document.getElementById('opponentSection');
+    if (oppSection) {
+        oppSection.classList.add('hidden-during-game');
+        oppSection.style.display = 'none';
+    }
+    
+    document.getElementById('turnStatusBadge').classList.add('hidden');
 
-    // 3. Gridleri temizle ve tıklanabilir yap
+    // KRİTİK EKLEME: Gridi aktif hale getir (Gri filtreyi kaldır)
+    const myGrid = document.getElementById('myGrid');
+    if (myGrid) {
+        myGrid.classList.remove('waiting-turn', 'locked'); 
+        myGrid.classList.add('active-turn');     
+    }
+
+    // Gridleri temizle ve tıklanabilir yap
+    // Sıralama artık doğru: ('myGrid', Data, true)
     renderGrid('myGrid', Array(25).fill(''), true);
 
-    // --- MODA GÖRE BAŞLATMA ---
     if (selectedMode === 'PUZZLE') {
-        // PUZZLE MODU:
-        // Henüz fonksiyonu yazmadık ama çağırmaya hazır olsun.
-        // Bir sonraki adımda bu fonksiyonun içini dolduracağız.
         if (typeof initPuzzleMode === "function") {
             initPuzzleMode(sequence);
         } else {
             console.log("Puzzle modu henüz aktif değil. Dizi:", sequence);
-            alert("Puzzle modu geliştirme aşamasında! Konsola dizi yazıldı.");
+            alert("Puzzle modu geliştirme aşamasında!");
         }
-        
     } else {
         // RANDOM MODU:
-        // Global değişkenlere ata
         window.currentLetterSequence = sequence;
         window.currentMoveIndex = 0;
         
-        // İlk harfi göster
         const firstLetter = sequence[0];
         const letterDisplay = document.getElementById('randomLetterDisplay');
-        letterDisplay.textContent = firstLetter;
-        letterDisplay.classList.remove('hidden');
+        if (letterDisplay) {
+            letterDisplay.textContent = firstLetter;
+            letterDisplay.classList.remove('hidden');
+        }
         
-        // Diğer alanları gizle
-        document.getElementById('classicLetterSelectionArea').classList.add('hidden');
-        document.getElementById('poolSection').classList.add('hidden'); // Havuzu gizle
+        const classicArea = document.getElementById('classicLetterSelectionArea');
+        if (classicArea) classicArea.classList.add('hidden');
+        
+        const poolSection = document.getElementById('poolSection');
+        if (poolSection) poolSection.classList.add('hidden');
     }
 }
+
 // ==========================================
 // ARAYÜZ HAZIRLAMA (DÜZELTİLMİŞ)
 // ==========================================
-
 function setupGameUI(gameId) {
     // 1. Panelleri Tanımla
     const lobbyPanel = document.getElementById('lobbyPanel');
     const gamePanel = document.getElementById('gamePanel');
     const gameOverPanel = document.getElementById('gameOverPanel');
     
-    // DÜZELTME 1: HTML'deki ID 'gameCodeDisplay' olduğu için bunu kullanmalıyız
     const displayCode = document.getElementById('gameCodeDisplay');
     
     // 2. Panelleri Değiştir
     if (lobbyPanel) lobbyPanel.classList.add('hidden');
     if (gameOverPanel) gameOverPanel.classList.add('hidden');
-    
-    if (gamePanel) {
-        gamePanel.classList.remove('hidden');
-    } else {
-        console.error("HATA: gamePanel HTML'de bulunamadı!");
-        return; 
-    }
+    if (gamePanel) gamePanel.classList.remove('hidden');
 
     // 3. Oyun Kodunu Ekrana Yaz
-    if (displayCode) {
-        displayCode.textContent = gameId;
-    }
+    if (displayCode) displayCode.textContent = gameId;
 
     // 4. Durum Mesajını Sıfırla
-    // DÜZELTME 2: HTML'deki ID 'gameStatusMsg'
     const statusMsg = document.getElementById('gameStatusMsg');
     if (statusMsg) {
         statusMsg.textContent = "Oyun Yükleniyor...";
         statusMsg.className = "status-msg"; 
     }
 
-    // 5. Action Area ve Random Harf Ekranını Sıfırla
-    const actionArea = document.getElementById('actionArea');
-    const randomLetterDisplay = document.getElementById('randomLetterDisplay');
+    // 5. Gridleri Boş Olarak Çiz (Ekranda gri kutu yerine boş kareler görünsün)
+    // NOT: renderGrid parametre sırası düzeltildi: (ID, DATA, INTERACTIVE)
+    renderGrid('myGrid', Array(25).fill(''), false);
     
-    if (actionArea) actionArea.classList.add('hidden');
-    if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
+    // Eğer multiplayer ise rakip gridi de çiz
+    const oppSection = document.getElementById('opponentSection');
+    if (oppSection && !oppSection.classList.contains('hidden-during-game')) {
+        renderGrid('opponentGrid', Array(25).fill(''), false);
+    }
 }
 
 // ==========================================
@@ -10119,43 +10108,46 @@ function showResults(data) {
 // showResults bitişi
 
 // ==========================================
-// GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
+// GRID ÇİZİM FONKSİYONU (KRİTİK DÜZELTME)
 // ==========================================
-
-function renderGrid(gridData, elementId) {
+// Parametre sırası değiştirildi: elementId başa alındı.
+function renderGrid(elementId, gridData, isInteractive) {
     const gridElement = document.getElementById(elementId);
     if (!gridElement) return;
 
     gridElement.innerHTML = ''; 
     
     const isMyGrid = (elementId === 'myGrid');
-    const isClickable = isMyGrid && placementMode; 
+
+    // Tıklanabilirlik: Fonksiyona gelen 'isInteractive' (Tek kişilik için) 
+    // VEYA Klasik moddaki 'placementMode' (Çift kişilik için)
+    // Bu sayede iki modda da çalışır.
+    let canClick = isInteractive;
+    if (typeof placementMode !== 'undefined') {
+        canClick = canClick || (isMyGrid && placementMode);
+    }
 
     gridData.forEach((letter, index) => {
         const cell = document.createElement('div');
         cell.classList.add('cell');
         
-        // 1. Varsayılan olarak veritabanındaki (kesinleşmiş) harfi yaz
         cell.textContent = letter || ''; 
         
-        // 2. Seçim (Draft) Görselleştirmesi
-        if (isMyGrid && index === selectedDraftIndex) {
+        // Dolu hücre stili
+        if (letter !== '') cell.classList.add('filled');
+        
+        // Seçim (Draft) Görselleştirmesi (Klasik Mod İçin)
+        if (typeof selectedDraftIndex !== 'undefined' && isMyGrid && index === selectedDraftIndex) {
             cell.classList.add('selected-draft');
 
-            // --- YENİ EKLENEN KISIM: HARFİ GÖSTER ---
-            // Eğer hücre henüz boşsa (onaylanmamışsa), seçili harfi içinde göster.
             if (letter === '') {
-                // A. Joker harfi seçili mi? (25. Tur)
                 if (typeof myFinalLetter !== 'undefined' && myFinalLetter) {
                     cell.textContent = myFinalLetter;
                 } 
-                // B. Değilse, normal turdaki harfi ekrandaki kutudan al
                 else {
                     const display = document.getElementById('randomLetterDisplay');
-                    // Kutunun içinde Alfabe Seçicisi yoksa (yani tek harf varsa)
                     if (display && !display.querySelector('.alphabet-wrapper')) {
                         const visibleLetter = display.textContent.trim();
-                        // Sadece tek karakterse (örn: "A") hücreye yaz
                         if (visibleLetter.length === 1) {
                             cell.textContent = visibleLetter;
                         }
@@ -10164,17 +10156,17 @@ function renderGrid(gridData, elementId) {
             }
         }
         
-        // 3. Tıklanabilirlik Kontrolü
-        // Hücre boşsa VEYA zaten o an seçtiğimiz hücreyse (tekrar tıklayıp onaylamak için)
-        const shouldBeClickable = isClickable && (letter === '' || index === selectedDraftIndex);
+        // Tıklanabilirlik Kontrolü
+        const shouldBeClickable = canClick && (letter === '' || (typeof selectedDraftIndex !== 'undefined' && index === selectedDraftIndex));
         
         if (shouldBeClickable) {
             cell.classList.add('clickable');
-            // Hücreye tıklanınca handleCellClick çalışsın
-            cell.onclick = () => handleCellClick(index);
-        } else {
-            cell.classList.remove('clickable');
-            cell.onclick = null;
+            cell.onclick = () => {
+                // handleCellClick fonksiyonu script.js'de tanımlı olmalı
+                if (typeof handleCellClick === 'function') {
+                    handleCellClick(index);
+                }
+            };
         }
 
         gridElement.appendChild(cell);
@@ -10401,4 +10393,5 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
