@@ -486,7 +486,7 @@ body.dark-mode .clickable:hover {
 
 .lobby-controls button, 
 .lobby-controls select {
-    width: 100%;
+    width: auto;
     padding: 12px;
     font-size: 1rem;
     box-sizing: border-box;
@@ -1029,6 +1029,7 @@ body.dark-mode .btn-mode.puzzle {
     cursor: not-allowed;
     opacity: 0.6;
 }
+
 
 
 
