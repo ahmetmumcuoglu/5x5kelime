@@ -966,3 +966,8 @@ body.dark-mode .joker-key:hover { background-color: #444; }
         font-size: 16px;
     }
 }
+
+#restartBtn {
+    background-color: var(--secondary) !important; /* Yeşil (Secondary) değişkeni */
+    color: white !important;
+}
