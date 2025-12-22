@@ -9709,59 +9709,55 @@ async function submitLetter(letterParam = null) {
 }
 
 // ==========================================
-// HÜCRE TIKLAMA (TEK VE ÇİFT KİŞİLİK UYUMLU)
+// HÜCRE TIKLAMA (SON HALİ)
 // ==========================================
 async function handleCellClick(index) {
     const cell = document.getElementById('myGrid').children[index];
     
-    // 1. Dolu Hücre Kontrolü (Zaten doluysa ve şu an seçili draft değilse çık)
-    if (cell.textContent !== '' && !cell.classList.contains('selected-draft')) {
-        return; 
-    }
+    // 1. Dolu Hücre Kontrolü
+    if (cell.textContent !== '' && !cell.classList.contains('selected-draft')) return;
 
-    // 2. DRAFT (SEÇİM) MANTIĞI
-    // İlk tıklama: Sadece seçer (Sarı yapar)
+    // 2. DRAFT (SEÇİM)
     if (selectedDraftIndex !== index) {
         selectedDraftIndex = index;
         
-        // Tek Kişilik Mod Görsel Güncellemesi
+        // Görseli Güncelle
         if (currentGameId && currentGameId.startsWith('SINGLE_')) {
-            // Grid'i tekrar çiz ki sarı kutu ve içindeki harf görünsün
-            const gridDataLocal = Array.from(document.getElementById('myGrid').children).map(c => {
-                // Eğer bu kutu daha önce dolmuşsa (filled class'ı varsa) içeriğini koru
+            // Tek kişilikte yerel yenileme
+             const gridDataLocal = Array.from(document.getElementById('myGrid').children).map(c => {
                 return c.classList.contains('filled') ? c.textContent : '';
             });
             renderGrid('myGrid', gridDataLocal, true);
         } else {
-            // Multiplayer Görsel Güncellemesi
+            // Multiplayer'da mevcut global veriyle yenileme
             renderGrid('myGrid', myGridData, true);
         }
-        return; // İşlem bitti, ikinci tıklamayı bekle
+        return; 
     }
 
-    // 3. ONAY (YERLEŞTİRME) MANTIĞI
-    // İkinci tıklama: Buraya geldiyse kullanıcı sarı kutuya tekrar basmıştır.
-    selectedDraftIndex = null; // Seçimi temizle
+    // 3. ONAY (YERLEŞTİRME)
+    selectedDraftIndex = null; 
 
-    // --- SENARYO A: TEK KİŞİLİK OYUN ---
+    // --- TEK KİŞİLİK ---
     if (currentGameId && currentGameId.startsWith('SINGLE_')) {
-        const isJokerRound = (window.currentMoveIndex >= 24);
         let letterToPlace;
+        const isJokerRound = (window.currentMoveIndex >= 24);
 
         if (isJokerRound) {
             if (!myFinalLetter) {
-                alert("Lütfen önce alfabeden bir Joker harf seçin!");
+                alert("Lütfen önce Joker harfinizi seçin!");
                 selectedDraftIndex = index; // Seçimi geri ver
-                renderGrid('myGrid', Array.from(document.getElementById('myGrid').children).map(c => c.classList.contains('filled') ? c.textContent : ''), true);
+                // Gridi tekrar çiz ki sarı seçim geri gelsin
+                const gridDataLocal = Array.from(document.getElementById('myGrid').children).map(c => c.classList.contains('filled') ? c.textContent : '');
+                renderGrid('myGrid', gridDataLocal, true);
                 return;
             }
             letterToPlace = myFinalLetter;
         } else {
-            if (!window.currentLetterSequence) return;
             letterToPlace = window.currentLetterSequence[window.currentMoveIndex];
         }
 
-        // Harfi Kesinleştir
+        // Harfi Yaz
         cell.textContent = letterToPlace;
         cell.classList.add('filled');
         cell.classList.remove('selected-draft', 'clickable');
@@ -9771,37 +9767,28 @@ async function handleCellClick(index) {
         // İlerle
         window.currentMoveIndex++;
         
-        // Oyun Bitti mi?
+        // BİTİŞ KONTROLÜ
         if (window.currentMoveIndex >= 25) {
-             // Puan hesapla ve bitir
-             // showResultsForSinglePlayer(); (Mevcut fonksiyonun varsa)
-             alert("Oyun Bitti! Puanlar hesaplanacak.");
+             finishSinglePlayerGame(); // YENİ EKLENEN FONKSİYON
         } 
-        // Joker Turuna mı Geldik? (24 bitti, 25. turdayız)
+        // 24. Harf bitti, 25'e (Joker) geçiyoruz
         else if (window.currentMoveIndex === 24) {
              document.getElementById('randomLetterDisplay').textContent = "";
-             renderJokerAlphabet(); // Alfabeyi aç
+             renderJokerAlphabet(); 
         } 
-        // Normal Tur Devam
+        // Normal Devam
         else {
              const nextLetter = window.currentLetterSequence[window.currentMoveIndex];
              document.getElementById('randomLetterDisplay').textContent = nextLetter;
         }
     }
 
-    // --- SENARYO B: MULTIPLAYER ---
+    // --- MULTIPLAYER ---
     else {
-        // Firebase işlemi (Mevcut kodunda executeFirebaseMove veya makeMove varsa onu çağır)
-        // Eğer yoksa önceki mesajdaki 'executeFirebaseMove' mantığını buraya yapıştırabiliriz.
-        if(typeof executeFirebaseMove === 'function') {
-            executeFirebaseMove(index);
-        } else {
-            // Eğer fonksiyon yoksa, basitçe eski makeMove çağrısı:
-             makeMove(index);
-        }
+        // Artık makeMove tanımlı olduğu için hata vermeyecek
+        makeMove(index);
     }
 }
-
 // ==========================================
 // PUAN HESAPLAMA (GÜNCELLENMİŞ - Satır/Sütun Puanlarını Döndürür)
 // ==========================================
@@ -10394,6 +10381,164 @@ function renderJokerAlphabet() {
     }
 
     display.appendChild(container);
+}
+
+/* ====================================================== */
+/* MULTIPLAYER HAMLE GÖNDERİMİ (MAKE MOVE) */
+/* ====================================================== */
+async function makeMove(index) {
+    if (!currentGameId) return;
+
+    const gameRef = db.collection('games').doc(currentGameId);
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const doc = await transaction.get(gameRef);
+            if (!doc.exists) throw new Error("Oyun bulunamadı.");
+
+            const data = doc.data();
+            const currentMove = data.moveNumber;
+            
+            // Hangi grid benim?
+            const myGridKey = (myPlayerId === 'PlayerA') ? 'gridA' : 'gridB';
+            const oppGridKey = (myPlayerId === 'PlayerA') ? 'gridB' : 'gridA';
+            
+            let newMyGrid = [...data[myGridKey]];
+            const oppGrid = data[oppGridKey];
+
+            // Güvenlik: Sıra bende mi? (Random mod hariç, orada sıra karışık olabilir)
+            // Ama Klasik modda sıra kontrolü şart.
+            if (data.gameMode === 'CLASSIC' && data.turnOwner !== myPlayerId) {
+                throw new Error("Sıra sizde değil!");
+            }
+
+            // Harfi Belirle
+            let letterToPlace;
+            // 25. Tur (Joker) ise yerel seçimden al
+            if (currentMove === 25) {
+                if (!myFinalLetter) throw new Error("Joker seçilmedi.");
+                letterToPlace = myFinalLetter;
+            } else {
+                // Normal tur ise sunucudan al
+                letterToPlace = data.currentLetter;
+            }
+
+            // Gride Yaz
+            newMyGrid[index] = letterToPlace;
+
+            // Güncelleme Objesi Hazırla
+            let updatePayload = {
+                [myGridKey]: newMyGrid
+            };
+
+            // --- TUR ATLAMA MANTIĞI ---
+            const myFilledCount = newMyGrid.filter(c => c !== '').length;
+            const oppFilledCount = oppGrid.filter(c => c !== '').length;
+
+            // JOKER TURU (25)
+            if (currentMove === 25) {
+                // Ben bitirdim. Rakip de bitirmiş mi?
+                if (myFilledCount === 25 && oppFilledCount === 25) {
+                    updatePayload.status = 'finished'; // OYUN SONU
+                }
+                // Rakip henüz bitirmediyse oyun 'playing' kalır, sadece benim gridim güncellenir.
+            }
+            
+            // NORMAL TUR (1-24)
+            else {
+                // İkimiz de bu turu tamamladık mı?
+                // Not: Random modda veya Klasik modda mantık aynı: 
+                // İki gridde de dolu sayısı mevcut tur sayısına eşitlenince tur atlar.
+                if (myFilledCount === currentMove && oppFilledCount === currentMove) {
+                    const nextMove = currentMove + 1;
+                    updatePayload.moveNumber = nextMove;
+
+                    // Yeni Harf veya Sıra Belirleme
+                    if (nextMove <= 24) {
+                        if (data.gameMode === 'CLASSIC') {
+                            // Klasik: Sırayı değiştir, harfi sıfırla (seçim için)
+                            updatePayload.turnOwner = (nextMove % 2 !== 0) ? 'PlayerA' : 'PlayerB'; // Tek sayılarda A, Çiftlerde B (Örnek mantık)
+                            // VEYA: turnOwner kimse diğerine geçsin
+                            updatePayload.turnOwner = (data.turnOwner === 'PlayerA') ? 'PlayerB' : 'PlayerA';
+                            updatePayload.currentLetter = null; 
+                        } 
+                        else if (data.gameMode === 'RANDOM') {
+                            // Random: Sıradaki harfi diziden çek
+                            updatePayload.currentLetter = data.letterSequence[nextMove - 1];
+                        }
+                    } else {
+                        // 25. Tur Başlıyor (Joker)
+                        updatePayload.currentLetter = null; 
+                    }
+                }
+            }
+
+            transaction.update(gameRef, updatePayload);
+        });
+
+    } catch (error) {
+        console.error("Hamle Hatası:", error);
+        alert(error.message);
+        // Hata olursa seçimi geri al (Görsel olarak)
+        selectedDraftIndex = null;
+        renderGrid('myGrid', myGridData, true); // Eski haliyle yeniden çiz
+    }
+}
+
+/* ====================================================== */
+/* TEK KİŞİLİK OYUN BİTİŞİ VE PUANLAMA */
+/* ====================================================== */
+function finishSinglePlayerGame() {
+    console.log("Tek kişilik oyun bitti. Puan hesaplanıyor...");
+
+    const myGridDiv = document.getElementById('myGrid');
+    // Griddeki harfleri diziye çevir
+    const finalGrid = Array.from(myGridDiv.children).map(cell => cell.textContent);
+
+    // Puan Hesapla (Senin mevcut calculateScore fonksiyonunu kullanacağız)
+    // Eğer calculateScore fonksiyonun yoksa basit bir tane uyduralım şimdilik:
+    let scoreDetails = { totalScore: 0, words: [] };
+    
+    if (typeof calculateScore === 'function') {
+        scoreDetails = calculateScore(finalGrid); // Mevcut sözlük fonksiyonun
+    } else {
+        console.warn("calculateScore fonksiyonu bulunamadı!");
+        scoreDetails = { totalScore: 100, words: ["TEST", "PUAN"] }; // Örnek veri
+    }
+
+    // Sonuç Ekranını Göster
+    const modal = document.getElementById('gameOverPanel');
+    const title = document.getElementById('resultTitle'); // HTML'de var mı kontrol et
+    const scoreEl = document.getElementById('resultScore');
+    const listEl = document.getElementById('resultWordList');
+    
+    // Panelleri Değiştir
+    document.getElementById('gamePanel').classList.add('hidden');
+    modal.classList.remove('hidden');
+
+    // İçeriği Doldur
+    if(title) title.textContent = "OYUN BİTTİ";
+    
+    // HTML yapına göre burası değişebilir, ama genelde şöyle bir yapı vardır:
+    let htmlContent = `<h2>PUANINIZ: ${scoreDetails.totalScore}</h2>`;
+    htmlContent += `<div class="word-list">`;
+    if(scoreDetails.words && scoreDetails.words.length > 0) {
+        scoreDetails.words.forEach(item => {
+             // item string mi yoksa {word: "ELMA", score: 5} objesi mi?
+             // Genelde obje döner.
+             const w = item.word || item;
+             const s = item.score || "?";
+             htmlContent += `<p>${w} <span>(${s}p)</span></p>`;
+        });
+    } else {
+        htmlContent += `<p>Hiç anlamlı kelime bulunamadı.</p>`;
+    }
+    htmlContent += `</div>`;
+    htmlContent += `<button onclick="window.location.reload()" class="restart-btn">ANA MENÜ</button>`;
+
+    // Sonuçları Modal'ın içine bas (resultContent divi varsa)
+    const contentDiv = modal.querySelector('.result-content') || modal;
+    contentDiv.innerHTML = htmlContent;
 }
 
 
