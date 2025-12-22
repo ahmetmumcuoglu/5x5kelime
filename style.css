@@ -931,47 +931,6 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 
 /* ================================================= */
-/* MOD BUTON RENKLERİ (ÖZEL RENK DÜZENİ) */
-/* ================================================= */
-
-/* 1. ÇİFT KİŞİLİK OYUN BUTONLARI (Mavi - Lacivert Tonları) */
-#lobbyPanel .control-group:nth-of-type(1) .btn-mode {
-    background-color: #2c3e50 !important; /* Lacivert */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-#lobbyPanel .control-group:nth-of-type(1) .btn-mode:hover {
-    background-color: #34495e !important; /* Biraz daha açık lacivert */
-}
-
-/* Çift kişilik butonlar içinde ayrım yapmak istersen (Opsiyonel) */
-#lobbyPanel .control-group:nth-of-type(1) .btn-mode.classic { background-color: #2980b9 !important; } /* Parlak Mavi */
-#lobbyPanel .control-group:nth-of-type(1) .btn-mode.random  { background-color: #2c3e50 !important; } /* Lacivert */
-#lobbyPanel .control-group:nth-of-type(1) .btn-mode.puzzle  { background-color: #1a252f !important; } /* Çok Koyu Lacivert */
-
-
-/* 2. TEK KİŞİLİK OYUN BUTONLARI (Teal Tonları) */
-#lobbyPanel .control-group:nth-of-type(3) .btn-mode {
-    background-color: #008080 !important; /* Saf Teal */
-}
-
-#lobbyPanel .control-group:nth-of-type(3) .btn-mode:hover {
-    background-color: #006666 !important; /* Koyu Teal */
-}
-
-/* Tek kişilik butonlar içinde hafif ton farkı (Opsiyonel) */
-#lobbyPanel .control-group:nth-of-type(3) .btn-mode.random { background-color: #16a085 !important; } /* Yeşilimsi Teal */
-#lobbyPanel .control-group:nth-of-type(3) .btn-mode.puzzle { background-color: #008080 !important; } /* Tam Teal */
-
-
-/* 3. ORTAK DÜZENLEME: Yazı ve İkonların Netliği */
-.btn-mode .mode-icon, 
-.btn-mode .mode-name {
-    color: #ffffff !important; /* Yazı ve ikonlar her zaman saf beyaz */
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* Okunabilirliği artırmak için hafif gölge */
-}
-
-/* ================================================= */
 /* PUZZLE MODU HAVUZ ALANI */
 /* ================================================= */
 
@@ -1100,6 +1059,7 @@ button[onclick*="startSinglePlayerGame"].random {
     color: #ffffff !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
+
 
 
 
