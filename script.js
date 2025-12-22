@@ -9442,9 +9442,9 @@ function listenToGame() {
                     } else {
                         renderAlphabetSelector(); 
                         if (!myFinalLetter) {
-                            updateUIState("SON HARF: JOKER SEÇİNİZ", "badge-info", false);
+                            updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
                         } else {
-                            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİRİN`, "badge-success", true);
+                            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
                         }
                     }
                     return; // Fonksiyondan çık, aşağısı çalışmasın
@@ -9486,7 +9486,7 @@ function listenToGame() {
                         }
 
                         if (!myMoveDone) {
-                            updateUIState(`"${data.currentLetter}" Harfini Yerleştirin`, "your-turn", true);
+                            updateUIState(`"${data.currentLetter}" Harfini Yerleştir`, "your-turn", true);
                         } else {
                             updateUIState("Rakip Yerleştiriyor...", "opponent-turn", false);
                         }
@@ -10439,5 +10439,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
 
