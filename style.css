@@ -174,9 +174,9 @@ body.dark-mode button:disabled {
 }
 .icon-btn:hover { transform: scale(1.1); }
 /* Renk atamaları */
-.icon-btn.info { background: #2c3e50; }     /* Koyu Gri */
+.icon-btn.info { background: #f39c12; }     /* Koyu Gri */
 .icon-btn.stats { background: #8e44ad; }    /* Mor */
-#darkModeBtn { background: #f39c12; }       /* Turuncu */
+#darkModeBtn { background: #2c3e50; }       /* Turuncu */
 
 
 /* ================================================= */
@@ -1029,6 +1029,7 @@ body.dark-mode .btn-mode.puzzle {
     cursor: not-allowed;
     opacity: 0.6;
 }
+
 
 
 
