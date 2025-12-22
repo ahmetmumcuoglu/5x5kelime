@@ -12,88 +12,90 @@
 </head>
 <body>
     
-    <div id="lobbyPanel" class="panel">
+  <div id="lobbyPanel" class="panel">
         <h2 class="panel-title">Kelime Oyunu</h2>
 
         <div class="lobby-top-actions">
-        <button id="howToPlayBtn" class="icon-btn info" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
-    
-        <button id="statsBtn" class="icon-btn stats" onclick="window.openStatsModal()" title="İstatistikler">📊</button>
-    
-        <button id="darkModeBtn" class="icon-btn" onclick="toggleDarkMode()" title="Tema Değiştir">🌙</button>
+            <button id="howToPlayBtn" class="icon-btn info" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
+            <button id="statsBtn" class="icon-btn stats" onclick="window.openStatsModal()" title="İstatistikler">📊</button>
+            <button id="darkModeBtn" class="icon-btn" onclick="toggleDarkMode()" title="Tema Değiştir">🌙</button>
         </div>
         
         <div class="lobby-controls">
             
             <div class="control-group">
-                <label for="gameModeSelect" style="display:block; margin-bottom:5px; font-weight:bold; color:#555;">Oyun Modu:</label>
-                <select id="gameModeSelect">
-                    <option value="CLASSIC">KLASİK (SIRAYLA SEÇMELİ)</option>
-                    <option value="RANDOM">RANDOM (RASTGELE HARF)</option>
-                </select>
-                <button id="createGameBtn" onclick="createNewGame()">Yeni Oyun Kur</button>
+                <p class="group-title">İKİ KİŞİLİK OYUN KUR</p>
+                <div class="mode-buttons">
+                    <button class="btn-mode classic" onclick="createNewGame('CLASSIC')">KLASİK</button>
+                    <button class="btn-mode random" onclick="createNewGame('RANDOM')">RANDOM</button>
+                    <button class="btn-mode puzzle" onclick="createNewGame('PUZZLE')">PUZZLE 🧩</button>
+                </div>
             </div>
 
             <div class="lobby-divider">- VEYA -</div>
             
-            <div class="join-area">
-                <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
-                <button id="joinGameBtn" onclick="joinGame()">Oyuna Katıl</button>
+            <div class="control-group">
+                <p class="group-title">OYUNA KATIL</p>
+                <div class="join-area">
+                    <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
+                    <button id="joinGameBtn" onclick="joinGame()">GİRİŞ YAP</button>
+                </div>
             </div>
             
             <div class="lobby-divider">- VEYA -</div>
             
             <div class="control-group">
-                <button id="singlePlayerBtn" onclick="startSinglePlayerGame()">
-                    Tek Başına Oyna (Random)
-                </button>
+                <p class="group-title">TEK BAŞINA OYNA</p>
+                <div class="mode-buttons">
+                    <button class="btn-mode random" onclick="startSinglePlayerGame('RANDOM')">RANDOM</button>
+                    <button class="btn-mode puzzle" onclick="startSinglePlayerGame('PUZZLE')">PUZZLE 🧩</button>
+                </div>
             </div>
+
         </div>
 
-        <div id="lobbyStatus" style="margin-top: 15px; font-weight: bold; color: #e74c3c; min-height: 20px;"></div>
+        <div id="lobbyStatus" class="status-error"></div>
     </div>
         
     <div id="gamePanel" class="panel hidden">
-        
         <div class="game-header">
-            <div class="game-info">
-                <span>Oda: <b id="gameCodeDisplay">--</b></span>  
-                 
-            </div>
+            <div class="room-info">Oda: <b id="gameCodeDisplay">--</b></div>
+            
+            <div id="turnStatusBadge" class="status-badge hidden">Yükleniyor...</div>
+            
+            <div id="gameTimer" class="game-timer hidden">20</div>
         </div>
-
-        <div class="controls-top">
-    <div id="turnStatusBadge" class="status-badge hidden">Durum Yükleniyor...</div>
-    
-    </div>
         
         <div class="game-container">
-            <div class="grid-section">
-            <div id="myGrid" class="grid"></div>
+            <div class="grid-section hidden-during-game" id="opponentSection">
+                <div id="opponentGrid" class="grid locked"></div>
             </div>
 
             <div class="controls-section">
-                
                 <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
 
                 <div id="classicLetterSelectionArea" class="hidden">
-        <p style="text-align:center; margin-bottom:5px; font-weight:bold; color:#2c3e50;">
-            Bir Harf Seç ve Onayla:
-        </p>
-        
-        <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
-        
-        <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>
-            SEÇİMİ ONAYLA
-        </button>
-    </div>
-                
-                <div id="statusMsg" style="display:none;"></div> 
+                    <p class="section-label">Harf Seç ve Onayla:</p>
+                    <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
+                    <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>ONAYLA</button>
+                </div>
             </div>
 
-            <div class="grid-section" id="opponentSection">
-                <div id="opponentGrid" class="grid locked"></div>
+            <div class="grid-section">
+                <div id="myGrid" class="grid"></div>
             </div>
+
+            <div id="poolSection" class="hidden">
+                <p class="pool-label">HARFLERİNİZ (TAŞIMAK İÇİN TIKLAYIN):</p>
+                <div id="letterPool" class="pool-container"></div>
+                
+                <div class="pool-actions">
+                    <button id="confirmPuzzleBtn" class="confirm-btn puzzle-confirm" onclick="confirmPuzzlePlacement()" disabled>
+                        TÜMÜNÜ YERLEŞTİRDİM VE ONAYLIYORUM
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
         
@@ -210,6 +212,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
