@@ -10492,53 +10492,55 @@ function finishSinglePlayerGame() {
     console.log("Tek kişilik oyun bitti. Puan hesaplanıyor...");
 
     const myGridDiv = document.getElementById('myGrid');
-    // Griddeki harfleri diziye çevir
     const finalGrid = Array.from(myGridDiv.children).map(cell => cell.textContent);
 
-    // Puan Hesapla (Senin mevcut calculateScore fonksiyonunu kullanacağız)
-    // Eğer calculateScore fonksiyonun yoksa basit bir tane uyduralım şimdilik:
-    let scoreDetails = { totalScore: 0, words: [] };
-    
+    // 1. Puan Hesaplama
+    // Not: calculateScore fonksiyonunun döndürdüğü objeye göre burayı eşitlemeliyiz.
+    let scoreResult = { totalScore: 0, foundWords: [] };
+
     if (typeof calculateScore === 'function') {
-        scoreDetails = calculateScore(finalGrid); // Mevcut sözlük fonksiyonun
-    } else {
-        console.warn("calculateScore fonksiyonu bulunamadı!");
-        scoreDetails = { totalScore: 100, words: ["TEST", "PUAN"] }; // Örnek veri
+        scoreResult = calculateScore(finalGrid); 
     }
 
-    // Sonuç Ekranını Göster
-    const modal = document.getElementById('gameOverPanel');
-    const title = document.getElementById('resultTitle'); // HTML'de var mı kontrol et
-    const scoreEl = document.getElementById('resultScore');
-    const listEl = document.getElementById('resultWordList');
-    
-    // Panelleri Değiştir
+    // 2. Panel Değişimi
     document.getElementById('gamePanel').classList.add('hidden');
-    modal.classList.remove('hidden');
+    const gameOverPanel = document.getElementById('gameOverPanel');
+    gameOverPanel.classList.remove('hidden');
 
-    // İçeriği Doldur
-    if(title) title.textContent = "OYUN BİTTİ";
-    
-    // HTML yapına göre burası değişebilir, ama genelde şöyle bir yapı vardır:
-    let htmlContent = `<h2>PUANINIZ: ${scoreDetails.totalScore}</h2>`;
-    htmlContent += `<div class="word-list">`;
-    if(scoreDetails.words && scoreDetails.words.length > 0) {
-        scoreDetails.words.forEach(item => {
-             // item string mi yoksa {word: "ELMA", score: 5} objesi mi?
-             // Genelde obje döner.
-             const w = item.word || item;
-             const s = item.score || "?";
-             htmlContent += `<p>${w} <span>(${s}p)</span></p>`;
+    // 3. İçerik Oluşturma
+    // Görseldeki hatayı gidermek için veri kontrolü yapıyoruz
+    const totalScore = scoreResult.totalScore || 0;
+    const wordsArray = scoreResult.foundWords || scoreResult.words || [];
+
+    let htmlContent = `
+        <h2 style="font-size: 2rem; margin-bottom: 20px;">PUANINIZ: ${totalScore}</h2>
+        <div class="result-word-list" style="margin-bottom: 30px; line-height: 1.6;">
+    `;
+
+    if (wordsArray.length > 0) {
+        // Kelimeleri yan yana veya liste şeklinde göster
+        wordsArray.forEach(item => {
+            const wordText = typeof item === 'object' ? item.word : item;
+            const wordScore = typeof item === 'object' ? item.score : "";
+            htmlContent += `<span style="margin: 0 5px;">${wordText} <b>(${wordScore}p)</b></span> `;
         });
     } else {
-        htmlContent += `<p>Hiç anlamlı kelime bulunamadı.</p>`;
+        htmlContent += `<p>Anlamlı kelime bulunamadı.</p>`;
     }
-    htmlContent += `</div>`;
-    htmlContent += `<button onclick="window.location.reload()" class="restart-btn">ANA MENÜ</button>`;
 
-    // Sonuçları Modal'ın içine bas (resultContent divi varsa)
-    const contentDiv = modal.querySelector('.result-content') || modal;
-    contentDiv.innerHTML = htmlContent;
+    htmlContent += `
+        </div>
+        <button onclick="window.location.reload()" class="restart-btn" 
+                style="padding: 10px 30px; cursor: pointer; background: #eee; border: none; border-radius: 8px; font-weight: bold;">
+            ANA MENÜ
+        </button>
+    `;
+
+    // Modal içeriğini güncelle
+    // Not: HTML'de gameOverPanel içinde 'resultContent' ID'li bir div varsa oraya basar
+    const contentArea = document.querySelector('.result-content') || gameOverPanel;
+    contentArea.innerHTML = htmlContent;
 }
+
 
 
