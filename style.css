@@ -864,7 +864,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     font-size: 0.9rem;
     color: var(--text-muted);
     font-weight: bold;
-    margin: 5px 0;
+    margin: 5px 0 10px 0; /* Alt boşluğu biraz artırdık */
     text-align: left;
     width: 100%;
     border-bottom: 1px solid var(--input-border);
@@ -872,31 +872,67 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 
 .mode-buttons {
-    display: flex;
-    gap: 10px;
+    display: flex;       /* Yan yana dizilimi sağlar */
+    flex-direction: row; /* Yatayda hizalar */
+    justify-content: center; /* Ortalar */
+    gap: 10px;           /* Butonlar arası boşluk */
     width: 100%;
 }
 
 .btn-mode {
-    flex: 1; /* Yan yana eşit dağılsınlar */
-    padding: 15px 5px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: white;
+    flex: 1;             /* Mevcut alanı eşit paylaşsınlar */
+    display: flex;       /* İçerik hizalaması için flex */
+    flex-direction: column; /* İkonu üste, yazıyı alta alır */
+    align-items: center;    /* Yatayda ortalar */
+    justify-content: center;/* Dikeyde ortalar */
+    
+    padding: 15px 5px;   /* İç boşluk */
+    height: 90px;        /* Butonları biraz kare/dikdörtgen yapar */
+    
     border: none;
-    border-radius: 8px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: transform 0.2s, filter 0.2s;
+    transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Hafif gölge */
+    
+    /* Yazı rengini garantiye alalım */
+    color: white !important; 
 }
 
 .btn-mode:active { transform: scale(0.95); }
-.btn-mode:hover { filter: brightness(1.1); }
+.btn-mode:hover { 
+    filter: brightness(1.1); 
+    transform: translateY(-3px); /* Hafif yukarı kalksın */
+    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+}
 
-/* Mod Renkleri */
-.btn-mode.classic { background-color: var(--primary); }  /* Mavi */
-.btn-mode.random  { background-color: var(--accent); }   /* Turuncu */
-.btn-mode.puzzle  { background-color: var(--puzzle-color); } /* Pembe */
+.mode-icon {
+    font-size: 2rem;     /* İkon boyutu */
+    margin-bottom: 5px;  /* Yazı ile arası boşluk */
+    line-height: 1;
+}
 
+/* Yazı Stili */
+.mode-name {
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* --- BUTON RENKLERİ --- */
+.btn-mode.classic { 
+    background-color: var(--primary); /* Mavi */
+    /* Değişken tanımlı değilse: #3498db */
+}  
+.btn-mode.random  { 
+    background-color: var(--accent);  /* Turuncu */
+    /* Değişken tanımlı değilse: #e67e22 */
+}   
+.btn-mode.puzzle  { 
+    background-color: var(--puzzle-color); /* Pembe */
+    /* Değişken tanımlı değilse: #e84393 */
+}
 
 /* ================================================= */
 /* PUZZLE MODU HAVUZ ALANI */
@@ -979,6 +1015,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     cursor: not-allowed;
     opacity: 0.6;
 }
+
 
 
 
