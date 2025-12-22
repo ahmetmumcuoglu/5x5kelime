@@ -1,20 +1,20 @@
 /* ================================================= */
-/* 1. RENK TANIMLAMALARI VE DEĞİŞKENLER (YENİ) */
+/* 1. RENK TANIMLAMALARI VE DEĞİŞKENLER */
 /* ================================================= */
 :root {
     /* --- LIGHT MODE (Varsayılan) --- */
     --bg-body: #f4f6f8;
     --bg-panel: #ffffff;
-    --bg-secondary: #f8f9fa; /* Kartlar, kutular vb. */
+    --bg-secondary: #f8f9fa; 
     
     --text-main: #333333;
     --text-muted: #666666;
 
-    --puzzle-color: #e84393; /* Pembe tonu, Puzzle için */
-    --pool-bg: #ecf0f1;      /* Havuzun zemin rengi */
+    --puzzle-color: #e84393; 
+    --pool-bg: #ecf0f1;      
     
-    --grid-bg: #dfe4ea;     /* Gridin arka planı (boşluk rengi) */
-    --cell-bg: #ffffff;     /* Hücre içi */
+    --grid-bg: #dfe4ea;     
+    --cell-bg: #ffffff;     
     --cell-border: #bdc3c7;
     
     --input-bg: #ffffff;
@@ -23,7 +23,7 @@
     --modal-overlay: rgba(0, 0, 0, 0.6);
     --shadow: 0 4px 12px rgba(0,0,0,0.1);
 
-    /* Sabit Renkler (Değişmez) */
+    /* Sabit Renkler */
     --primary: #3498db;
     --primary-hover: #2980b9;
     --secondary: #2ecc71;
@@ -36,18 +36,18 @@
 
 /* --- DARK MODE RENKLERİ --- */
 body.dark-mode {
-    --bg-body: #121212;       /* Çok koyu arka plan */
-    --bg-panel: #1e1e1e;      /* Panel rengi */
-    --bg-secondary: #2c2c2c;  /* Kartlar */
+    --bg-body: #121212;       
+    --bg-panel: #1e1e1e;      
+    --bg-secondary: #2c2c2c;  
     
-    --text-main: #e0e0e0;     /* Açık gri yazı */
+    --text-main: #e0e0e0;     
     --text-muted: #a0a0a0;
 
     --pool-bg: #2c3e50;
     --puzzle-color: #fd79a8;
     
-    --grid-bg: #333333;       /* Grid çizgileri */
-    --cell-bg: #252525;       /* Hücre içi koyu */
+    --grid-bg: #333333;       
+    --cell-bg: #252525;       
     --cell-border: #444444;
     
     --input-bg: #2c2c2c;
@@ -62,13 +62,13 @@ body.dark-mode {
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-body); /* Değişken */
-    color: var(--text-main);          /* Değişken */
+    background-color: var(--bg-body);
+    color: var(--text-main);
     display: flex;
     justify-content: center;
     padding: 20px;
     margin: 0;
-    transition: background-color 0.3s, color 0.3s; /* Yumuşak geçiş */
+    transition: background-color 0.3s, color 0.3s;
 }
 
 .main-wrapper {
@@ -79,7 +79,7 @@ body {
 
 /* Paneller */
 .panel {
-    background: var(--bg-panel);      /* Değişken */
+    background: var(--bg-panel);
     padding: 20px;
     border-radius: 12px;
     box-shadow: var(--shadow);
@@ -94,8 +94,8 @@ body {
 /* Butonlar ve Inputlar */
 input[type="text"], select {
     padding: 10px;
-    background-color: var(--input-bg); /* Değişken */
-    color: var(--text-main);           /* Değişken */
+    background-color: var(--input-bg);
+    color: var(--text-main);
     border: 2px solid var(--input-border);
     border-radius: 6px;
     font-size: 16px;
@@ -115,26 +115,19 @@ button {
     cursor: pointer;
     font-weight: bold;
     transition: 0.2s;
-    color: white; /* Buton yazıları genelde beyaz kalır */
+    color: white; 
 }
 
-.btn-primary { 
-    background-color: var(--primary); 
-}
-.btn-primary:hover { 
-    background-color: var(--primary-hover); 
-}
-.btn-secondary { 
-    background-color: var(--secondary); 
-}
-.btn-secondary:hover { 
-    background-color: var(--secondary-hover); 
-}
+.btn-primary { background-color: var(--primary); }
+.btn-primary:hover { background-color: var(--primary-hover); }
+
+.btn-secondary { background-color: var(--secondary); }
+.btn-secondary:hover { background-color: var(--secondary-hover); }
+
 button:disabled { 
     background-color: #ccc; 
     cursor: not-allowed; 
 }
-/* Dark mode'da disabled butonun çok parlamaması için */
 body.dark-mode button:disabled {
     background-color: #555;
     color: #888;
@@ -149,35 +142,208 @@ body.dark-mode button:disabled {
     margin-top: 15px;
 }
 
-/* LOBİ ÜST BUTONLAR (Dark Mode butonu için stil) */
+/* LOBİ ÜST BUTONLAR */
 .lobby-top-actions {
-    display: flex;             /* Esnek kutu yapısı */
-    justify-content: center;   /* Yatayda ortala */
-    align-items: center;       /* Dikeyde ortala */
-    gap: 15px;                 /* Butonlar arası boşluk */
-    margin-bottom: 20px;       /* Alt kısımla mesafe */
-    width: 100%;               /* Panelin tamamını kapsa */
+    display: flex;             
+    justify-content: center;   
+    align-items: center;       
+    gap: 15px;                 
+    margin-bottom: 20px;       
+    width: 100%;               
 }
 .icon-btn {
-    width: 45px;               /* Genişlik sabit */
-    height: 45px;              /* Yükseklik sabit */
-    border-radius: 50%;        /* Tam yuvarlak */
+    width: 45px;               
+    height: 45px;              
+    border-radius: 50%;        
     border: none;
     cursor: pointer;
     font-size: 20px;
-    display: flex;             /* İkonu butonun içinde ortalamak için */
+    display: flex;             
     align-items: center;
     justify-content: center;
     transition: transform 0.2s, background-color 0.3s;
     color: white;
-    margin: 0;                 /* Dış boşlukları sıfırla ki kayma yapmasın */
+    margin: 0;                 
 }
 .icon-btn:hover { transform: scale(1.1); }
 /* Renk atamaları */
-.icon-btn.info { background: #f39c12; }     /* Koyu Gri */
-.icon-btn.stats { background: #8e44ad; }    /* Mor */
-#darkModeBtn { background: #2c3e50; }       /* Turuncu */
+.icon-btn.info { background: #f39c12; }    
+.icon-btn.stats { background: #8e44ad; }    
+#darkModeBtn { background: #2c3e50; }       
 
+/* ================================================= */
+/* YENİ LOBİ VE MENÜ BUTONLARI (DÜZELTİLMİŞ) */
+/* ================================================= */
+
+.lobby-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.group-title {
+    font-size: 0.9rem;
+    color: #666; 
+    font-weight: bold;
+    margin: 5px 0 10px 0;
+    text-align: left;
+    width: 100%;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+.lobby-divider {
+    color: #aaa;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin: 10px 0;
+    letter-spacing: 1px;
+}
+
+/* Buton ve Select Genel Ayarı */
+.lobby-controls button, 
+.lobby-controls select {
+    width: auto; /* width: 100% kaldırıldı */
+    padding: 12px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* Mod Butonlarının Kapsayıcısı */
+.mode-buttons {
+    display: flex !important;       
+    flex-direction: row !important; /* Yan yana diz */
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Mod Butonlarının Kendisi */
+.btn-mode {
+    width: auto !important; 
+    flex: 1 !important;  /* Alanı eşit paylaş */
+    
+    display: flex;
+    flex-direction: column; /* İkon üstte, yazı altta */
+    align-items: center;
+    justify-content: center;
+    
+    padding: 10px 5px;
+    height: 85px;        
+    
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, filter 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    
+    color: white !important;
+    font-family: inherit;
+}
+
+.btn-mode:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.btn-mode:active {
+    transform: scale(0.95);
+}
+
+.mode-icon {
+    font-size: 2rem;
+    line-height: 1;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.mode-name {
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* ================================================= */
+/* BUTON RENKLENDİRMELERİ (KESİN ÇÖZÜM) */
+/* ================================================= */
+
+/* 1. ÇİFT KİŞİLİK OYUNLAR (Mavi - Lacivert Tonları) */
+/* "createNewGame" çağıran tüm butonlar */
+button[onclick*="createNewGame"] {
+    background-color: #2c3e50 !important; /* Koyu Lacivert (Baz) */
+    border: 1px solid rgba(255,255,255,0.1);
+}
+button[onclick*="createNewGame"]:hover {
+    background-color: #34495e !important;
+}
+
+/* Alt Mod Renkleri */
+button[onclick*="createNewGame"].classic { 
+    background-color: #2980b9 !important; /* Parlak Mavi */ 
+}
+button[onclick*="createNewGame"].puzzle { 
+    background-color: #1a252f !important; /* Çok Koyu Lacivert */ 
+}
+
+
+/* 2. TEK KİŞİLİK OYUNLAR (Teal Tonları) */
+/* "startSinglePlayerGame" çağıran tüm butonlar */
+button[onclick*="startSinglePlayerGame"] {
+    background-color: #008080 !important; /* Teal (Baz) */
+    border: 1px solid rgba(255,255,255,0.1);
+}
+button[onclick*="startSinglePlayerGame"]:hover {
+    background-color: #006666 !important;
+}
+
+/* Alt Mod Renkleri */
+button[onclick*="startSinglePlayerGame"].random { 
+    background-color: #16a085 !important; /* Yeşilimsi Turkuaz */ 
+}
+
+/* ================================================= */
+/* OYUNA KATILMA VE DİĞER BUTONLAR */
+/* ================================================= */
+
+.join-area {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.join-area input {
+    flex: 1;
+    padding: 12px;
+    font-size: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+    border: 2px solid var(--input-border);
+    border-radius: 8px;
+}
+
+.join-area button {
+    flex: 1;
+    white-space: nowrap;
+    background-color: var(--secondary) !important; /* Yeşil */
+    color: white;
+}
+.join-area button:hover {
+    background-color: var(--secondary-hover) !important;
+}
 
 /* ================================================= */
 /* 3. OYUN ALANI (GAME PANEL) STİLLERİ */
@@ -208,7 +374,7 @@ body.dark-mode button:disabled {
     border: 3px solid var(--accent); 
     padding: 5px 25px; 
     border-radius: 8px; 
-    background: var(--bg-panel); /* Değişken */
+    background: var(--bg-panel); 
     min-width: 50px;
     text-align: center;
 }
@@ -216,10 +382,9 @@ body.dark-mode button:disabled {
 /* Grid Konteynerleri */
 .grids-container {
     display: flex;
-    justify-content: center; /* Yatayda tam ortala */
-    align-items: center;     /* Dikeyde tam ortala */
-    padding: 10px;           /* İsteğe bağlı: Kenarlardan eşit boşluk bırakmak için */
-    /* Varsa mevcut padding ve margin değerlerini gözden geçirin */
+    justify-content: center; 
+    align-items: center;     
+    padding: 10px;           
 }
 
 .grid-box {
@@ -228,25 +393,16 @@ body.dark-mode button:disabled {
     align-items: center;
 }
 
-/* 1. Kapsayıcı (Gri Kutu) */
+/* Grid Yapısı */
 .grid {
-    /* 'grid' yerine 'inline-grid' kullanıyoruz. 
-       Bu özellik, kutunun içeriği (hücreler) kadar küçülmesini ve 
-       tam olarak onları sarmasını sağlar. */
     display: inline-grid; 
-    
     grid-template-columns: repeat(5, 50px);
     grid-template-rows: repeat(5, 50px);
-    
-    gap: 4px;    /* Hücreler arası boşluk */
-    padding: 4px; /* Dış çerçeve boşluğu (Gri alan) */
-    
+    gap: 4px;   
+    padding: 4px; 
     background-color: var(--grid-bg);
     border-radius: 6px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    
-    /* Gereksiz kodları sildik (width, height, justify-content vb.) */
-    /* Sadece dış ortalama kalsın */
     margin: 0 auto;
 }
 
@@ -256,7 +412,7 @@ body.dark-mode button:disabled {
     width: 50px;
     height: 50px;
     box-sizing: border-box;
-    background-color: var(--cell-bg); /* Değişken */
+    background-color: var(--cell-bg);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -265,11 +421,10 @@ body.dark-mode button:disabled {
     cursor: default;
     border-radius: 3px;
     font-family: Tahoma, Arial, sans-serif;
-    color: var(--text-main);          /* Değişken */
+    color: var(--text-main);          
     transition: 0.1s;
-    border: 1px solid transparent; /* Border yeri hazır olsun */
+    border: 1px solid transparent;
 }
-/* Dark modda hücre sınırları belli olsun diye */
 body.dark-mode .cell {
     border: 1px solid var(--cell-border);
 }
@@ -279,10 +434,10 @@ body.dark-mode .cell {
     cursor: pointer;
     background-color: #e8f8f5; 
     border: 2px solid var(--secondary);
-    color: #333; /* Tıklanabilir alan her zaman okunabilir olsun */
+    color: #333; 
 }
 body.dark-mode .clickable {
-    background-color: #2c3e50; /* Dark modda tıklanabilir renk */
+    background-color: #2c3e50; 
     color: #fff;
     border-color: #2ecc71;
 }
@@ -293,6 +448,111 @@ body.dark-mode .clickable {
 }
 body.dark-mode .clickable:hover {
     background-color: #34495e;
+}
+
+/* Seçili (Onay Bekleyen) Hücre Stili */
+.cell.selected-draft {
+    background-color: #f1c40f !important;
+    color: #333 !important;
+    border: 1px solid transparent !important;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+}
+
+/* Aktif Sıra */
+.active-turn {
+    box-shadow: none !important;           
+    border: 0px solid #2ecc71 !important;  
+    opacity: 1 !important;
+    cursor: pointer;
+    transform: none !important;            
+}
+
+/* Pasif Sıra */
+.waiting-turn {
+    border: 1px solid transparent !important;
+    opacity: 0.6 !important;
+    filter: grayscale(60%);
+    pointer-events: none;
+    transform: scale(1.00);
+    transition: all 0.3s ease-in-out;
+}
+
+/* ================================================= */
+/* PUZZLE MODU HAVUZ ALANI */
+/* ================================================= */
+
+#poolSection {
+    margin-top: 25px;
+    width: 100%;
+    max-width: 400px;
+    animation: fadeIn 0.4s ease;
+}
+
+.pool-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.pool-container {
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 6px;
+    background-color: var(--pool-bg);
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid var(--input-border);
+    min-height: 80px;
+}
+
+.pool-tile {
+    width: 40px;
+    height: 40px;
+    background-color: var(--cell-bg);
+    border: 1px solid var(--cell-border);
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--text-main);
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+@media (max-width: 380px) {
+    .pool-tile {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+    }
+}
+
+.tile-selected {
+    background-color: var(--puzzle-color) !important;
+    color: white !important;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px var(--puzzle-color);
+    border-color: transparent !important;
+    z-index: 10;
+}
+
+.puzzle-confirm {
+    margin-top: 15px;
+    background-color: var(--secondary);
+    width: 100%;
+}
+.puzzle-confirm:disabled {
+    background-color: #bdc3c7;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 /* ================================================= */
@@ -321,7 +581,7 @@ body.dark-mode .clickable:hover {
 }
 
 .result-card {
-    background: var(--bg-secondary); /* Değişken */
+    background: var(--bg-secondary); 
     border: 1px solid var(--input-border);
     border-radius: 12px;
     padding: 20px;
@@ -375,7 +635,7 @@ body.dark-mode .clickable:hover {
     grid-template-rows: repeat(6, 1fr);
     gap: 3px !important;
     padding: 5px !important;
-    background-color: var(--grid-bg) !important; /* Değişken */
+    background-color: var(--grid-bg) !important;
 }
 
 .mini-grid .cell {
@@ -386,8 +646,8 @@ body.dark-mode .clickable:hover {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    background: var(--cell-bg); /* Değişken */
-    color: var(--text-main);    /* Değişken */
+    background: var(--cell-bg); 
+    color: var(--text-main);    
     border: 1px solid var(--cell-border);
 }
 
@@ -395,7 +655,7 @@ body.dark-mode .clickable:hover {
     flex: 1;
     height: 220px;
     overflow-y: auto;
-    background: var(--cell-bg); /* Değişken */
+    background: var(--cell-bg); 
     border: 1px solid var(--input-border);
     border-radius: 8px;
     padding: 10px;
@@ -411,7 +671,7 @@ body.dark-mode .clickable:hover {
     padding-bottom: 5px;
     position: sticky;
     top: 0;
-    background: var(--cell-bg); /* Kaydırma sırasında arka plan */
+    background: var(--cell-bg); 
 }
 
 .word-list {
@@ -428,11 +688,10 @@ body.dark-mode .clickable:hover {
     padding: 3px 8px;
     border-radius: 12px;
     font-weight: 600;
-    background-color: var(--grid-bg); /* Koyu tema için uyumlu */
+    background-color: var(--grid-bg); 
     color: var(--text-main);
 }
 
-/* MOBİL UYUMLULUK */
 @media (max-width: 768px) {
     .card-body {
         flex-direction: column;
@@ -451,159 +710,33 @@ body.dark-mode .clickable:hover {
     }
 }
 
-/* Seçili (Onay Bekleyen) Hücre Stili */
-.cell.selected-draft {
-    background-color: #f1c40f !important;
-    color: #333 !important;
-    border: 1px solid transparent !important;
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-}
-
-/* Lobi Kontrol Kutusu */
-.lobby-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-}
-
-.lobby-divider {
-    color: #aaa;
-    font-size: 0.9rem;
-    font-weight: bold;
-    margin: 10px 0;
-    letter-spacing: 1px;
-}
-
-.lobby-controls button, 
-.lobby-controls select {
-    width: auto;
-    padding: 12px;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
-
-.join-area {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-}
-
-.join-area input {
-    flex: 1;
-    padding: 12px;
-    font-size: 1rem;
-    text-align: center;
-    text-transform: uppercase;
-    border: 2px solid var(--input-border);
-    border-radius: 8px;
-}
-
-.join-area button {
-    flex: 1;
-    white-space: nowrap;
-}
-
 /* ========================================= */
-/* BUTON RENKLENDİRMELERİ */
+/* DİĞER (JOKER, TABELA, MODAL, İSTATİSTİK) */
 /* ========================================= */
-
-#createGameBtn {
-    background-color: var(--primary);
-    color: white;
-}
-#createGameBtn:hover { background-color: var(--primary-hover); }
-
-#joinGameBtn {
-    background-color: var(--secondary);
-    color: white;
-}
-#joinGameBtn:hover { background-color: var(--secondary-hover); }
-
-#singlePlayerBtn {
-    background-color: var(--purple);
-    color: white;
-}
-#singlePlayerBtn:hover { filter: brightness(1.1); }
 
 #opponentSection { display: none !important; }
 
-/* GENEL SONUÇ GRIDİ STİLİ */
-.final-grid .cell {
-    background-color: var(--cell-bg);
-    border: 1px solid var(--cell-border);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.2em;
-    font-weight: 500;
-}
-
-.final-grid .score-cell-row, 
-.final-grid .score-cell-col {
-    background-color: transparent !important;
-    border: none;
-    font-weight: bold;
-    font-size: 1.3em;
-    color: var(--text-main);
-}
-
-/* ================================================= */
-/* RENK KODLAMASI (Puanlar) */
-/* ================================================= */
-
+/* Renk Kodlaması */
 .score-15, .score-9, .score-7, .score-5, .score-4, .score-2, .score-1, .score-0 {
-    color: #333 !important; /* Puanların içi her zaman koyu yazı olsun (arkaplan renkli olduğu için) */
+    color: #333 !important;
     font-weight: bold;
 }
-
 .score-15 { background-color: #34c5db !important; }
 .score-9 { background-color: #21d96f !important; }
 .score-7 { background-color: #9b59b6 !important; }
 .score-5 { background-color: #e67e22 !important; }
 .score-4 { background-color: #f1d70f !important; }
 .score-2 { background-color: #d768d9 !important; }
-
 .mini-grid .score-0, .final-grid .score-0 {
     background-color: #abb0b3 !important;
     color: #333 !important;
 }
-
 .final-grid .empty-corner {
     background-color: transparent;
     border: none;
 }
 
-/* ================================================= */
-/* 4. OYUN DURUMU VE GRID EFEKTLERİ */
-/* ================================================= */
-
-.active-turn {
-    box-shadow: none !important;           /* Glow/Parlamayı iptal et */
-    border: 0px solid #2ecc71 !important;  /* Net, kalın yeşil çerçeve */
-    opacity: 1 !important;
-    cursor: pointer;
-    transform: none !important;            /* Büyüme/küçülme efektini de kapattım, sabit dursun */
-}
-
-.waiting-turn {
-    border: 1px solid transparent !important;
-    opacity: 0.6 !important;
-    filter: grayscale(60%);
-    pointer-events: none;
-    transform: scale(1.00);
-    transition: all 0.3s ease-in-out;
-}
-
+/* Durum Tabelası */
 .status-badge {
     padding: 10px 25px;
     border-radius: 30px;
@@ -615,42 +748,20 @@ body.dark-mode .clickable:hover {
     text-transform: uppercase;
     letter-spacing: 1px;
     animation: fadeIn 0.5s ease;
-
-    /* KRİTİK DÜZELTME: Varsayılan Renkler */
-    color: white !important;       /* Yazı her modda BEYAZ olsun */
-    background-color: #95a5a6;     /* Varsayılan GRİ arka plan (Sınıf gelmezse bu görünür) */
+    color: white !important;       
+    background-color: #95a5a6;     
 }
 
-.badge-warning { 
-    background-color: #f39c12 !important; /* Turuncu */
-    color: white !important;
-} 
-.badge-info { 
-    background-color: #3498db !important; /* Mavi */
-    color: white !important;
-} 
-.badge-neutral { 
-    background-color: #95a5a6 !important; /* Gri */
-    color: white !important;
-}
-.badge-danger { 
-    background-color: #e74c3c !important; /* Kırmızı */
-    color: white !important;
-}
+.badge-warning { background-color: #f39c12 !important; color: white !important; } 
+.badge-info { background-color: #3498db !important; color: white !important; } 
+.badge-neutral { background-color: #95a5a6 !important; color: white !important; }
+.badge-danger { background-color: #e74c3c !important; color: white !important; }
+.badge-success { background-color: #2ecc71 !important; }
 
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* ================================================= */
-/* 5. DİĞER DÜZENLEMELER */
-/* ================================================= */
 
 #gameStatusMsg, #myPlayerRole, #turnIndicator { display: none !important; }
 
@@ -683,8 +794,6 @@ button:focus, .cell:focus, input:focus {
     padding: 5px;
 }
 
-/* JOKER KLAVYE TUŞLARI */
-/* Eski kodda butonlar için stiller yoktu, buraya ekledik */
 .joker-key, .alpha-btn {
     width: 30px;
     height: 30px;
@@ -709,7 +818,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     border-color: var(--primary) !important;
 }
 
-/* Modal Stilleri */
+/* Modallar ve İstatistik */
 .modal {
     position: fixed;
     z-index: 2000;
@@ -724,8 +833,8 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 
 .modal-content {
-    background-color: var(--bg-panel); /* Değişken */
-    color: var(--text-main);           /* Değişken */
+    background-color: var(--bg-panel);
+    color: var(--text-main);
     padding: 25px;
     border-radius: 15px;
     width: 90%;
@@ -749,7 +858,6 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 .close-modal:hover { color: var(--danger); }
 
-/* İstatistik ve Liderlik Tablosu */
 .stats-container {
     display: flex;
     flex-wrap: wrap;
@@ -765,7 +873,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     justify-content: center;
     width: 80px;
     padding: 10px;
-    background-color: var(--bg-secondary); /* Değişken */
+    background-color: var(--bg-secondary);
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
@@ -810,12 +918,10 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     color: var(--text-main);
 }
 
-/* Liderlik Renkleri */
 .leaderboard-table tr:nth-child(1) td:first-child { color: #f1c40f; font-weight: bold; }
 .leaderboard-table tr:nth-child(2) td:first-child { color: #95a5a6; font-weight: bold; }
 .leaderboard-table tr:nth-child(3) td:first-child { color: #d35400; font-weight: bold; }
 
-/* JOKER KLAVYESİ (RESPONSIVE DÜZELTME) */
 .random-letter-box.expanded {
     width: 100%;
     max-width: 400px;
@@ -830,247 +936,33 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     margin: 0 auto 15px auto;
 }
 .joker-title {
-    font-size:
-
-/* --- TABELA RENKLERİ (Bunu style.css'e ekle) --- */
-
-/* Bu sınıflar JS tarafından duruma göre eklenir */
-.badge-success { 
-    background-color: #2ecc71 !important; /* Yeşil */
-} 
-.badge-warning { 
-    background-color: #f39c12 !important; /* Turuncu */
-} 
-.badge-info { 
-    background-color: #3498db !important; /* Mavi */
-} 
-.badge-neutral { 
-    background-color: #95a5a6 !important; /* Gri */
-}
-.badge-danger { 
-    background-color: #e74c3c !important; /* Kırmızı */
-}
-
-/* Varsayılan olarak gizlemek için */
-.hidden {
-    display: none !important;
-}
-
-/* ================================================= */
-/* YENİ LOBİ DÜZENİ */
-/* ================================================= */
-
-.group-title {
-    font-size: 0.9rem;
-    color: #666; /* var(--text-muted) yerine garanti renk */
-    font-weight: bold;
-    margin: 5px 0 10px 0;
-    text-align: left;
-    width: 100%;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-}
-
-.mode-buttons {
-    display: flex !important;       /* Zorla Flex yap */
-    flex-direction: row !important; /* Zorla YATAY hizala */
-    justify-content: space-between;
-    gap: 10px;
-    width: 100%;
-}
-
-.btn-mode {
-    /* KRİTİK DÜZELTME: width: 100% kuralını eziyoruz */
-    width: auto !important; 
-    flex: 1 !important;  /* Alanı eşit paylaşsınlar */
-    
-    display: flex;
-    flex-direction: column; /* İkon üstte, yazı altta */
-    align-items: center;
-    justify-content: center;
-    
-    padding: 10px 5px;
-    height: 85px;        /* Yükseklik standardı */
-    
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: transform 0.2s, filter 0.2s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    
-    /* Yazı rengi ve stili */
-    color: white !important;
-    font-family: inherit;
-}
-
-.btn-mode:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-.btn-mode:active {
-    transform: scale(0.95);
-}
-
-.mode-icon {
-    font-size: 2rem;
-    line-height: 1;
-    margin-bottom: 8px; /* Yazı ile ikon arası boşluk */
-    display: block;
-}
-
-/* Yazı Stili */
-.mode-name {
-    font-size: 0.8rem; /* Mobilde taşmasın diye biraz küçülttük */
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-    text-align: center;
-}
-
-/* ================================================= */
-/* PUZZLE MODU HAVUZ ALANI */
-/* ================================================= */
-
-#poolSection {
-    margin-top: 25px;
-    width: 100%;
-    max-width: 400px;
-    animation: fadeIn 0.4s ease;
-}
-
-.pool-label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-    font-weight: bold;
-    text-align: center;
-}
-
-/* Havuz Kutusu */
-.pool-container {
-    display: flex;
-    flex-wrap: wrap; /* Harfler sığmazsa alt satıra geçsin */
-    justify-content: center;
-    gap: 6px;
-    background-color: var(--pool-bg);
-    padding: 10px;
-    border-radius: 12px;
-    border: 2px solid var(--input-border);
-    min-height: 80px; /* İçi boşken bile bir alanı olsun */
-}
-
-/* Havuzdaki Harf (Tile) */
-.pool-tile {
-    width: 40px;
-    height: 40px;
-    background-color: var(--cell-bg);
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.2rem;
+    font-size: 14px;
     font-weight: bold;
     color: var(--text-main);
-    cursor: pointer;
-    user-select: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: transform 0.2s, background-color 0.2s;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+.joker-keyboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
 }
 
-/* Mobilde harfler biraz daha küçük olabilir sığması için */
-@media (max-width: 380px) {
-    .pool-tile {
-        width: 35px;
+@media (max-width: 600px) {
+    .random-letter-box.expanded {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95%;
+        max-width: 95%;
+        border: 2px solid var(--secondary);
+    }
+    
+    .joker-key {
+        width: 11%;
         height: 35px;
-        font-size: 1rem;
+        font-size: 16px;
     }
 }
-
-/* Seçili Harf Efekti (Hem Grid hem Havuz için ortak kullanılabilir) */
-.tile-selected {
-    background-color: var(--puzzle-color) !important;
-    color: white !important;
-    transform: scale(1.1);
-    box-shadow: 0 0 10px var(--puzzle-color);
-    border-color: transparent !important;
-    z-index: 10;
-}
-
-/* Onay Butonu (Puzzle Özel) */
-.puzzle-confirm {
-    margin-top: 15px;
-    background-color: var(--secondary);
-    width: 100%;
-}
-.puzzle-confirm:disabled {
-    background-color: #bdc3c7;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-/* ================================================= */
-/* MOD BUTON RENKLERİ (KESİN ÇÖZÜM) */
-/* ================================================= */
-
-/* 1. ÇİFT KİŞİLİK OYUN BUTONLARI (Mavi - Lacivert) */
-/* "createNewGame" fonksiyonunu çağıran tüm butonları yakalar */
-button[onclick*="createNewGame"] {
-    background-color: #2c3e50 !important; /* Koyu Lacivert */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-button[onclick*="createNewGame"]:hover {
-    background-color: #34495e !important; /* Açık Lacivert */
-}
-
-/* Çift Kişilik Özel Renkler */
-button[onclick*="createNewGame"].classic { 
-    background-color: #2980b9 !important; /* Parlak Mavi */ 
-}
-button[onclick*="createNewGame"].puzzle { 
-    background-color: #1a252f !important; /* Daha Koyu Lacivert */ 
-}
-
-
-/* 2. TEK KİŞİLİK OYUN BUTONLARI (Teal - Turkuaz) */
-/* "startSinglePlayerGame" fonksiyonunu çağıran tüm butonları yakalar */
-button[onclick*="startSinglePlayerGame"] {
-    background-color: #008080 !important; /* Teal */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-button[onclick*="startSinglePlayerGame"]:hover {
-    background-color: #006666 !important; /* Koyu Teal */
-}
-
-/* Tek Kişilik Özel Renkler */
-button[onclick*="startSinglePlayerGame"].random { 
-    background-color: #16a085 !important; /* Yeşilimsi Turkuaz */ 
-}
-
-
-/* 3. ORTAK AYARLAR (Yazı ve İkon Rengi) */
-.btn-mode .mode-icon, 
-.btn-mode .mode-name {
-    color: #ffffff !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
