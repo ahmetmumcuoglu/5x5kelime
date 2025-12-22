@@ -862,76 +862,90 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 
 .group-title {
     font-size: 0.9rem;
-    color: var(--text-muted);
+    color: #666; /* var(--text-muted) yerine garanti renk */
     font-weight: bold;
-    margin: 5px 0 10px 0; /* Alt boşluğu biraz artırdık */
+    margin: 5px 0 10px 0;
     text-align: left;
     width: 100%;
-    border-bottom: 1px solid var(--input-border);
+    border-bottom: 1px solid #ddd;
     padding-bottom: 5px;
 }
 
 .mode-buttons {
-    display: flex;       /* Yan yana dizilimi sağlar */
-    flex-direction: row; /* Yatayda hizalar */
-    justify-content: center; /* Ortalar */
-    gap: 10px;           /* Butonlar arası boşluk */
+    display: flex !important;       /* Zorla Flex yap */
+    flex-direction: row !important; /* Zorla YATAY hizala */
+    justify-content: space-between;
+    gap: 10px;
     width: 100%;
 }
 
 .btn-mode {
-    flex: 1;             /* Mevcut alanı eşit paylaşsınlar */
-    display: flex;       /* İçerik hizalaması için flex */
-    flex-direction: column; /* İkonu üste, yazıyı alta alır */
-    align-items: center;    /* Yatayda ortalar */
-    justify-content: center;/* Dikeyde ortalar */
+    /* KRİTİK DÜZELTME: width: 100% kuralını eziyoruz */
+    width: auto !important; 
+    flex: 1 !important;  /* Alanı eşit paylaşsınlar */
     
-    padding: 15px 5px;   /* İç boşluk */
-    height: 90px;        /* Butonları biraz kare/dikdörtgen yapar */
+    display: flex;
+    flex-direction: column; /* İkon üstte, yazı altta */
+    align-items: center;
+    justify-content: center;
+    
+    padding: 10px 5px;
+    height: 85px;        /* Yükseklik standardı */
     
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* Hafif gölge */
+    transition: transform 0.2s, filter 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     
-    /* Yazı rengini garantiye alalım */
-    color: white !important; 
+    /* Yazı rengi ve stili */
+    color: white !important;
+    font-family: inherit;
 }
 
-.btn-mode:active { transform: scale(0.95); }
-.btn-mode:hover { 
-    filter: brightness(1.1); 
-    transform: translateY(-3px); /* Hafif yukarı kalksın */
-    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+.btn-mode:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.btn-mode:active {
+    transform: scale(0.95);
 }
 
 .mode-icon {
-    font-size: 2rem;     /* İkon boyutu */
-    margin-bottom: 5px;  /* Yazı ile arası boşluk */
+    font-size: 2rem;
     line-height: 1;
+    margin-bottom: 8px; /* Yazı ile ikon arası boşluk */
+    display: block;
 }
 
 /* Yazı Stili */
 .mode-name {
-    font-size: 0.85rem;
-    font-weight: bold;
+    font-size: 0.8rem; /* Mobilde taşmasın diye biraz küçülttük */
+    font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    line-height: 1.2;
+    text-align: center;
 }
 
 /* --- BUTON RENKLERİ --- */
-.btn-mode.classic { 
-    background-color: var(--primary); /* Mavi */
-    /* Değişken tanımlı değilse: #3498db */
-}  
-.btn-mode.random  { 
-    background-color: var(--accent);  /* Turuncu */
-    /* Değişken tanımlı değilse: #e67e22 */
-}   
-.btn-mode.puzzle  { 
-    background-color: var(--puzzle-color); /* Pembe */
-    /* Değişken tanımlı değilse: #e84393 */
+.btn-mode.classic {
+    background-color: #3498db !important; /* Mavi */
+}
+
+.btn-mode.random {
+    background-color: #e67e22 !important; /* Turuncu */
+}
+
+.btn-mode.puzzle {
+    background-color: #e84393 !important; /* Pembe */
+}
+
+/* Eğer Dark Mode'da Puzzle rengi çok cırtlaksa */
+body.dark-mode .btn-mode.puzzle {
+    background-color: #fd79a8 !important;
 }
 
 /* ================================================= */
@@ -1015,6 +1029,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     cursor: not-allowed;
     opacity: 0.6;
 }
+
 
 
 
