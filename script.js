@@ -9470,9 +9470,9 @@ function listenToGame() {
                                     confirmBtn.textContent = "BİR HARF SEÇİNİZ";
                                 }
                             }
-                            updateUIState("Sıra Sizde: Harf Seçin", "your-turn", false);
+                            updateUIState("Sıra Sizde: Harf Seç", "your-turn", false);
                         } else {
-                            updateUIState("Rakip Harf Seçiyor...", "opponent-turn", false);
+                            updateUIState("Rakip Harf Seçiyor", "opponent-turn", false);
                         }
                     } else {
                         // YERLEŞTİRME AŞAMASI
@@ -9488,7 +9488,7 @@ function listenToGame() {
                         if (!myMoveDone) {
                             updateUIState(`"${data.currentLetter}" Harfini Yerleştir`, "your-turn", true);
                         } else {
-                            updateUIState("Rakip Yerleştiriyor...", "opponent-turn", false);
+                            updateUIState("Rakip Yerleştiriyor", "opponent-turn", false);
                         }
                     }
                 }
@@ -10439,6 +10439,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
 
 
