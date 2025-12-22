@@ -23,37 +23,54 @@
         
         <div class="lobby-controls">
             
-            <div class="control-group">
-                <p class="group-title">İKİ KİŞİLİK OYUN KUR</p>
-                <div class="mode-buttons">
-                    <button class="btn-mode classic" onclick="createNewGame('CLASSIC')">KLASİK</button>
-                    <button class="btn-mode random" onclick="createNewGame('RANDOM')">RANDOM</button>
-                    <button class="btn-mode puzzle" onclick="createNewGame('PUZZLE')">PUZZLE 🧩</button>
-                </div>
-            </div>
-
-            <div class="lobby-divider">- VEYA -</div>
+    <div class="control-group">
+        <p class="group-title">İKİ KİŞİLİK OYUN KUR</p>
+        <div class="mode-buttons">
+            <button class="btn-mode classic" onclick="createNewGame('CLASSIC')">
+                <span class="mode-icon">🅰️</span>
+                <span class="mode-name">KLASİK</span>
+            </button>
             
-            <div class="control-group">
-                <p class="group-title">OYUNA KATIL</p>
-                <div class="join-area">
-                    <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
-                    <button id="joinGameBtn" onclick="joinGame()">GİRİŞ YAP</button>
-                </div>
-            </div>
+            <button class="btn-mode random" onclick="createNewGame('RANDOM')">
+                <span class="mode-icon">🎲</span>
+                <span class="mode-name">RASTGELE</span>
+            </button>
             
-            <div class="lobby-divider">- VEYA -</div>
-            
-            <div class="control-group">
-                <p class="group-title">TEK BAŞINA OYNA</p>
-                <div class="mode-buttons">
-                    <button class="btn-mode random" onclick="startSinglePlayerGame('RANDOM')">RANDOM</button>
-                    <button class="btn-mode puzzle" onclick="startSinglePlayerGame('PUZZLE')">PUZZLE 🧩</button>
-                </div>
-            </div>
-
+            <button class="btn-mode puzzle" onclick="createNewGame('PUZZLE')">
+                <span class="mode-icon">🧩</span>
+                <span class="mode-name">PUZZLE</span>
+            </button>
         </div>
+    </div>
 
+    <div class="lobby-divider">- VEYA -</div>
+    
+    <div class="control-group">
+        <p class="group-title">OYUNA KATIL</p>
+        <div class="join-area">
+            <input type="text" id="gameCodeInput" placeholder="ODA KODU" maxlength="4">
+            <button id="joinGameBtn" onclick="joinGame()">GİRİŞ YAP</button>
+        </div>
+    </div>
+    
+    <div class="lobby-divider">- VEYA -</div>
+    
+    <div class="control-group">
+        <p class="group-title">TEK BAŞINA OYNA</p>
+        <div class="mode-buttons">
+            <button class="btn-mode random" onclick="startSinglePlayerGame('RANDOM')">
+                <span class="mode-icon">🎲</span>
+                <span class="mode-name">RASTGELE</span>
+            </button>
+            
+            <button class="btn-mode puzzle" onclick="startSinglePlayerGame('PUZZLE')">
+                <span class="mode-icon">🧩</span>
+                <span class="mode-name">PUZZLE</span>
+            </button>
+        </div>
+    </div>
+
+</div>
         <div id="lobbyStatus" class="status-error"></div>
     </div>
         
@@ -212,6 +229,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
