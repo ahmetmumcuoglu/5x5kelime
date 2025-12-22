@@ -9079,40 +9079,38 @@ const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
 const randomLetterDisplay = document.getElementById('randomLetterDisplay');
 
 // ==========================================
-// YENİ OYUN KURMA (DÜZELTİLMİŞ)
+// YENİ OYUN KURMA (GÜNCELLENMİŞ VE PARAMETRELİ)
 // ==========================================
 
-async function createNewGame() {
+async function createNewGame(mode) { // 'mode' parametresini dışarıdan (butondan) alıyoruz
     // 1. Oyun Kodunu Üret ve Oyuncu Rolünü Belirle
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
-    // 2. Mod Seçimini Al
-    const gameModeSelect = document.getElementById('gameModeSelect');
-    // HTML'de value="CLASSIC" demiştik, o yüzden varsayılanı CLASSIC yapıyoruz
-    const selectedMode = gameModeSelect ? gameModeSelect.value : 'CLASSIC'; 
+    // 2. Mod Belirleme (Butondan gelen değeri kullan, yoksa varsayılan CLASSIC)
+    const selectedMode = mode ? mode.toUpperCase() : 'CLASSIC'; 
     
     let sequence = null;
     let initialLetter = null;
 
-    document.getElementById('lobbyStatus').textContent = "Oyun kuruluyor...";
+    document.getElementById('lobbyStatus').textContent = `${selectedMode} oyun kuruluyor...`;
 
-    // 3. Rastgele Mod İçin Harf Dizisini Oluştur
-    if (selectedMode === 'RANDOM') {
+    // 3. Rastgele Mod (veya Puzzle) İçin Harf Dizisini Oluştur
+    // Buraya 'RANDOM' yanına 'PUZZLE' da eklenebilir
+    if (selectedMode === 'RANDOM' || selectedMode === 'PUZZLE') {
         try {
             sequence = generateGameSequence(); 
             
-            // DÜZELTME 1: Uzunluk kontrolünü esnettik (24'ten büyükse sorun yok)
             if (!sequence || sequence.length < 24) {
-                 throw new Error("Rastgele harf dizisi yetersiz.");
+                 throw new Error("Harf dizisi üretilemedi.");
             }
             
+            // Random modda ilk harf hemen belirlenir
             initialLetter = sequence[0]; 
             
         } catch (e) {
             document.getElementById('lobbyStatus').textContent = `HATA: ${e.message}`;
-            console.error("Harf Hatası:", e);
             currentGameId = null; 
             return; 
         }
@@ -9124,10 +9122,10 @@ async function createNewGame() {
             status: 'waiting',      
             turnOwner: 'PlayerA',   
             moveNumber: 1,  
-            isSinglePlayer: false, // DÜZELTME 2: Çok oyunculu olduğunu belirtiyoruz
+            isSinglePlayer: false, 
             
-            gameMode: selectedMode, 
-            letterSequence: sequence,     
+            gameMode: selectedMode, // Artık butondan gelen gerçek mod yazılacak
+            letterSequence: sequence,      
             currentLetter: initialLetter, 
             
             gridA: Array(25).fill(''),
@@ -9138,14 +9136,13 @@ async function createNewGame() {
         // 5. Arayüzü Güncelle
         setupGameUI(code);
 
-        // DÜZELTME 3: Tek kişilik oyundan gelindiyse gizlenen alanları geri aç
+        // UI Görünürlük Ayarları
         const oppSection = document.getElementById('opponentSection');
-        if(oppSection) oppSection.style.display = 'block'; // Rakip alanını geri getir
+        if(oppSection) oppSection.style.display = 'block';
 
         const turnIndicator = document.getElementById('turnIndicator');
-        if(turnIndicator) turnIndicator.style.display = 'block'; // Sıra bilgisini geri getir
+        if(turnIndicator) turnIndicator.style.display = 'block';
 
-        // Oda kodunu ve rolü görünür yap (Tek kişilikte gizlemiştik)
         const codeDisplay = document.getElementById('gameCodeDisplay');
         if (codeDisplay && codeDisplay.parentElement) codeDisplay.parentElement.style.display = 'block';
         
@@ -9156,7 +9153,7 @@ async function createNewGame() {
         listenToGame();
 
     } catch (error) {
-        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı! Hata oluştu.";
+        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı!";
         console.error("Firebase Yazma Hatası:", error);
         currentGameId = null; 
     }
@@ -10442,4 +10439,5 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
