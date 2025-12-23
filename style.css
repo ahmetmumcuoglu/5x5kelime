@@ -974,4 +974,133 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     color: white !important;
 }
 
+/* ========================================== */
+/* PUZZLE MODU STİLLERİ */
+/* ========================================== */
+
+/* 1. Puzzle Alanı Genel Yapısı */
+#puzzleArea {
+    width: 100%;
+    max-width: 400px; /* Grid ile aynı genişlikte tutuyoruz */
+    margin: 20px auto; /* Ortala */
+    padding: 0 5px;
+    box-sizing: border-box;
+}
+
+/* 2. Kontrol Butonları Kutusu */
+.puzzle-controls {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+/* 3. Butonların Genel Stili */
+.puzzle-btn {
+    flex: 1; /* Eşit genişlik */
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+/* Karıştır Butonu (Mavi/Gri tonlar) */
+.btn-shuffle {
+    background-color: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+}
+.btn-shuffle:active {
+    background-color: #e0e0e0;
+    transform: scale(0.98);
+}
+
+/* Onayla Butonu (Pasif ve Aktif Durumlar) */
+.btn-confirm {
+    background-color: #ccc; /* Varsayılan: Pasif Gri */
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* Onayla Butonu Aktif Olduğunda (JS ile eklenecek sınıf) */
+.btn-confirm.ready {
+    background-color: #28a745 !important; /* Yeşil */
+    color: white !important;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+.btn-confirm.ready:active {
+    background-color: #218838;
+    transform: scale(0.98);
+}
+
+/* 4. Harf Havuzu (Pool) */
+.pool-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+    gap: 8px; /* Harfler arası boşluk */
+    
+    background-color: #f9f9f9;
+    border: 2px dashed #bbb; /* İçine bırakılabilir hissi veren kesik çizgi */
+    border-radius: 12px;
+    padding: 15px;
+    min-height: 120px; /* İçi boşalsa bile alan çökmesin */
+    transition: background-color 0.3s;
+}
+
+/* Bir harf havuzun üzerine gelince rengi değişsin (Drag Over) */
+.pool-container.drag-over {
+    background-color: #e8f0fe;
+    border-color: #2196F3;
+}
+
+/* 5. Sürüklenebilir Harf Kutusu */
+.pool-letter {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background-color: white;
+    color: #333;
+    border: 2px solid #444;
+    border-radius: 8px;
+    
+    font-size: 18px;
+    font-weight: 800;
+    user-select: none; /* Metin seçimini engelle */
+    cursor: grab; /* Açık el ikonu */
+    touch-action: none; /* Mobilde kaydırmayı engelle, sürüklemeye izin ver */
+    
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.1s;
+}
+
+/* Harfi tuttuğumuz an (Active/Dragging) */
+.pool-letter:active {
+    cursor: grabbing; /* Kapalı el ikonu */
+    transform: scale(1.1);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 100;
+}
+
+/* Sürüklenen harfin hayalet görüntüsü (Opsiyonel sınıf) */
+.pool-letter.dragging {
+    opacity: 0.5;
+}
+
+/* 6. Grid Hücresi Efektleri (Sürükleme Sırasında) */
+/* Griddeki bir hücrenin üzerine harfle gelince */
+.cell.drag-over {
+    background-color: #d4edda !important; /* Açık yeşil vurgu */
+    border: 2px solid #28a745 !important;
+    transform: scale(1.05);
+}
 
