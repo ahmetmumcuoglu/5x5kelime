@@ -9157,6 +9157,14 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
         console.error("Firebase Yazma Hatası:", error);
         currentGameId = null; 
     }
+
+  const expireAt = new Date();
+expireAt.setHours(expireAt.getHours() + 24); // 24 saat sonra silinsin
+
+await db.collection('games').doc(code).set({
+    // ... diğer veriler,
+    expireAt: expireAt // Silinme tarihi
+});
 }
 // ==========================================
 // OYUNA KATILMA FONKSİYONU (DÜZELTİLMİŞ)
@@ -10441,6 +10449,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
 
 
