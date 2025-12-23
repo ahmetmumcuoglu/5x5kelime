@@ -9079,16 +9079,16 @@ const moveNumberDisplayEl = document.getElementById('moveNumberDisplay');
 const randomLetterDisplay = document.getElementById('randomLetterDisplay');
 
 // ==========================================
-// YENİ OYUN KURMA (GÜNCELLENMİŞ VE PARAMETRELİ)
+// YENİ OYUN KURMA (PUZZLE UYUMLU)
 // ==========================================
 
-async function createNewGame(mode) { // 'mode' parametresini dışarıdan (butondan) alıyoruz
-    // 1. Oyun Kodunu Üret ve Oyuncu Rolünü Belirle
+async function createNewGame(mode) {
+    // 1. Oyun Kodunu Üret
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
-    // 2. Mod Belirleme (Butondan gelen değeri kullan, yoksa varsayılan CLASSIC)
+    // 2. Mod Belirleme
     const selectedMode = mode ? mode.toUpperCase() : 'CLASSIC'; 
     
     let sequence = null;
@@ -9096,22 +9096,14 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
 
     document.getElementById('lobbyStatus').textContent = `${selectedMode} oyun kuruluyor...`;
 
-    // 3. Rastgele Mod (veya Puzzle) İçin Harf Dizisini Oluştur
-    // Buraya 'RANDOM' yanına 'PUZZLE' da eklenebilir
+    // 3. Harf Dizisini Oluştur (Random veya Puzzle için)
     if (selectedMode === 'RANDOM' || selectedMode === 'PUZZLE') {
         try {
             sequence = generateGameSequence(); 
-            
-            if (!sequence || sequence.length < 24) {
-                 throw new Error("Harf dizisi üretilemedi.");
-            }
-            
-            // Random modda ilk harf hemen belirlenir
+            if (!sequence || sequence.length < 24) throw new Error("Harf dizisi üretilemedi.");
             initialLetter = sequence[0]; 
-            
         } catch (e) {
-            document.getElementById('lobbyStatus').textContent = `HATA: ${e.message}`;
-            currentGameId = null; 
+            console.error(e);
             return; 
         }
     }
@@ -9124,7 +9116,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
             moveNumber: 1,  
             isSinglePlayer: false, 
             
-            gameMode: selectedMode, // Artık butondan gelen gerçek mod yazılacak
+            gameMode: selectedMode, // ÖNEMLİ: Seçilen mod doğru kaydediliyor
             letterSequence: sequence,      
             currentLetter: initialLetter, 
             
@@ -9136,7 +9128,13 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
         // 5. Arayüzü Güncelle
         setupGameUI(code);
 
-        // UI Görünürlük Ayarları
+        // --- PUZZLE MODU TETİKLEYİCİSİ (YENİ) ---
+        // Eğer Puzzle ise havuzu hemen doldur
+        if (selectedMode === 'PUZZLE') {
+            initPuzzleMode(sequence);
+        }
+
+        // UI Görünürlük Ayarları (Multiplayer)
         const oppSection = document.getElementById('opponentSection');
         if(oppSection) oppSection.style.display = 'block';
 
@@ -9153,9 +9151,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
         listenToGame();
 
     } catch (error) {
-        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı!";
         console.error("Firebase Yazma Hatası:", error);
-        currentGameId = null; 
     }
 }
 // ==========================================
@@ -9228,77 +9224,74 @@ async function joinGame() {
 }
 
 // ==========================================
-// TEK KİŞİLİK OYUN BAŞLATMA (GÜNCELLENMİŞ)
+// TEK KİŞİLİK OYUN BAŞLATMA (PUZZLE UYUMLU)
 // ==========================================
 
-async function startSinglePlayerGame() {
-    // 1. Rastgele Kod Üret (Yine de bir ID lazım)
+async function startSinglePlayerGame(mode) { // ARTIK MODE PARAMETRESİ ALIYOR
     const code = Math.random().toString(36).substring(2, 6).toUpperCase();
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
-    document.getElementById('lobbyStatus').textContent = "Tek kişilik oyun hazırlanıyor...";
+    // Modu yakala (Yoksa varsayılan Random)
+    const selectedMode = mode ? mode.toUpperCase() : 'RANDOM';
 
-    // 2. Harf Dizisini Oluştur
+    document.getElementById('lobbyStatus').textContent = `Tek kişilik ${selectedMode} hazırlanıyor...`;
+
+    // Harf Dizisini Oluştur
     let sequence = null;
     let initialLetter = null;
     
     try {
-        sequence = generateGameSequence(); // 24 harflik dizi
+        sequence = generateGameSequence(); 
         initialLetter = sequence[0];
     } catch (e) {
-        console.error("Harf dizisi hatası:", e);
+        console.error(e);
         return;
     }
 
-    // 3. Firestore'a Yaz (Rakip beklemeden direkt ACTIVE)
+    // Firestore'a Yaz
     try {
         await db.collection('games').doc(code).set({
-            status: 'active',       // Bekleme yok, direkt başla
-            isSinglePlayer: true,   // TEK KİŞİLİK OLDUĞUNU BELİRTİYORUZ
+            status: 'active',       
+            isSinglePlayer: true,   
             turnOwner: 'PlayerA',
             moveNumber: 1,
             
-            gameMode: 'RANDOM',     // Tek kişilik mod her zaman Random'dır
+            gameMode: selectedMode, // ARTIK 'RANDOM' DEĞİL, SEÇİLEN MOD YAZILIYOR
             letterSequence: sequence,
             currentLetter: initialLetter,
             
             gridA: Array(25).fill(''),
-            gridB: Array(25).fill(''), // Boş kalacak ama hata vermemesi için dursun
+            gridB: Array(25).fill(''), 
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         // Arayüzü Kur
         setupGameUI(code);
         
-        // --- UI TEMİZLİĞİ (TEK KİŞİLİK MODA ÖZEL GİZLEMELER) ---
+        // --- PUZZLE MODU TETİKLEYİCİSİ (YENİ) ---
+        // Eğer Puzzle ise havuzu doldur
+        if (selectedMode === 'PUZZLE') {
+            initPuzzleMode(sequence);
+        }
         
-        // 1. Rakip Alanını (Sağ Taraf) Gizle
+        // Tek Kişilik UI Temizliği
         const opponentSection = document.getElementById('opponentSection');
         if (opponentSection) opponentSection.style.display = 'none';
 
-        // 2. "Sıra Bekleniyor" Yazısını Gizle
         const turnIndicator = document.getElementById('turnIndicator');
         if (turnIndicator) turnIndicator.style.display = 'none';
 
-        // 3. "Oda Kodu" bilgisini gizle (Tek kişilikte gereksiz)
         const codeDisplay = document.getElementById('gameCodeDisplay');
-        if (codeDisplay && codeDisplay.parentElement) {
-            codeDisplay.parentElement.style.display = 'none';
-        }
+        if (codeDisplay && codeDisplay.parentElement) codeDisplay.parentElement.style.display = 'none';
 
-        // 4. "Rolün: Kurucu" bilgisini gizle
         const roleDisplay = document.getElementById('myPlayerRole');
-        if (roleDisplay && roleDisplay.parentElement) {
-            roleDisplay.parentElement.style.display = 'none';
-        }
+        if (roleDisplay && roleDisplay.parentElement) roleDisplay.parentElement.style.display = 'none';
 
-        // Dinlemeyi Başlat
         listenToGame();
 
     } catch (error) {
         console.error("Tek kişilik oyun hatası:", error);
-        document.getElementById('lobbyStatus').textContent = "Oyun başlatılamadı.";
     }
 }
 
@@ -10570,6 +10563,7 @@ function confirmPuzzlePlacement() {
     if (puzzleGridData.filter(c => c !== '').length < 24) return;
     alert("Tebrikler! Dizilim tamamlandı. (Firebase kaydı sonraki adımda yapılacak)");
 }
+
 
 
 
