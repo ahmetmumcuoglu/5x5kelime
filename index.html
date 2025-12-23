@@ -168,37 +168,86 @@
     </div>
 </div>
 
-    <div id="statsModal" class="modal hidden" style="display: none;">
-    <div class="modal-content" style="max-width: 500px;">
-        <span class="close-modal" onclick="window.closeStatsModal()">&times;</span>
-        <h2 style="color:#8e44ad; text-align:center; margin-top:0;">RANDOM MOD İSTATİSTİKLERİ</h2>
+    <div id="statsModal" class="modal hidden">
+    <div class="modal-content stats-card">
         
-        <div class="stats-container">
-            <div class="stat-box" style="width: 120px;">
-                <span id="statLifeTimeAvg" class="stat-number">-</span>
-                <span class="stat-label">Genel Ort.</span>
-            </div>
-            <div class="stat-box" style="width: 120px;">
-                <span id="statLast10Avg" class="stat-number">-</span>
-                <span class="stat-label">Son 10 Ort.</span>
-            </div>
+        <div class="stats-header">
+            <h2>İSTATİSTİKLER</h2>
+            <span class="close-btn" onclick="window.closeStatsModal()">&times;</span>
         </div>
 
-        <div class="leaderboard-section">
-            <h3 style="text-align:center; color:#2c3e50; margin-bottom: 10px;">🏆 BU AYIN LİDERLERİ 🏆</h3>
-            <p style="text-align:center; font-size:0.8rem; color:#7f8c8d; margin-top:-10px;">(En az 10 oyun oynayanlar)</p>
+        <div class="stats-tabs">
+            <button id="tabClassic" class="tab-btn active" onclick="switchStatsTab('CLASSIC')">KLASİK</button>
+            <button id="tabRandom" class="tab-btn" onclick="switchStatsTab('RANDOM')">RASTGELE</button>
+        </div>
+
+        <div class="stats-body">
             
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th width="15%">#</th>
-                        <th width="50%">Oyuncu</th> <th width="35%">Ortalama</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboardBody">
-                    <tr><td colspan="3">Yükleniyor...</td></tr>
-                </tbody>
-            </table>
+            <div class="records-banner">
+                <div class="record-item">
+                    <span>🏆 Genel Rekor:</span>
+                    <strong id="recordAllTime">-</strong>
+                </div>
+                <div class="record-item">
+                    <span>📅 Ayın Zirvesi:</span>
+                    <strong id="recordMonth">-</strong>
+                </div>
+            </div>
+
+            <div class="personal-stats-container">
+                <div class="stat-box">
+                    <h3>GENEL</h3>
+                    <div class="stat-row">
+                        <span>Kazanılan:</span> <strong id="statGenWin">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Ortalama:</span> <strong id="statGenAvg">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>En Yüksek:</span> <strong id="statGenHigh">-</strong>
+                    </div>
+                </div>
+
+                <div class="stat-box highlight-box">
+                    <h3>SON 10 OYUN</h3>
+                    <div class="stat-row">
+                        <span>Kazanılan:</span> <strong id="statL10Win">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>Ortalama:</span> <strong id="statL10Avg">-</strong>
+                    </div>
+                    <div class="stat-row">
+                        <span>En Yüksek:</span> <strong id="statL10High">-</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="leaderboard-section">
+                <div class="lb-header">
+                    <h4>AYIN LİDERLERİ <span id="totalPlayerCount" style="font-size:0.8rem; font-weight:normal;">(0 Oyuncu)</span></h4>
+                    <span style="font-size:0.7rem; color:#999;">*Min 10 oyun</span>
+                </div>
+                
+                <table class="lb-table">
+                    <thead>
+                        <tr>
+                            <th width="15%">#</th>
+                            <th width="55%">Oyuncu</th>
+                            <th width="30%">Ort.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr><td colspan="3" style="text-align:center;">Yükleniyor...</td></tr>
+                    </tbody>
+                </table>
+
+                <div id="myRankFooter" class="my-rank-footer hidden">
+                    <span id="myRankPos" class="rank">-</span>
+                    <span class="name">SİZ</span>
+                    <span id="myRankScore" class="score">-</span>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -206,4 +255,5 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
