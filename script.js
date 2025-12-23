@@ -50,284 +50,175 @@ window.addEventListener('load', () => {
 });
 
 // ==========================================
-// GÜNCELLENMİŞ İSTATİSTİK SİSTEMİ (MOD DESTEKLİ)
+// YENİ İSTATİSTİK VE SIRALAMA SİSTEMİ
 // ==========================================
 
-// Global Mod Değişkeni (Hangi sekmedeyiz?)
-let currentStatsMode = 'CLASSIC'; 
-let myStatsId = localStorage.getItem('kelimelik_user_id');
-
-// Eğer ID yoksa oluştur
-if (!myStatsId) {
-    myStatsId = 'user_' + Math.random().toString(36).substr(2, 8);
-    localStorage.setItem('kelimelik_user_id', myStatsId);
+// 1. Kullanıcı ID'si Al
+function getMyStatsId() {
+    let id = localStorage.getItem('kelimelik_user_id');
+    if (!id) {
+        id = 'user_' + Math.random().toString(36).substr(2, 6);
+        localStorage.setItem('kelimelik_user_id', id);
+    }
+    return id;
 }
 
-// --------------------------------------------------------
-// 1. İSTATİSTİK GÜNCELLEME (OYUN BİTİNCE ÇAĞRILACAK)
-// --------------------------------------------------------
-function updateGameStats(mode, score, isWin) {
-    // Mode: 'CLASSIC' veya 'RANDOM'
-    const statsKey = `stats_history_${mode}`; 
-    let history = JSON.parse(localStorage.getItem(statsKey)) || [];
-
-    // Yeni oyunu kaydet
-    history.push({
-        score: score,
-        isWin: isWin,
-        date: new Date().toISOString()
-    });
-
-    localStorage.setItem(statsKey, JSON.stringify(history));
-
-    // Firebase'e de gönder (Ayın Liderleri İçin)
-    saveScoreToFirebase(mode, score, isWin);
+// 2. Yerel İstatistikleri Getir
+function getLocalRandomStats() {
+    const raw = localStorage.getItem('kelimelik_random_history');
+    // Veri yapısı: { allScores: [120, 90, ...], dates: [...] }
+    if (!raw) return { allScores: [] };
+    return JSON.parse(raw);
 }
 
-// 2. Firebase Kaydı
-function saveScoreToFirebase(mode, score, isWin) {
+// 3. İstatistik Güncelle (Oyun Bittiğinde Çağrılır)
+function updateRandomStats(score) {
+    let data = getLocalRandomStats();
+    
+    // Puanı listeye ekle
+    data.allScores.push(score);
+    
+    // LocalStorage'a kaydet
+    localStorage.setItem('kelimelik_random_history', JSON.stringify(data));
+
+    // --- FIREBASE GÜNCELLEME (AYLIK VERİ) ---
+    saveMonthlyStatsToFirebase(data.allScores);
+}
+
+// 4. Firebase'e Aylık Veri Yazma
+function saveMonthlyStatsToFirebase(allScores) {
+    const userId = getMyStatsId();
     const date = new Date();
-    // Ay Anahtarı: 2023_12 (Yıl_Ay)
-    const monthKey = `${date.getFullYear()}_${date.getMonth() + 1}`; 
+    // Anahtar Örneği: 'stats_2023_12' (Yıl_Ay)
+    const monthKey = `stats_${date.getFullYear()}_${date.getMonth() + 1}`; 
     
-    // Kullanıcı Belgesini Güncelle
-    const userRef = db.collection('users').doc(myStatsId);
+    // Genel Ortalama
+    const totalAvg = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
     
-    // Transaction ile güvenli güncelleme
+    // Sadece bu ayın oyunlarını ayırt etmek zor olacağı için, 
+    // Basitlik adına "Toplam Oyun Sayısı" üzerinden filtreleme yapacağız
+    // Ancak kullanıcı "Bu ay en az 10 oyun" dediği için, Firebase'de o aya özel sayaç tutmalıyız.
+    
+    const userRef = db.collection('users').doc(userId);
+
     db.runTransaction(async (transaction) => {
         const doc = await transaction.get(userRef);
         let userData = doc.exists ? doc.data() : {};
         
-        // İlgili mod ve ay için veriyi hazırla
-        // Örn: userData['CLASSIC_2023_12']
-        const storageKey = `${mode}_${monthKey}`;
-        let currentStats = userData[storageKey] || { 
-            totalScore: 0, 
-            gameCount: 0, 
-            winCount: 0,
-            avg: 0 
-        };
-
-        // Değerleri artır
-        currentStats.totalScore += score;
-        currentStats.gameCount += 1;
-        if (isWin) currentStats.winCount += 1;
+        // O aya ait veriyi al veya oluştur
+        let monthData = userData[monthKey] || { count: 0, totalScore: 0, avg: 0 };
         
-        // Yeni ortalama hesapla (Virgülden sonra 2 hane)
-        currentStats.avg = parseFloat((currentStats.totalScore / currentStats.gameCount).toFixed(2));
+        // Yeni puanı ekle
+        // Not: Burada 'score' parametresini fonksiyon içinde globalden alamadığımız için
+        // allScores dizisinin son elemanını alıyoruz.
+        const lastScore = allScores[allScores.length - 1];
+        
+        monthData.count += 1;
+        monthData.totalScore += lastScore;
+        monthData.avg = Math.round(monthData.totalScore / monthData.count); // Tam sayı ortalama
 
-        // Genel Rekor Kontrolü (Ay bağımsız)
-        const highScoreKey = `${mode}_HIGH_SCORE`;
-        let currentHigh = userData[highScoreKey] || 0;
-        if (score > currentHigh) {
-            transaction.update(userRef, { [highScoreKey]: score });
-        }
-
-        // Ay verisini kaydet
-        transaction.set(userRef, { 
-            [storageKey]: currentStats,
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-            displayName: "Oyuncu-" + myStatsId.substr(-4) // İstersen buraya gerçek adını alabilirsin
+        // Veriyi güncelle
+        transaction.set(userRef, {
+            [monthKey]: monthData, // Dinamik anahtar (Örn: stats_2025_12)
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
     });
 }
 
-// --------------------------------------------------------
-// 3. ARAYÜZ YÖNETİMİ (PENCERE AÇILINCA)
-// --------------------------------------------------------
-
-// Modalı Aç
+// 5. İstatistik Penceresini Açma ve Hesaplama
 window.openStatsModal = function() {
-    const modal = document.getElementById('statsModal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        switchStatsTab('CLASSIC'); // Varsayılan olarak Klasik açılır
-    }
-}
+    const modal = document.getElementById("statsModal");
+    if (!modal) return;
 
-// Modalı Kapat
-window.closeStatsModal = function() {
-    document.getElementById('statsModal').classList.add('hidden');
-}
-
-// Sekme Değiştirme ve Veri Yükleme
-window.switchStatsTab = function(mode) {
-    currentStatsMode = mode;
-
-    // Buton Stilleri
-    const btnClassic = document.getElementById('tabClassic');
-    const btnRandom = document.getElementById('tabRandom');
-
-    if (mode === 'CLASSIC') {
-        if(btnClassic) btnClassic.classList.add('active');
-        if(btnRandom) btnRandom.classList.remove('active');
-    } else {
-        if(btnClassic) btnClassic.classList.remove('active');
-        if(btnRandom) btnRandom.classList.add('active');
-    }
-
-    // Yükleniyor mesajı ver
-    resetUIForLoading();
-
-    // Verileri Hesapla ve Bas
-    calculateAndShowStats(mode);
-    fetchLeaderboard(mode);
-}
-
-// Yardımcı: UI Sıfırlama
-function resetUIForLoading() {
-    const ids = ['statGenWin','statGenAvg','statGenHigh','statL10Win','statL10Avg','statL10High','recordAllTime','recordMonth'];
-    ids.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.textContent = '-';
-    });
-    const tbody = document.getElementById('leaderboardBody');
-    if(tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Veriler yükleniyor...</td></tr>';
-}
-
-// --------------------------------------------------------
-// 4. HESAPLAMA VE GÖSTERİM (KİŞİSEL)
-// --------------------------------------------------------
-function calculateAndShowStats(mode) {
-    const statsKey = `stats_history_${mode}`;
-    const history = JSON.parse(localStorage.getItem(statsKey)) || [];
-
-    // A. GENEL İSTATİSTİKLER
-    if (history.length > 0) {
-        const totalGames = history.length;
-        const totalWin = history.filter(h => h.isWin).length;
-        const totalScore = history.reduce((sum, h) => sum + h.score, 0);
-        const maxScore = Math.max(...history.map(h => h.score));
-
-        setText('statGenWin', `${totalWin}/${totalGames}`);
-        setText('statGenAvg', (totalScore / totalGames).toFixed(2));
-        setText('statGenHigh', maxScore);
-    } else {
-        setText('statGenWin', '0/0');
-        setText('statGenAvg', '0.00');
-        setText('statGenHigh', '0');
-    }
-
-    // B. SON 10 OYUN
-    if (history.length > 0) {
-        const last10 = history.slice(-10); // Son 10 eleman
-        const l10Games = last10.length;
-        const l10Win = last10.filter(h => h.isWin).length;
-        const l10Score = last10.reduce((sum, h) => sum + h.score, 0);
-        const l10Max = Math.max(...last10.map(h => h.score));
-
-        setText('statL10Win', `${l10Win}/${l10Games}`);
-        setText('statL10Avg', (l10Score / l10Games).toFixed(2));
-        setText('statL10High', l10Max);
-    } else {
-        setText('statL10Win', '0/0');
-        setText('statL10Avg', '0.00');
-        setText('statL10High', '0');
-    }
-}
-
-// Yardımcı: Text Yazma
-function setText(id, val) {
-    const el = document.getElementById(id);
-    if(el) el.textContent = val;
-}
-
-// --------------------------------------------------------
-// 5. LİDERLİK TABLOSU VE REKORLAR (FIREBASE)
-// --------------------------------------------------------
-function fetchLeaderboard(mode) {
-    const date = new Date();
-    const monthKey = `${date.getFullYear()}_${date.getMonth() + 1}`; // 2023_12
-    const storageKey = `${mode}_${monthKey}`; // CLASSIC_2023_12
+    // --- KİŞİSEL VERİLERİ HESAPLA ---
+    const data = getLocalRandomStats();
+    const scores = data.allScores;
     
-    // A. Ayın Liderlerini Çek
+    let lifeTimeAvg = "-";
+    let last10Avg = "-";
+
+    if (scores.length > 0) {
+        // Genel Ortalama
+        const total = scores.reduce((a, b) => a + b, 0);
+        lifeTimeAvg = (total / scores.length).toFixed(1); // Virgülden sonra 1 hane
+
+        // Son 10 Ortalama
+        // slice(-10) son 10 elemanı alır
+        const last10 = scores.slice(-10);
+        const total10 = last10.reduce((a, b) => a + b, 0);
+        last10Avg = (total10 / last10.length).toFixed(1);
+    }
+
+    document.getElementById('statLifeTimeAvg').textContent = lifeTimeAvg;
+    document.getElementById('statLast10Avg').textContent = last10Avg;
+
+    modal.classList.remove("hidden");
+    modal.style.display = "flex";
+
+    // --- LİDER TABLOSUNU ÇEK ---
+    fetchLeaderboard();
+};
+
+// 6. Lider Tablosunu Getir
+function fetchLeaderboard() {
+    const tbody = document.getElementById('leaderboardBody');
+    tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
+
+    const date = new Date();
+    const monthKey = `stats_${date.getFullYear()}_${date.getMonth() + 1}`; // Örn: stats_2025_12
+    
+    // SORGULAMA: O ayın sayacı >= 10 olanları getir, Ortalamaya göre sırala
+    // NOT: Bu sorgu için Firebase Console'da Index oluşturmanız gerekebilir!
+    // Eğer console'da hata linki çıkarsa ona tıklayıp index oluşturun.
+    
     db.collection('users')
-        .orderBy(`${storageKey}.avg`, 'desc') // Ortalamaya göre sırala
-        .limit(30) // İlk 30 kişiyi çek (Filtreleme için biraz fazla çekiyoruz)
+        .orderBy(`${monthKey}.avg`, 'desc') // Ortalamaya göre azalan
+        .limit(20) // İlk 20 kişi
         .get()
         .then(snapshot => {
             let html = '';
             let rank = 1;
-            let eligibleCount = 0;
-            let myData = null;
-            let myRank = 0;
-
-            const tbody = document.getElementById('leaderboardBody');
             
             snapshot.forEach(doc => {
                 const uData = doc.data();
-                const stats = uData[storageKey];
+                const mData = uData[monthKey];
 
-                // Sadece verisi olanları işle
-                if (stats) {
-                    // Koşul: En az 10 oyun
-                    if (stats.gameCount >= 10) {
-                        eligibleCount++;
-                        
-                        // Tabloya sadece ilk 5'i basacağız
-                        if (rank <= 5) {
-                            const isMe = (doc.id === myStatsId);
-                            const name = uData.displayName || "Oyuncu";
-                            
-                            // Renkli sıra sınıfları (rank-1, rank-2, rank-3)
-                            const rankClass = rank <= 3 ? `top-rank rank-${rank}` : '';
-                            const bgStyle = isMe ? 'background-color:#d4edda;' : '';
+                // Filtreleme: En az 10 oyun (Firestore where sorgusu index isteyeceği için
+                // basitlik adına filtrelemeyi burada yapıyoruz, veri azsa sorun olmaz)
+                if (mData && mData.count >= 10) {
+                    // Kullanıcı ID'sinin son 4 hanesini göster (Gizlilik için)
+                    const shortName = "Oyuncu-" + doc.id.substr(-4).toUpperCase();
+                    
+                    // Kendi satırımızı vurgulamak için
+                    const isMe = (doc.id === getMyStatsId());
+                    const rowStyle = isMe ? 'style="background-color:#e8f8f5; font-weight:bold;"' : '';
 
-                            html += `
-                                <tr class="${rankClass}" style="${bgStyle}">
-                                    <td>${rank}</td>
-                                    <td>${name} ${isMe ? '(Siz)' : ''}</td>
-                                    <td>${stats.avg}</td>
-                                </tr>
-                            `;
-                        }
-
-                        // Benim sıramı kaydet
-                        if (doc.id === myStatsId) {
-                            myData = stats;
-                            myRank = rank;
-                        }
-                        
-                        rank++; // Sırayı artır
-                    }
+                    html += `
+                        <tr ${rowStyle}>
+                            <td>${rank++}.</td>
+                            <td>${shortName} ${isMe ? '(Sen)' : ''}</td>
+                            <td>${mData.avg} Puan</td>
+                        </tr>
+                    `;
                 }
             });
 
-            // Tabloyu Doldur
             if (html === '') {
-                html = '<tr><td colspan="3" style="text-align:center;">Henüz sıralama oluşmadı.</td></tr>';
+                html = '<tr><td colspan="3">Bu ay henüz yeterli oyun oynanmadı.</td></tr>';
             }
             tbody.innerHTML = html;
-
-            // Oyuncu Sayısını Yaz
-            const countEl = document.getElementById('totalPlayerCount');
-            if(countEl) countEl.textContent = `(${eligibleCount} Oyuncu)`;
-
-            // Footer (Kendi sıramız ilk 5'te değilse göster)
-            const footer = document.getElementById('myRankFooter');
-            if (myData && myRank > 5) {
-                footer.classList.remove('hidden');
-                document.getElementById('myRankPos').textContent = myRank;
-                document.getElementById('myRankScore').textContent = myData.avg;
-            } else {
-                if(footer) footer.classList.add('hidden');
-            }
-
-            // B. Rekorları Çek (Global ve Ayın En Yükseği)
-            // Not: Bu kısım için ayrı bir sorgu veya logic gerekebilir.
-            // Şimdilik liderdeki en yüksek ortalamayı "Ayın Zirvesi" kabul edelim.
-            if(snapshot.docs.length > 0) {
-                 // Burada biraz basitleştirme yapıyoruz, gerçek rekor için ayrı field tutmak daha iyidir.
-                 const topPlayer = snapshot.docs[0].data()[storageKey];
-                 if(topPlayer) setText('recordMonth', `${topPlayer.avg} Puan (Ort.)`);
-            }
-
         })
-        .catch(err => {
-            console.error("Liderlik hatası:", err);
-            document.getElementById('leaderboardBody').innerHTML = '<tr><td colspan="3">Veri alınamadı.</td></tr>';
+        .catch(error => {
+            console.error("Leaderboard error:", error);
+            tbody.innerHTML = '<tr><td colspan="3">Sıralama yüklenemedi.</td></tr>';
         });
 }
+
+// Kapatma Fonksiyonu (Aynı kalabilir)
+window.closeStatsModal = function() {
+    document.getElementById("statsModal").classList.add("hidden");
+    document.getElementById("statsModal").style.display = "none";
+};
 
 // ==========================================
 // 1.1. PUANLAMA VE SÖZLÜK TANIMLARI
@@ -10262,14 +10153,8 @@ function showResults(data) {
             console.log("Random mod istatistiği kaydedildi:", myScore);
         }
     }
-
-  // Oyun bittiğinde çağır:
-// isWin: true (kazandın) / false (kaybettin)
-// mode: 'CLASSIC' veya 'RANDOM'
-updateGameStats(gameMode, myScore, isWin);
-  
 }
-
+// showResults bitişi
 
 // ==========================================
 // GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
@@ -10556,8 +10441,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
-
-
 
 
 
