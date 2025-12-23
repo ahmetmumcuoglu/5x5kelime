@@ -98,16 +98,21 @@
                 </div>
             </div>
                 
-            <div id="poolSection" class="hidden">
-                <p class="pool-label">HARFLERİNİZ (TAŞIMAK İÇİN TIKLAYIN):</p>
-                <div id="letterPool" class="pool-container"></div>
-                
-                <div class="pool-actions">
-                    <button id="confirmPuzzleBtn" class="confirm-btn puzzle-confirm" onclick="confirmPuzzlePlacement()" disabled>
-                        TÜMÜNÜ YERLEŞTİRDİM VE ONAYLIYORUM
-                    </button>
-                </div>
+           <div id="puzzleArea" class="hidden">
+    
+            <div class="puzzle-controls">
+            <button id="shuffleBtn" class="puzzle-btn btn-shuffle" onclick="shufflePuzzlePool()">
+            <i class="fas fa-random"></i> KARIŞTIR
+            </button>
+        
+            <button id="confirmPuzzleBtn" class="puzzle-btn btn-confirm" onclick="confirmPuzzlePlacement()" disabled>
+            ONAYLA (0/24)
+            </button>
             </div>
+
+            <div id="letterPool" class="pool-container"></div>
+
+</div>
 
         </div>
     </div>
@@ -225,6 +230,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
