@@ -888,6 +888,33 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     color: white !important;
 }
 
+.language-switcher {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+}
+
+.lang-link img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+}
+
+.lang-link:hover img {
+    transform: scale(1.1);
+    border-color: #f1c40f; /* Altın sarısı vurgu */
+}
+
+/* Mevcut dilin bayrağını daha belirgin yapabiliriz */
+/* Örneğin TR klasöründeki CSS'de TR bayrağını parlatabiliriz */
 
 
 
