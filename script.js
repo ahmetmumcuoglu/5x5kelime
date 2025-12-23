@@ -9341,14 +9341,18 @@ function setupGameUI(gameId) {
 }
 
 // ==========================================
-// OYUNU DİNLEME (TABELA VE GRID SORUNSUZ VERSİYON)
+// OYUNU DİNLEME (TAM VE EKSİKSİZ VERSİYON)
 // ==========================================
 
 function listenToGame() {
-    if (unsubscribe) unsubscribe();
+    // Önceki dinleyici varsa kapat (Memory leak önlemi)
+    if (typeof unsubscribe !== 'undefined' && unsubscribe) {
+        unsubscribe();
+    }
 
     unsubscribe = db.collection('games').doc(currentGameId)
         .onSnapshot((doc) => {
+            // 1. Oyun Var mı Kontrolü
             if (!doc.exists) {
                 alert("Oyun sonlandırıldı veya bulunamadı.");
                 window.location.reload();
@@ -9357,154 +9361,199 @@ function listenToGame() {
 
             const data = doc.data();
 
-            // 1. Grid Verilerini Al ve Çiz
+            // 2. Grid Verilerini Al
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
             const oppGridData = (myPlayerId === 'PlayerA') ? data.gridB : data.gridA;
 
-            renderGrid(myGridData, 'myGrid');
-            renderGrid(oppGridData, 'opponentGrid');
-
-            // 2. Elementleri Hazırla
+            // 3. UI Elementlerini Tanımla
             const classicArea = document.getElementById('classicLetterSelectionArea');
             const randomDisplay = document.getElementById('randomLetterDisplay');
+            const puzzleArea = document.getElementById('puzzleArea'); // Puzzle Alanı
             const myGridEl = document.getElementById('myGrid');
-            
-            // --- TABELAYI BUL ---
             const turnBadge = document.getElementById('turnStatusBadge');
 
-            // --- UI TEMİZLİĞİ ---
-            if (classicArea) classicArea.classList.add('hidden');
-            if (randomDisplay) randomDisplay.classList.add('hidden');
-            
+            // --- UI TEMİZLİĞİ VE MOD AYRIMI (ÇAKIŞMAYI ÖNLEYEN KISIM) ---
+            if (data.gameMode === 'PUZZLE') {
+                // Puzzle Modundaysak:
+                if (classicArea) classicArea.classList.add('hidden');
+                if (randomDisplay) randomDisplay.classList.add('hidden'); // Tek harf kutusunu gizle
+                if (puzzleArea) puzzleArea.classList.remove('hidden');    // Puzzle alanını aç
+            } else {
+                // Diğer Modlardaysak:
+                if (puzzleArea) puzzleArea.classList.add('hidden');       // Puzzle alanını gizle
+                // Diğer kutuların kontrolü aşağıda mod bloklarında yapılacak
+            }
+
             // ==========================================================
-            // YARDIMCI: UI DURUM GÜNCELLEYİCİ (Sorunu Çözen Kısım)
+            // YARDIMCI: UI DURUM GÜNCELLEYİCİ
             // ==========================================================
             const updateUIState = (text, badgeColor, isInteractive) => {
-                // 1. Tabela Yazısını Güncelle (ZORLAYICI YÖNTEM)
+                // Tabela Yazısı
                 if (turnBadge) {
                     turnBadge.textContent = text;
-                    // Tüm olası renk sınıflarını temizle, yenisini ekle
                     turnBadge.className = `status-badge ${badgeColor}`; 
                     turnBadge.classList.remove('hidden'); 
-                    turnBadge.style.display = 'block'; // Görünürlüğü garanti et
+                    turnBadge.style.display = 'block';
                 }
 
-                // 2. Grid Görselini ve Tıklamayı Yönet
+                // Grid Etkileşimi (Global Değişken)
                 placementMode = isInteractive;
                 
                 if (myGridEl) {
                     if (isInteractive) {
                         myGridEl.classList.remove('waiting-turn'); 
-                        myGridEl.classList.add('active-turn');     
+                        myGridEl.classList.add('active-turn');      
                         myGridEl.style.opacity = "1";              
-                        myGridEl.style.pointerEvents = "auto";     
+                        myGridEl.style.pointerEvents = "auto";      
                     } else {
-                        myGridEl.classList.add('waiting-turn');    
+                        myGridEl.classList.add('waiting-turn');     
                         myGridEl.classList.remove('active-turn');
-                        myGridEl.style.opacity = "0.6";            
-                        myGridEl.style.pointerEvents = "none";     
+                        myGridEl.style.opacity = "0.6";             
+                        myGridEl.style.pointerEvents = "none";      
                     }
                 }
-                // Gridi yeniden çiz (Clickable sınıfları için)
-                renderGrid(myGridData, 'myGrid');
+
+                // Grid Çizimi (Kritik Nokta)
+                // Puzzle modunda yerel (local) sürükle-bırak yaptığımız için
+                // sunucudan gelen veriyle kendi gridimizi ezmemeliyiz.
+                if (data.gameMode !== 'PUZZLE') {
+                     renderGrid('myGrid', myGridData, isInteractive);
+                } 
+                // Rakip gridi her zaman sunucudan gelenle çiz
+                renderGrid('opponentGrid', oppGridData, false);
             };
 
+
             // -------------------------------------------------
-            // DURUM: OYUN AKTİF (ACTIVE)
+            // DURUM: OYUN AKTİF (ACTIVE / PLAYING)
             // -------------------------------------------------
-            if (data.status === 'active') {
+            if (data.status === 'active' || data.status === 'playing') {
+                
+                // Panelleri ayarla
                 document.getElementById('lobbyPanel').classList.add('hidden');
                 document.getElementById('gamePanel').classList.remove('hidden');
                 document.getElementById('gameOverPanel').classList.add('hidden');
 
                 const isMyTurn = (data.turnOwner === myPlayerId);
+                const currentMove = data.moveNumber || 1; 
                 const myFilledCount = myGridData.filter(c => c !== '').length;
-                const currentMove = data.moveNumber || 1; // moveNumber yoksa 1 kabul et
-                
-                // Bu turdaki hamlem yapıldı mı?
                 const myMoveDone = (myFilledCount >= currentMove);
 
-                // ====================================================
-                // A. 25. TUR: JOKER HAMLESİ
-                // ====================================================
-                if (currentMove === 25) {
-                    if (randomDisplay) randomDisplay.classList.remove('hidden');
-                    
-                    if (myFilledCount >= 25) {
-                        updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
-                    } else {
-                        renderAlphabetSelector(); 
-                        if (!myFinalLetter) {
-                            updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
-                        } else {
-                            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
-                        }
-                    }
-                    return; // Fonksiyondan çık, aşağısı çalışmasın
-                }
 
                 // ====================================================
-                // B. KLASİK MOD (CLASSIC)
+                // A. 25. TUR: JOKER HAMLESİ (TÜM MODLAR İÇİN ORTAK)
                 // ====================================================
-                if (data.gameMode === 'CLASSIC') {
+                if (currentMove === 25) {
+                    // Puzzle alanı artık gizlenebilir, normal sisteme dönüyoruz
+                    if (puzzleArea) puzzleArea.classList.add('hidden');
+                    if (randomDisplay) randomDisplay.classList.remove('hidden'); // Joker kutusunu aç
+                    
+                    if (myFilledCount >= 25) {
+                         // Ben bitirdim, sonuçları bekliyorum
+                         updateUIState("OYUN BİTİYOR... SONUÇLAR BEKLENİYOR", "badge-neutral", false);
+                         renderGrid('myGrid', myGridData, false); // Gridi kilitle
+                    } else {
+                         // Joker seçimi yapacağım
+                         renderJokerAlphabet(); // (Daha önce eklediğimiz fonksiyon)
+                         
+                         if (!myFinalLetter) {
+                             updateUIState("SON HARF: JOKER SEÇİNİZ", "badge-info", false);
+                         } else {
+                             updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİRİN`, "badge-success", true);
+                         }
+                         // Gridi aktif et (Firebase verisiyle)
+                         renderGrid('myGrid', myGridData, true);
+                    }
+                    return; // 25. Turda diğer bloklar çalışmaz, buradan çıkılır.
+                }
+
+
+                // ====================================================
+                // B. PUZZLE MODU
+                // ====================================================
+                if (data.gameMode === 'PUZZLE') {
+                    // 1. Havuz Kontrolü (Misafir Oyuncu İçin Hayati)
+                    const pool = document.getElementById('letterPool');
+                    // Eğer havuz boşsa ve elimizde harf dizisi varsa, hemen oluştur
+                    if (pool && pool.children.length === 0 && data.letterSequence) {
+                        initPuzzleMode(data.letterSequence);
+                    }
+                    
+                    // 2. Tabela ve Grid Durumu
+                    updateUIState("HARFLERİ YERLEŞTİR VE ONAYLA", "badge-primary", true);
+                    
+                    // Gridi manuel olarak aktif tut (Sürükle-Bırak için)
+                    if (myGridEl) {
+                        myGridEl.classList.remove('waiting-turn');
+                        myGridEl.classList.add('active-turn');
+                        myGridEl.style.pointerEvents = "auto";
+                        myGridEl.style.opacity = "1";
+                    }
+                }
+
+
+                // ====================================================
+                // C. KLASİK MOD (CLASSIC)
+                // ====================================================
+                else if (data.gameMode === 'CLASSIC') {
                     const harfSecildiMi = (data.currentLetter !== null && data.currentLetter !== "");
 
                     if (!harfSecildiMi) {
-                        // HARF SEÇME AŞAMASI
+                        // --- FAZ 1: HARF SEÇME ---
+                        if (randomDisplay) randomDisplay.classList.add('hidden'); 
+
                         if (isMyTurn) {
                             if (classicArea) {
                                 classicArea.classList.remove('hidden');
+                                // Alfabe boşsa doldur
                                 if(classicArea.querySelector('#classicAlphabetContainer').children.length === 0) {
                                      renderClassicAlphabet(); 
                                 }
-                                const confirmBtn = document.getElementById('confirmLetterBtn');
-                                if (confirmBtn && !selectedClassicLetter) {
-                                    confirmBtn.disabled = true;
-                                    confirmBtn.textContent = "BİR HARF SEÇİNİZ";
-                                }
                             }
-                            updateUIState("Sıra Sizde: Harf Seç", "your-turn", false);
+                            updateUIState("Sıra Sizde: Harf Seçin", "badge-primary", false);
                         } else {
-                            updateUIState("Rakip Harf Seçiyor", "opponent-turn", false);
+                            if (classicArea) classicArea.classList.add('hidden');
+                            updateUIState("Rakip Harf Seçiyor...", "badge-neutral", false);
                         }
                     } else {
-                        // YERLEŞTİRME AŞAMASI
+                        // --- FAZ 2: YERLEŞTİRME ---
+                        if (classicArea) classicArea.classList.add('hidden');
                         if (randomDisplay) {
-                            randomDisplay.textContent = data.currentLetter;
                             randomDisplay.classList.remove('hidden');
-                            // Eğer içinde eski alfabe kaldıysa temizle
-                            if (randomDisplay.querySelector('.alphabet-wrapper')) {
-                                randomDisplay.textContent = data.currentLetter; 
-                            }
+                            randomDisplay.textContent = data.currentLetter;
                         }
 
                         if (!myMoveDone) {
-                            updateUIState(`"${data.currentLetter}" Harfini Yerleştir`, "your-turn", true);
+                            updateUIState(`"${data.currentLetter}" Harfini Yerleştirin`, "badge-success", true);
                         } else {
-                            updateUIState("Rakip Yerleştiriyor", "opponent-turn", false);
+                            updateUIState("Rakip Yerleştiriyor...", "badge-neutral", false);
                         }
                     }
                 }
 
+
                 // ====================================================
-                // C. RANDOM MODLAR
+                // D. RANDOM MOD (RANDOM)
                 // ====================================================
-                else {
+                else { // RANDOM
+                    if (classicArea) classicArea.classList.add('hidden');
+                    
                     if (randomDisplay) {
-                        randomDisplay.textContent = data.currentLetter;
                         randomDisplay.classList.remove('hidden');
+                        randomDisplay.textContent = data.currentLetter;
+                        // Varsa içindeki eski HTML'i temizle, sadece metin yaz
                         if (randomDisplay.querySelector('.alphabet-wrapper')) {
                              randomDisplay.textContent = data.currentLetter;
                         }
                     }
 
                     if (!myMoveDone) {
-                        updateUIState("Harfi Yerleştirin", "your-turn", true);
+                        updateUIState("Harfi Yerleştirin", "badge-success", true);
                     } else {
                          if(data.isSinglePlayer) {
                              updateUIState("Kaydediliyor...", "badge-neutral", false);
                          } else {
-                             updateUIState("Rakip Bekleniyor...", "opponent-turn", false);
+                             updateUIState("Rakip Bekleniyor...", "badge-neutral", false);
                          }
                     }
                 }
@@ -9518,8 +9567,9 @@ function listenToGame() {
             }
         });
 }
-
+// =========================================================
 // --- JOKER SEÇİMİ İÇİN YENİ FONKSİYONLAR (DÜZELTİLMİŞ) ---
+// =========================================================
 
 // 1. Alfabeyi Ekrana Çizen Fonksiyon
 function renderAlphabetSelector() {
@@ -10563,6 +10613,7 @@ function confirmPuzzlePlacement() {
     if (puzzleGridData.filter(c => c !== '').length < 24) return;
     alert("Tebrikler! Dizilim tamamlandı. (Firebase kaydı sonraki adımda yapılacak)");
 }
+
 
 
 
