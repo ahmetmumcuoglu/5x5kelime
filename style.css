@@ -888,24 +888,31 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     color: white !important;
 }
 
-/* Dil butonu linki için özel ayar */
-.lang-btn {
-    padding: 0; /* İç boşluğu sıfırla ki resim tam otursun */
-    overflow: hidden; /* Resmin dışarı taşmasını engelle */
+/* Dil butonlarının dış çerçevesi */
+.icon-btn.lang-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    text-decoration: none; /* Link çizgisini kaldır */
+    padding: 0; 
+    overflow: hidden; /* Taşmayı engeller ve resmi yuvarlar */
+    border-radius: 50%; /* Kesin yuvarlaklık sağlar */
+    width: 45px; /* Diğer icon-btn boyutun kaçsa ona eşitleyebilirsin */
+    height: 45px;
+    border: none; /* Varsa kenarlığı kaldırır */
+    background: none; /* Arka planı temizler */
 }
 
-.lang-btn img {
-    width: 100%; /* Butonun içini tam doldurur */
+/* İçindeki bayrak resmi */
+.icon-btn.lang-btn img {
+    width: 100%;
     height: 100%;
-    object-fit: cover; /* Resmin oranını bozmadan kutuyu doldurur */
-    filter: grayscale(20%); /* Biraz matlık vererek diğer ikonlarla uyumlu hale getirebilirsin */
-    transition: filter 0.2s;
+    object-fit: cover; /* Resmin basık görünmesini engeller, kutuyu doldurur */
+    border-radius: 50%; /* Resmin kendisini de yuvarlar */
+    display: block;
 }
 
-.lang-btn:hover img {
-    filter: grayscale(0%); /* Üzerine gelince renkler canlansın */
+/* Üzerine gelindiğinde diğer butonlardaki efekti korumak için */
+.icon-btn.lang-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
