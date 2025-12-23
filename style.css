@@ -889,39 +889,45 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 }
 
 /* Dil Butonları (Orijinal Yüksek Kalite Stil) */
+/* 1. Dış Çerçeve (Butonun Kendisi) */
 .lang-btn {
-    /* Pozisyonu kaldırdık, çünkü artık flex container içinde duracak */
-    display: inline-block; 
-    text-decoration: none; /* Link çizgisini kaldır */
-    margin-right: 5px; /* Sağdaki diğer butonlarla arasına biraz boşluk */
-}
-
-.lang-btn img {
-    /* Boyutu biraz büyütelim ki net görünsün (Diğer butonlarla uyumlu) */
-    width: 42px; 
-    height: 42px;
-    
-    /* Orijinal Yuvarlaklık ve Çerçeve */
-    border-radius: 50%;
-    border: 2px solid white;
-    object-fit: cover; /* Resmi bozmadan yuvarlağa oturtur */
-    
-    /* Gölge ve Geçiş Efektleri */
-    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-    transition: transform 0.2s, border-color 0.2s;
-    cursor: pointer;
-}
-
-/* Hover Efekti (Büyüme ve Altın Çerçeve) */
-.lang-btn:hover img {
-    transform: scale(1.1);
-    border-color: #f1c40f; 
-}
-
-/* Kapsayıcıyı Hizalama (Eğer zaten flex ise gerek yok ama garanti olsun) */
-.lobby-top-actions {
-    display: flex;
+    display: inline-flex;  /* İçeriği ortalamak için */
     align-items: center;
-    gap: 12px; /* Butonlar arası genel boşluk */
-    /* justify-content: center; (Gerekirse açabilirsin) */
+    justify-content: center;
+    
+    /* DİĞER BUTONLARLA AYNI BOYUTU BURAYA YAZ */
+    width: 45px;  
+    height: 45px;
+    
+    border-radius: 50%;    /* Tam yuvarlaklık */
+    overflow: hidden;      /* Resmin taşan kısımlarını gizle */
+    padding: 0;            /* İç boşluğu sıfırla */
+    margin-right: 8px;     /* Sağdaki butonla mesafe */
+    
+    background-color: #fff; /* Arka plan rengi */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Diğer butonlardaki gibi gölge */
+    border: 2px solid white; /* Beyaz çerçeve temiz gösterir */
+    
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+/* 2. İçindeki Bayrak Resmi */
+.lang-btn img {
+    width: 100%;
+    height: 100%;
+    
+    /* SİHİRLİ KOD: Resmi bozmadan kutuyu doldurur (Crop yapar) */
+    object-fit: cover; 
+    
+    /* Resmi tam merkeze oturtur */
+    object-position: center; 
+    
+    display: block;
+}
+
+/* 3. Hover (Üzerine Gelince) Efekti */
+.lang-btn:hover {
+    transform: translateY(-2px); /* Hafif yukarı kalkma */
+    border-color: #f1c40f;       /* Altın sarısı çerçeve */
 }
