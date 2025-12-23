@@ -888,31 +888,40 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     color: white !important;
 }
 
-/* Dil butonlarının dış çerçevesi */
-.icon-btn.lang-btn {
+/* Dil Butonları (Orijinal Yüksek Kalite Stil) */
+.lang-btn {
+    /* Pozisyonu kaldırdık, çünkü artık flex container içinde duracak */
+    display: inline-block; 
+    text-decoration: none; /* Link çizgisini kaldır */
+    margin-right: 5px; /* Sağdaki diğer butonlarla arasına biraz boşluk */
+}
+
+.lang-btn img {
+    /* Boyutu biraz büyütelim ki net görünsün (Diğer butonlarla uyumlu) */
+    width: 42px; 
+    height: 42px;
+    
+    /* Orijinal Yuvarlaklık ve Çerçeve */
+    border-radius: 50%;
+    border: 2px solid white;
+    object-fit: cover; /* Resmi bozmadan yuvarlağa oturtur */
+    
+    /* Gölge ve Geçiş Efektleri */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: pointer;
+}
+
+/* Hover Efekti (Büyüme ve Altın Çerçeve) */
+.lang-btn:hover img {
+    transform: scale(1.1);
+    border-color: #f1c40f; 
+}
+
+/* Kapsayıcıyı Hizalama (Eğer zaten flex ise gerek yok ama garanti olsun) */
+.lobby-top-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 0; 
-    overflow: hidden; /* Taşmayı engeller ve resmi yuvarlar */
-    border-radius: 50%; /* Kesin yuvarlaklık sağlar */
-    width: 45px; /* Diğer icon-btn boyutun kaçsa ona eşitleyebilirsin */
-    height: 45px;
-    border: none; /* Varsa kenarlığı kaldırır */
-    background: none; /* Arka planı temizler */
-}
-
-/* İçindeki bayrak resmi */
-.icon-btn.lang-btn img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Resmin basık görünmesini engeller, kutuyu doldurur */
-    border-radius: 50%; /* Resmin kendisini de yuvarlar */
-    display: block;
-}
-
-/* Üzerine gelindiğinde diğer butonlardaki efekti korumak için */
-.icon-btn.lang-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    gap: 12px; /* Butonlar arası genel boşluk */
+    /* justify-content: center; (Gerekirse açabilirsin) */
 }
