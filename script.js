@@ -10262,8 +10262,14 @@ function showResults(data) {
             console.log("Random mod istatistiği kaydedildi:", myScore);
         }
     }
+
+  // Oyun bittiğinde çağır:
+// isWin: true (kazandın) / false (kaybettin)
+// mode: 'CLASSIC' veya 'RANDOM'
+updateGameStats(gameMode, myScore, isWin);
+  
 }
-// showResults bitişi
+
 
 // ==========================================
 // GRID ÇİZİM FONKSİYONU (GÜNCELLENMİŞ)
@@ -10550,6 +10556,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (btn) btn.textContent = '☀️';
     }
 });
+
 
 
 
