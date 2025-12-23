@@ -223,7 +223,7 @@ body.dark-mode button:disabled {
 
 /* Mod Butonlarının Kendisi */
 .btn-mode {
-    width: 140px;
+    width: auto !important;
     flex: 1 !important;  /* Alanı eşit paylaş */
     
     display: flex;
@@ -887,6 +887,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     background-color: var(--secondary) !important; /* Yeşil (Secondary) değişkeni */
     color: white !important;
 }
+
 
 
 
