@@ -10442,6 +10442,134 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// ==========================================
+// PUZZLE MODU: BAŞLATMA VE HAVUZ YÖNETİMİ
+// ==========================================
+
+// Global Değişkenler: Havuzdaki harfleri ve griddeki durumu takip etmek için
+let puzzlePoolData = []; // Havuzda bekleyen harfler
+let puzzleGridData = Array(25).fill(''); // Gridde hangi harf nerede
+
+// 1. Puzzle Modunu Başlatan Ana Fonksiyon
+function initPuzzleMode(sequence) {
+    console.log("Puzzle Modu Başlatılıyor...", sequence);
+
+    // A. Temizlik: Eski modlardan kalanları gizle
+    const classicArea = document.getElementById('classicLetterSelectionArea');
+    const randomDisplay = document.getElementById('randomLetterDisplay');
+    
+    if (classicArea) classicArea.classList.add('hidden');
+    if (randomDisplay) randomDisplay.classList.add('hidden');
+
+    // B. Sahne: Puzzle alanını aç
+    const puzzleArea = document.getElementById('puzzleArea');
+    if (puzzleArea) puzzleArea.classList.remove('hidden');
+
+    // C. Veri Hazırlığı
+    // Eğer fonksiyona dışarıdan liste gelmediyse (örn: refresh durumunda) hata vermesin
+    if (!sequence || sequence.length === 0) {
+        console.error("Harf dizisi bulunamadı!");
+        return;
+    }
+
+    // Havuz verisini sıfırla ve doldur
+    puzzlePoolData = [...sequence]; // Dizinin kopyasını al
+    puzzleGridData = Array(25).fill(''); // Gridi boşalt
+
+    // D. Gridi Çiz (Boş ama aktif)
+    // 3. parametre 'true' -> Tıklanabilir/Etkileşimli demek (şimdilik)
+    renderGrid('myGrid', puzzleGridData, true); 
+    
+    // E. Havuzu Çiz
+    renderPuzzlePool();
+}
+
+// 2. Havuzdaki Harfleri Ekrana Çizen Fonksiyon
+function renderPuzzlePool() {
+    const pool = document.getElementById('letterPool');
+    if (!pool) return;
+
+    pool.innerHTML = ''; // Önce temizle
+
+    puzzlePoolData.forEach((char, index) => {
+        // Eğer harf 'null' ise (yani gride taşınmışsa) havuza çizme
+        if (char === null) return;
+
+        const letterDiv = document.createElement('div');
+        letterDiv.classList.add('pool-letter');
+        letterDiv.textContent = char;
+        
+        // ÖNEMLİ: Sürükle-Bırak için kimlik kartı (ID) veriyoruz
+        // 'pool-index' sayesinde hangi harfi tuttuğumuzu bileceğiz
+        letterDiv.id = `pool-item-${index}`;
+        letterDiv.setAttribute('draggable', true); // Sürüklenebilir yap
+
+        // Olay Dinleyicileri (Drag & Drop Başlangıcı - Bir sonraki adımda detaylanacak)
+        // Şimdilik sadece konsola yazsın
+        letterDiv.addEventListener('dragstart', (e) => {
+            console.log("Sürükleniyor:", char);
+            // Veri transferini sonraki adımda ekleyeceğiz
+        });
+
+        pool.appendChild(letterDiv);
+    });
+
+    // Onay butonunun durumunu güncelle (Kaç harf yerleşti?)
+    updatePuzzleProgress();
+}
+
+// 3. Karıştır (Shuffle) Fonksiyonu
+function shufflePuzzlePool() {
+    // Sadece havuzda kalan (null olmayan) harfleri karıştıracağız
+    // Ancak basitlik olsun diye tüm diziyi karıştırıp yeniden çizebiliriz.
+    // Şimdilik görsel bir karıştırma yapalım:
+    
+    // Modern Fisher-Yates Karıştırma Algoritması
+    for (let i = puzzlePoolData.length - 1; i > 0; i--) {
+        // Sadece gride yerleşmemiş olanları karıştır
+        if (puzzlePoolData[i] !== null) {
+            const j = Math.floor(Math.random() * (i + 1));
+            // Eğer hedef de null değilse takas et
+            if (puzzlePoolData[j] !== null) {
+                [puzzlePoolData[i], puzzlePoolData[j]] = [puzzlePoolData[j], puzzlePoolData[i]];
+            }
+        }
+    }
+    
+    // Yeni sırayla tekrar çiz
+    renderPuzzlePool();
+    
+    // Ufak bir animasyon efekti (Butona basıldığı belli olsun)
+    const btn = document.getElementById('shuffleBtn');
+    btn.style.transform = "scale(0.95)";
+    setTimeout(() => btn.style.transform = "scale(1)", 150);
+}
+
+// 4. İlerleme Durumu ve Onay Butonu Kontrolü
+function updatePuzzleProgress() {
+    // Griddeki dolu hücreleri say
+    const placedCount = puzzleGridData.filter(c => c !== '').length;
+    
+    const btn = document.getElementById('confirmPuzzleBtn');
+    if (btn) {
+        btn.textContent = `ONAYLA (${placedCount}/24)`;
+        
+        // 24 harf de yerleştiyse butonu yeşil yap ve aktif et
+        if (placedCount >= 24) {
+            btn.disabled = false;
+            btn.classList.add('ready');
+        } else {
+            btn.disabled = true;
+            btn.classList.remove('ready');
+        }
+    }
+}
+
+// 5. Onay Butonu (Şimdilik boş)
+function confirmPuzzlePlacement() {
+    if (puzzleGridData.filter(c => c !== '').length < 24) return;
+    alert("Tebrikler! Dizilim tamamlandı. (Firebase kaydı sonraki adımda yapılacak)");
+}
 
 
 
