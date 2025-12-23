@@ -902,11 +902,11 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     border-radius: 50%;    /* Tam yuvarlaklık */
     overflow: hidden;      /* Resmin taşan kısımlarını gizle */
     padding: 0;            /* İç boşluğu sıfırla */
-    margin-right: 8px;     /* Sağdaki butonla mesafe */
+    /* margin-right: 8px;     /* Sağdaki butonla mesafe */
     
     background-color: #fff; /* Arka plan rengi */
     box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Diğer butonlardaki gibi gölge */
-    border: 2px solid white; /* Beyaz çerçeve temiz gösterir */
+    border: none; /*2px solid white; /* Beyaz çerçeve temiz gösterir */
     
     text-decoration: none;
     transition: transform 0.2s ease;
@@ -931,3 +931,4 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     transform: translateY(-2px); /* Hafif yukarı kalkma */
     border-color: #f1c40f;       /* Altın sarısı çerçeve */
 }
+
