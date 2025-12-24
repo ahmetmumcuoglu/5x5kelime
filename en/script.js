@@ -162,7 +162,7 @@ window.openStatsModal = function() {
 // 6. Lider Tablosunu Getir
 function fetchLeaderboard() {
     const tbody = document.getElementById('leaderboardBody');
-    tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="3">Loading...</td></tr>';
 
     const date = new Date();
     const monthKey = `en_stats_${date.getFullYear()}_${date.getMonth() + 1}`; // Örn: stats_2025_12
@@ -403,7 +403,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
     let sequence = null;
     let initialLetter = null;
 
-    document.getElementById('lobbyStatus').textContent = `${selectedMode} oyun kuruluyor...`;
+    document.getElementById('lobbyStatus').textContent = `Setting up ${selectedMode} game...`;
 
     // 3. Rastgele Mod (veya Puzzle) İçin Harf Dizisini Oluştur
     // Buraya 'RANDOM' yanına 'PUZZLE' da eklenebilir
@@ -412,7 +412,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
             sequence = generateGameSequence(); 
             
             if (!sequence || sequence.length < 24) {
-                 throw new Error("Harf dizisi üretilemedi.");
+                 throw new Error("Could not generate letter sequence.");
             }
             
             // Random modda ilk harf hemen belirlenir
@@ -462,7 +462,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
         listenToGame();
 
     } catch (error) {
-        document.getElementById('lobbyStatus').textContent = "Oyun kurulamadı!";
+        document.getElementById('lobbyStatus').textContent = "Game creation failed!";
         console.error("Firebase Yazma Hatası:", error);
         currentGameId = null; 
     }
@@ -607,7 +607,7 @@ async function startSinglePlayerGame() {
 
     } catch (error) {
         console.error("Tek kişilik oyun hatası:", error);
-        document.getElementById('lobbyStatus').textContent = "Oyun başlatılamadı.";
+        document.getElementById('lobbyStatus').textContent = "Game could not be started.";
     }
 }
 
@@ -644,7 +644,7 @@ function setupGameUI(gameId) {
     // DÜZELTME 2: HTML'deki ID 'gameStatusMsg'
     const statusMsg = document.getElementById('gameStatusMsg');
     if (statusMsg) {
-        statusMsg.textContent = "Oyun Yükleniyor...";
+        statusMsg.textContent = "Game loading...";
         statusMsg.className = "status-msg"; 
     }
 
@@ -747,13 +747,13 @@ function listenToGame() {
                     if (randomDisplay) randomDisplay.classList.remove('hidden');
                     
                     if (myFilledCount >= 25) {
-                        updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
+                        updateUIState("GAME ENDING... WAITING FOR OPPONENT", "badge-neutral", false);
                     } else {
                         renderAlphabetSelector(); 
                         if (!myFinalLetter) {
-                            updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
+                            updateUIState("LAST LETTER: PICK A LETTER", "badge-info", false);
                         } else {
-                            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
+                            updateUIState(`SELECTED: ${myFinalLetter} - PLACE IT`, "badge-success", true);
                         }
                     }
                     return; // Fonksiyondan çık, aşağısı çalışmasın
@@ -795,7 +795,7 @@ function listenToGame() {
                         }
 
                         if (!myMoveDone) {
-                            updateUIState(`"${data.currentLetter}" Harfini Yerleştir`, "your-turn", true);
+                            updateUIState(`Place letter "${data.currentLetter}"`, "your-turn", true);
                         } else {
                             updateUIState("Opponent is placing", "opponent-turn", false);
                         }
@@ -887,7 +887,7 @@ function selectJokerLetter(letter) {
     // 3. Oyun Durumunu Güncelle (Tabela)
     const turnBadge = document.getElementById('turnStatusBadge');
     if(turnBadge) {
-        turnBadge.textContent = `SEÇİLEN: ${letter} - YERLEŞTİRİN`;
+        turnBadge.textContent = `SELECTED: ${letter} - PLACE IT`;
         turnBadge.className = "status-badge badge-success";
     }
 
@@ -1044,7 +1044,7 @@ async function submitLetter(letterParam = null) {
     if (!letter) return;
     
     // Geçerlilik Kontrolü
-    const validLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    const validLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     if (!validLetters.includes(letter)) {
         alert("Invalid letter.");
         return;
@@ -1055,7 +1055,7 @@ async function submitLetter(letterParam = null) {
     try {
         await db.runTransaction(async (transaction) => {
             const doc = await transaction.get(gameRef);
-            if (!doc.exists) throw new Error("Oyun bulunamadı.");
+            if (!doc.exists) throw new Error("Game not found.");
             
             const data = doc.data();
 
@@ -1395,7 +1395,7 @@ function showResults(data) {
         // Başlığı düzenle ("Kurucu A" yerine "SKOR TABLONUZ" gibi)
         const titleA = document.getElementById('resultTitleA');
         if (titleA) {
-            titleA.innerHTML = 'OYUN SONUCUNUZ';
+            titleA.innerHTML = 'FINAL SCORE';
             titleA.style.color = '#2c3e50';
         }
 
@@ -1626,7 +1626,7 @@ function enableControls(isLetterSelectionMode = true) {
     }
     if (actionButton) {
         actionButton.disabled = false;
-        actionButton.textContent = isLetterSelectionMode ? "SEÇ" : "BEKLE";
+        actionButton.textContent = isLetterSelectionMode ? "SELECET" : "WAIT";
     }
 }
 
@@ -1640,7 +1640,7 @@ function renderClassicAlphabet() {
     if (!container) return;
     
     container.innerHTML = ''; // Temizle
-    const alphabet = "ABCÇDEFGĞHİIJKLMNOÖPRSŞTUÜVYZ";
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     
     alphabet.split('').forEach(char => {
         const btn = document.createElement('div');
@@ -1669,7 +1669,7 @@ function selectClassicLetter(char, btnElement) {
     const confirmBtn = document.getElementById('confirmLetterBtn');
     if (confirmBtn) {
         confirmBtn.disabled = false;
-        confirmBtn.textContent = `"${char}" HARFİNİ GÖNDER`;
+        confirmBtn.textContent = `SEND LETTER "${char}"`;
         confirmBtn.style.backgroundColor = "#28a745"; // Yeşil renk
         confirmBtn.style.color = "white";
     }
