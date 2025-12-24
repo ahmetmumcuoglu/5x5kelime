@@ -896,8 +896,8 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     justify-content: center;
     
     /* DİĞER BUTONLARLA AYNI BOYUTU BURAYA YAZ */
-    width: 45px;  
-    height: 45px;
+    width: 32px;  
+    height: 32px;
     
     border-radius: 50%;    /* Tam yuvarlaklık */
     overflow: hidden;      /* Resmin taşan kısımlarını gizle */
@@ -941,4 +941,5 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     margin-bottom: 15px; /* Alt satırla mesafe */
     padding: 0 10px; /* Kenarlardan hafif boşluk */
 }
+
 
