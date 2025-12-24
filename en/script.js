@@ -268,7 +268,7 @@ function isWordValid(word) {
 }
 
 // Türkçedeki Sesli ve Sessiz Harfler
-const VOWELS = ['A', 'E', 'I', 'O', 'U'];
+const VOWELS = "AEIOU";
 
 // ENGLISH LETTER POOL CONFIG (For Random Mode)
 const LETTER_POOL_CONFIG = {
