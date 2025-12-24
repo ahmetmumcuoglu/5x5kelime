@@ -79,7 +79,7 @@ function updateRandomStats(score) {
     data.allScores.push(score);
     
     // LocalStorage'a kaydet
-    localStorage.setItem('kelimelik_random_history', JSON.stringify(data));
+    localStorage.setItem('wordy_random_history_en', JSON.stringify(data));
 
     // --- FIREBASE GÜNCELLEME (AYLIK VERİ) ---
     saveMonthlyStatsToFirebase(data.allScores);
