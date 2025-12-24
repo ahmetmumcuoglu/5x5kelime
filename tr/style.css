@@ -942,4 +942,33 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     padding: 0 10px; /* Kenarlardan hafif boşluk */
 }
 
+/* Mobil Cihazlar İçin Başlık ve Bayrak Düzenlemesi */
+@media (max-width: 480px) {
+    .header-top-row {
+        /* Elemanların birbirine çok yanaşmaması için padding ekleyelim */
+        padding: 0 5px;
+        gap: 10px;
+    }
+
+    .game-title {
+        /* Yazı boyutunu mobilde küçültüyoruz */
+        font-size: 18px !important; 
+        /* Kelimenin bölünmemesi ve tek satırda kalması için */
+        white-space: nowrap; 
+        flex-shrink: 1;
+    }
+
+    .language-selector {
+        /* Bayraklar arası boşluğu mobilde biraz daha daraltabiliriz */
+        gap: 5px;
+        /* Bayrakların yan yana kalmasını garanti eder */
+        flex-shrink: 0; 
+    }
+
+    .lang-btn.small-flag {
+        /* Bayrakları mobilde çok az daha küçültebilirsiniz (İsteğe bağlı) */
+        width: 28px;
+        height: 28px;
+    }
+}
 
