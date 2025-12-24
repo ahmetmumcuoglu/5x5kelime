@@ -853,7 +853,7 @@ function renderAlphabetSelector() {
     wrapper.className = 'alphabet-wrapper';
     
     // Harfler
-    const alphabet = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ".split('');
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
     alphabet.forEach(letter => {
         const btn = document.createElement('div');
         btn.textContent = letter;
@@ -904,7 +904,7 @@ function selectJokerLetter(letter) {
 
     // Gridi yeniden çiz (Değişikliklerin yansıması için)
     renderGrid(myGridData, 'myGrid');
-} // <-- FONKSİYON BURADA BİTMELİ
+}
 
 // ==========================================
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
