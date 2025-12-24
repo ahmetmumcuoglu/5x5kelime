@@ -419,7 +419,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
             initialLetter = sequence[0]; 
             
         } catch (e) {
-            document.getElementById('lobbyStatus').textContent = `HATA: ${e.message}`;
+            document.getElementById('lobbyStatus').textContent = `ERROR: ${e.message}`;
             currentGameId = null; 
             return; 
         }
@@ -477,18 +477,18 @@ async function joinGame() {
     const code = gameCodeInput ? gameCodeInput.value.trim().toUpperCase() : '';
     
     if (!code || code.length !== 4) {
-        document.getElementById('lobbyStatus').textContent = "HATA: Lütfen 4 haneli geçerli bir oda kodu girin.";
+        document.getElementById('lobbyStatus').textContent = "Error: Please insert valid room code.";
         return;
     }
 
     const gameRef = db.collection('games').doc(code);
-    document.getElementById('lobbyStatus').textContent = "Oyuna bağlanılıyor...";
+    document.getElementById('lobbyStatus').textContent = "Connecting to the game...";
 
     try {
         const doc = await gameRef.get();
 
         if (!doc.exists) {
-            document.getElementById('lobbyStatus').textContent = "HATA: Bu kodda aktif/bekleyen bir oyun bulunamadı.";
+            document.getElementById('lobbyStatus').textContent = "Error: Invalid code.";
             return;
         }
 
@@ -496,7 +496,7 @@ async function joinGame() {
 
         // Oyun zaten başladıysa veya bittiyse (Veya Tek kişilik oyunsa - çünkü o da 'active' başlar)
         if (data.status === 'active' || data.status === 'finished') {
-            document.getElementById('lobbyStatus').textContent = "HATA: Oyun zaten başladı veya doldu.";
+            document.getElementById('lobbyStatus').textContent = "Error: Game already started or is full.";
             return;
         }
         
@@ -530,8 +530,8 @@ async function joinGame() {
         listenToGame();
 
     } catch (error) {
-        document.getElementById('lobbyStatus').textContent = "Oyuna katılırken bir hata oluştu.";
-        console.error("Oyuna Katılma Hatası:", error);
+        document.getElementById('lobbyStatus').textContent = "An error occurred while joining the game.";
+        console.error("Connection Error:", error);
         currentGameId = null; 
     }
 }
@@ -546,7 +546,7 @@ async function startSinglePlayerGame() {
     myPlayerId = 'PlayerA';
     currentGameId = code;
     
-    document.getElementById('lobbyStatus').textContent = "Tek kişilik oyun hazırlanıyor...";
+    document.getElementById('lobbyStatus').textContent = "Preparing single game...";
 
     // 2. Harf Dizisini Oluştur
     let sequence = null;
@@ -666,7 +666,7 @@ function listenToGame() {
     unsubscribe = db.collection('games').doc(currentGameId)
         .onSnapshot((doc) => {
             if (!doc.exists) {
-                alert("Oyun sonlandırıldı veya bulunamadı.");
+                alert("Game terminated or not found.");
                 window.location.reload();
                 return;
             }
@@ -779,9 +779,9 @@ function listenToGame() {
                                     confirmBtn.textContent = "BİR HARF SEÇİNİZ";
                                 }
                             }
-                            updateUIState("Sıra Sizde: Harf Seç", "your-turn", false);
+                            updateUIState("Your turn: Pick a letter", "your-turn", false);
                         } else {
-                            updateUIState("Rakip Harf Seçiyor", "opponent-turn", false);
+                            updateUIState("Opponent is picking", "opponent-turn", false);
                         }
                     } else {
                         // YERLEŞTİRME AŞAMASI
@@ -797,7 +797,7 @@ function listenToGame() {
                         if (!myMoveDone) {
                             updateUIState(`"${data.currentLetter}" Harfini Yerleştir`, "your-turn", true);
                         } else {
-                            updateUIState("Rakip Yerleştiriyor", "opponent-turn", false);
+                            updateUIState("Opponent is placing", "opponent-turn", false);
                         }
                     }
                 }
@@ -815,12 +815,12 @@ function listenToGame() {
                     }
 
                     if (!myMoveDone) {
-                        updateUIState("Harfi Yerleştirin", "your-turn", true);
+                        updateUIState("Place the letter", "your-turn", true);
                     } else {
                          if(data.isSinglePlayer) {
-                             updateUIState("Kaydediliyor...", "badge-neutral", false);
+                             updateUIState("Saving...", "badge-neutral", false);
                          } else {
-                             updateUIState("Rakip Bekleniyor...", "opponent-turn", false);
+                             updateUIState("Waiting for opponent...", "opponent-turn", false);
                          }
                     }
                 }
@@ -952,7 +952,7 @@ function handleTurnLogic(data, myGridData) {
         if (randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
 
         if (myFilledCount >= 25) {
-            updateBadge("OYUN BİTİYOR...", "badge-neutral", false);
+            updateBadge("GAME ENDING...", "badge-neutral", false);
         } else {
             // HER DURUMDA ALFABEYİ GÖSTER
             // Kullanıcı seçmiş olsa bile değiştirebilmesi için alfabe ekranda kalmalı
@@ -960,13 +960,13 @@ function handleTurnLogic(data, myGridData) {
 
             if (!myFinalLetter) {
                 // Henüz seçim yapılmadı
-                updateBadge("JOKER HARFİ SEÇ", "badge-info", false); // Grid Pasif
+                updateBadge("CHOOSE A LETTER", "badge-info", false); // Grid Pasif
             } else {
                 // Seçim yapılmış (geri dönüldüyse görseli güncellemek gerekebilir)
                 const selectedBtn = document.getElementById(`btn-joker-${myFinalLetter}`);
                 if (selectedBtn) selectedBtn.classList.add('selected');
 
-                updateBadge(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true); // Grid Aktif
+                updateBadge(`SELECTED: ${myFinalLetter} - PLACE IT`, "badge-success", true); // Grid Aktif
                 placementMode = true;
             }
         }
@@ -976,11 +976,11 @@ function handleTurnLogic(data, myGridData) {
     // --- 2. TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
         if (myFilledCount < moveNumber) {
-            updateBadge("HARFİ YERLEŞTİR", "badge-success", true);
+            updateBadge("PLACE THE LETTER", "badge-success", true);
             placementMode = true;
             renderGrid(myGridData, 'myGrid');
         } else {
-            updateBadge("KAYDEDİLİYOR...", "badge-neutral", false);
+            updateBadge("SAVING...", "badge-neutral", false);
         }
         return;
     }
@@ -994,12 +994,12 @@ function handleTurnLogic(data, myGridData) {
     if (data.gameMode === 'CLASSIC' && !currentLetterIsAvailable) {
         if (isMyTurn) { 
             // Sıra Bende: Harf Seçmeliyim
-            updateBadge("HARF SEÇ", "badge-info", false); // Grid Pasif
+            updateBadge("PICK A LETTER", "badge-info", false); // Grid Pasif
             enableControls(true); 
             if(actionArea) actionArea.classList.remove('hidden');
         } else {
             // Sıra Rakipte: Harf Seçiyor
-            updateBadge("RAKİP HARF SEÇİYOR", "badge-warning", false); // Grid Pasif
+            updateBadge("OPPONENT IS PICKING", "badge-warning", false); // Grid Pasif
         }
         return;
     }
@@ -1010,19 +1010,19 @@ function handleTurnLogic(data, myGridData) {
         
         if (hasNotPlacedInThisTurn) {
             // Harf var, henüz koymadım -> YERLEŞTİR
-            updateBadge("HARFİ YERLEŞTİR", "badge-success", true); // Grid AKTİF
+            updateBadge("PLACE THE LETTER, "badge-success", true); // Grid AKTİF
             
             placementMode = true; 
             renderGrid(myGridData, 'myGrid'); 
 
         } else {
             // Ben koydum, rakibi bekliyorum
-            updateBadge("RAKİP BEKLENİYOR", "badge-warning", false); // Grid Pasif
+            updateBadge("WAITING FOR OPPONENT", "badge-warning", false); // Grid Pasif
         }
         
     } else {
         // Beklenmedik durum
-        updateBadge("BEKLENİYOR...", "badge-neutral", false);
+        updateBadge("WAITING...", "badge-neutral", false);
     }
 }
 
@@ -1046,7 +1046,7 @@ async function submitLetter(letterParam = null) {
     // Geçerlilik Kontrolü
     const validLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
     if (!validLetters.includes(letter)) {
-        alert("Geçersiz harf.");
+        alert("Invalid letter.");
         return;
     }
 
@@ -1105,7 +1105,7 @@ async function handleCellClick(index) {
 
     // Hücre dolu mu?
     if (myGridData[index] !== '') {
-        alert("Bu hücre zaten dolu.");
+        alert("This cell is already filled.");
         renderGrid(myGridData, 'myGrid'); 
         return;
     }
@@ -1422,13 +1422,13 @@ function showResults(data) {
 
         if (titleA && titleB) {
             if (myPlayerId === 'PlayerA') {
-                titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-                titleB.innerHTML = 'RAKİP ALANI';
+                titleA.innerHTML = 'MY GRID';
+                titleB.innerHTML = 'OPPONENT';
                 titleA.style.color = '#2c3e50'; 
                 titleB.style.color = '#95a5a6';
             } else {
-                titleA.innerHTML = 'RAKİP ALANI';
-                titleB.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
+                titleA.innerHTML = 'OPPONENT';
+                titleB.innerHTML = 'MY GRID';
                 titleB.style.color = '#2c3e50';
                 titleA.style.color = '#95a5a6'; 
             }
