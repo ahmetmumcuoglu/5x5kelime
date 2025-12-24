@@ -272,18 +272,10 @@ const VOWELS = ['A', 'E', 'I', 'O', 'U'];
 
 // ENGLISH LETTER POOL CONFIG (For Random Mode)
 const LETTER_POOL_CONFIG = {
-    // Sesli Harfler (Vowels - Yaklaşık %40)
-    'E': 12, 'A': 9, 'I': 8, 'O': 7, 'U': 4, 
-
-    // En Yaygın Sessizler (Glue Consonants - Çok kullanılanlar)
-    'T': 8, 'R': 7, 'N': 6, 'S': 6, 'L': 5, 'D': 4, 
-
-    // Orta Seviye Sessizler
+    'E': 12, 'A': 9, 'I': 8, 'O': 7, 'U': 4, // Vowels
+    'T': 8, 'R': 7, 'N': 6, 'S': 6, 'L': 5, 'D': 4, // Common Consonants
     'H': 4, 'C': 3, 'M': 3, 'P': 3, 'G': 2, 'B': 2, 'Y': 3, 
-
-    // Nadir ve Zor Harfler
-    'F': 2, 'W': 2, 'V': 2, 'K': 1, 
-    'X': 1, 'J': 1, 'Q': 1, 'Z': 1
+    'F': 2, 'W': 2, 'V': 2, 'K': 1, 'X': 1, 'J': 1, 'Q': 1, 'Z': 1
 };
 
 // =========================================================
@@ -305,6 +297,7 @@ function generateGameSequence() {
     let consonantPool = [];
 
     // 1. Ağırlığa göre Harf Havuzlarını Sesli ve Sessiz olarak ayır
+    // (LETTER_POOL_CONFIG değişkeninin İngilizce versiyonunu kullandığından emin ol)
     for (let [letter, count] of Object.entries(LETTER_POOL_CONFIG)) {
         for (let i = 0; i < count; i++) {
             if (VOWELS.includes(letter)) {
@@ -315,32 +308,48 @@ function generateGameSequence() {
         }
     }
 
-    // 2. Havuzları Karıştır (Rastgele çekim sırasını garantiler)
+    // 2. Havuzları Karıştır
     shuffleArray(vowelPool);
     shuffleArray(consonantPool);
 
-    // 3. Hedef Sayıları Belirle (25. hamle manuel olduğu için toplam 24 harf)
-    const VOWEL_TARGET = 12;
-    const CONSONANT_TARGET = 12; 
+    // 3. İNGİLİZCE İÇİN YENİ HEDEFLER
+    // Toplam 24 Harf (25. tur Joker)
+    const VOWEL_TARGET = 10;      // Türkçe'de 12 idi, burada 10'a düşürdük
+    const CONSONANT_TARGET = 14;  // Türkçe'de 12 idi, burada 14'e çıkardık (Sessiz öbekleri için)
 
     let finalSequence = [];
     
     // 4. Hedef Sayıda Harf Çekimi
     
-    // Sesli Harfleri Çek (12 tane)
+    // Sesli Harfleri Çek (10 tane)
     const requiredVowels = Math.min(VOWEL_TARGET, vowelPool.length);
-    finalSequence.push(...vowelPool.splice(0, requiredVowels));
+    finalSequence.push(...vowelPool.slice(0, requiredVowels));
 
-    // Sessiz Harfleri Çek (12 tane)
+    // Sessiz Harfleri Çek (14 tane)
     const requiredConsonants = Math.min(CONSONANT_TARGET, consonantPool.length);
-    finalSequence.push(...consonantPool.splice(0, requiredConsonants));
+    finalSequence.push(...consonantPool.slice(0, requiredConsonants));
+
+    // --- İNGİLİZCEYE ÖZEL Q-U KONTROLÜ (BONUS) ---
+    // Eğer dizide 'Q' varsa ama 'U' yoksa, rastgele bir sesliyi silip yerine 'U' koyar.
+    const hasQ = finalSequence.includes('Q');
+    const hasU = finalSequence.includes('U');
+
+    if (hasQ && !hasU) {
+        // Dizideki herhangi bir sesli harfin yerini bul
+        const vowelIndex = finalSequence.findIndex(l => VOWELS.includes(l));
+        if (vowelIndex !== -1) {
+            finalSequence[vowelIndex] = 'U'; // O sesliyi U yap
+            console.log("Oyun Dengesı: Q geldiği için U harfi zorunlu eklendi.");
+        }
+    }
+    // ------------------------------------------------
 
     // 5. Son 24 Harflik Diziyi Karıştır
     shuffleArray(finalSequence); 
 
-    // Kontrol: Eğer toplam 24 harf üretemediysek (ki bu LETTER_POOL'un yetersizliği demektir), uyarı ver.
+    // Güvenlik Kontrolü
     if (finalSequence.length !== (VOWEL_TARGET + CONSONANT_TARGET)) {
-        console.warn(`UYARI: Harf havuzu yetersiz. Yalnızca ${finalSequence.length} harf üretildi.`);
+        console.warn(`WARNING: Letter pool insufficient. Generated only ${finalSequence.length} letters.`);
     }
 
     return finalSequence;
