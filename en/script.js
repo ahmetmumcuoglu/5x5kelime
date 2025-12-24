@@ -1010,7 +1010,7 @@ function handleTurnLogic(data, myGridData) {
         
         if (hasNotPlacedInThisTurn) {
             // Harf var, henüz koymadım -> YERLEŞTİR
-            updateBadge("PLACE THE LETTER, "badge-success", true); // Grid AKTİF
+            updateBadge("PLACE THE LETTER", "badge-success", true); // Grid AKTİF
             
             placementMode = true; 
             renderGrid(myGridData, 'myGrid'); 
