@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Yönlendiriliyor / Redirecting...</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <script>
+        async function checkLocationAndRedirect() {
+            try {
+                // Ücretsiz ve hızlı bir IP servisinden konum bilgisini alıyoruz
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+
+                if (data.country_code === "TR") {
+                    // Kullanıcı Türkiye'deyse
+                    window.location.href = "tr/index.html";
+                } else {
+                    // Kullanıcı Türkiye dışındaysa
+                    window.location.href = "en/index.html";
+                }
+            } catch (error) {
+                // Eğer API'de bir hata olursa (reklam engelleyici vs.), 
+                // Tarayıcı diline bakarak B planını devreye sokuyoruz.
+                console.log("Konum alınamadı, tarayıcı diline bakılıyor...");
+                const userLang = navigator.language || navigator.userLanguage; 
+                
+                if (userLang.startsWith('tr')) {
+                    window.location.href = "tr/index.html";
+                } else {
+                    window.location.href = "en/index.html";
+                }
+            }
+        }
+
+        // Fonksiyonu çalıştır
+        checkLocationAndRedirect();
+    </script>
+</body>
+</html>
