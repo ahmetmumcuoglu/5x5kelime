@@ -1444,10 +1444,10 @@ function showResults(data) {
       // ... (showResults fonksiyonunun en sonu) ...
 
     // --- YENİ İSTATİSTİK GÜNCELLEME (SADECE RANDOM MOD) ---
-    const lastProcessedGame = localStorage.getItem('last_processed_game_id');
+    const lastProcessedGame = localStorage.getItem('last_processed_game_id_en');
     
     if (lastProcessedGame !== currentGameId) {
-        localStorage.setItem('last_processed_game_id', currentGameId);
+        localStorage.setItem('last_processed_game_id_en', currentGameId);
         
         // Sadece RANDOM mod ise istatistiği işle
         // Not: Tek kişilik oyun her zaman Random'dır.
@@ -1459,8 +1459,10 @@ function showResults(data) {
 
             // Yeni Fonksiyonu Çağır
             updateRandomStats(myScore);
-            console.log("Random mod istatistiği kaydedildi:", myScore);
+            console.log("English Random Stats Saved. Score:", myScore);
         }
+    } else {
+        console.log("This game stats were already processed (EN).");
     }
 }
 // showResults bitişi
