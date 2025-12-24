@@ -952,7 +952,7 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 
     .game-title {
         /* Yazı boyutunu mobilde küçültüyoruz */
-        font-size: 18px !important; 
+        font-size: 22px !important; 
         /* Kelimenin bölünmemesi ve tek satırda kalması için */
         white-space: nowrap; 
         flex-shrink: 1;
@@ -971,4 +971,5 @@ body.dark-mode .joker-key:hover { background-color: #444; }
         height: 28px;
     }
 }
+
 
