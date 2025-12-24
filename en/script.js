@@ -267,6 +267,9 @@ function isWordValid(word) {
     return DICTIONARY.has(word.toUpperCase());
 }
 
+// 1. ENGLISH ALPHABET & POINTS
+const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
 // Türkçedeki Sesli ve Sessiz Harfler
 const VOWELS = "AEIOU";
 
