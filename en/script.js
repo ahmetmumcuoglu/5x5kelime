@@ -262,7 +262,7 @@ async function loadDictionary() {
 // Sayfa açılır açılmaz sözlüğü yüklemeye başla
 loadDictionary();
 
-function isWordValid(word) {
+function isValidWord(word) {
     // Kelimeyi büyük harfe çevir ve sözlükte var mı diye bak
     return DICTIONARY.has(word.toUpperCase());
 }
@@ -1336,7 +1336,7 @@ function calculateScore(gridData) {
         score: totalScore,
         words: Array.from(foundWords).sort((a, b) => {
             if (b.length !== a.length) return b.length - a.length;
-            return a.localeCompare(b, 'tr');
+            return a.localeCompare(b, 'en');
         }),
         rowScores: rowScores,
         colScores: colScores
