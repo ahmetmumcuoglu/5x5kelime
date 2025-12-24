@@ -65,7 +65,7 @@ function getMyStatsId() {
 
 // 2. Yerel İstatistikleri Getir
 function getLocalRandomStats() {
-    const raw = localStorage.getItem('kelimelik_random_history');
+    const raw = localStorage.getItem('wordy_random_history_en');
     // Veri yapısı: { allScores: [120, 90, ...], dates: [...] }
     if (!raw) return { allScores: [] };
     return JSON.parse(raw);
@@ -90,7 +90,7 @@ function saveMonthlyStatsToFirebase(allScores) {
     const userId = getMyStatsId();
     const date = new Date();
     // Anahtar Örneği: 'stats_2023_12' (Yıl_Ay)
-    const monthKey = `stats_${date.getFullYear()}_${date.getMonth() + 1}`; 
+    const monthKey = `en_stats_${date.getFullYear()}_${date.getMonth() + 1}`; 
     
     // Genel Ortalama
     const totalAvg = Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length);
@@ -165,7 +165,7 @@ function fetchLeaderboard() {
     tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
 
     const date = new Date();
-    const monthKey = `stats_${date.getFullYear()}_${date.getMonth() + 1}`; // Örn: stats_2025_12
+    const monthKey = `en_stats_${date.getFullYear()}_${date.getMonth() + 1}`; // Örn: stats_2025_12
     
     // SORGULAMA: O ayın sayacı >= 10 olanları getir, Ortalamaya göre sırala
     // NOT: Bu sorgu için Firebase Console'da Index oluşturmanız gerekebilir!
@@ -187,7 +187,7 @@ function fetchLeaderboard() {
                 // basitlik adına filtrelemeyi burada yapıyoruz, veri azsa sorun olmaz)
                 if (mData && mData.count >= 10) {
                     // Kullanıcı ID'sinin son 4 hanesini göster (Gizlilik için)
-                    const shortName = "Oyuncu-" + doc.id.substr(-4).toUpperCase();
+                    const shortName = "Player-" + doc.id.substr(-4).toUpperCase();
                     
                     // Kendi satırımızı vurgulamak için
                     const isMe = (doc.id === getMyStatsId());
