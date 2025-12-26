@@ -10071,8 +10071,8 @@ function showResults(data) {
     
     // Kelime listesi A
     wordsListAEl.innerHTML = resultA.words.length > 0 
-        ? resultA.words.map(w => `<li>${w}</li>`).join('') 
-        : '<li>Kelime yok</li>';
+    ? resultA.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+    : '<li>No words found</li>';
 
     // 6. TEK KİŞİLİK / ÇOK KİŞİLİK GÖRÜNÜM AYARI
     if (data.isSinglePlayer) {
@@ -10104,8 +10104,8 @@ function showResults(data) {
         
         // Kelime listesi B
         wordsListBEl.innerHTML = resultB.words.length > 0 
-            ? resultB.words.map(w => `<li>${w}</li>`).join('') 
-            : '<li>Kelime yok</li>';
+    ? resultB.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+    : '<li>No words found</li>';
 
         // Başlıkları "Sen" ve "Rakip" olarak ayarla
         const titleA = document.getElementById('resultTitleA');
@@ -10442,6 +10442,45 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+async function fetchDefinition(word) {
+    const modal = document.getElementById('definitionModal');
+    const title = document.getElementById('defTitle');
+    const body = document.getElementById('definitionBody');
+
+    title.textContent = word.toUpperCase('tr');
+    body.innerHTML = "<i>Sözlükte aranıyor...</i>";
+    modal.style.display = "flex";
+
+    try {
+        // TDK Genel Türkçe Sözlük API
+        const response = await fetch(`https://sozluk.gov.tr/gts?ara=${word.toLowerCase('tr')}`);
+        const data = await response.json();
+
+        if (data.error || !data[0]) {
+            throw new Error("Bulunamadı");
+        }
+
+        // TDK verisindeki ilk anlamı alıyoruz
+        let anlam = data[0].anlamlarListe[0].anlam;
+        
+        // Eğer varsa örnek cümleyi de ekleyelim
+        let ornek = "";
+        if (data[0].anlamlarListe[0].orneklerListe && data[0].anlamlarListe[0].orneklerListe[0]) {
+            ornek = `<br><small style="color: #7f8c8d; font-style: italic;">"${data[0].anlamlarListe[0].orneklerListe[0].ornek}"</small>`;
+        }
+
+        body.innerHTML = `<p>${anlam}</p>${ornek}`;
+
+    } catch (e) {
+        // Eğer API hata verirse veya kelime bulunamazsa
+        body.innerHTML = "Bu kelimenin tanımı sözlükte bulunamadı.";
+        console.error("TDK API Hatası:", e);
+    }
+}
+
+function closeDefinition() {
+    document.getElementById('definitionModal').style.display = "none";
+}
 
 
 
