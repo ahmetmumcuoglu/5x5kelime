@@ -986,3 +986,40 @@ body.dark-mode .joker-key:hover { background-color: #444; }
     border-color: #fff; /* Seçili olanın etrafında beyaz halka */
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); /* Hafif parama */
 }
+
+/* Kelime listesindeki kelimeler */
+.result-card ul li {
+    cursor: pointer;
+    transition: color 0.2s;
+    text-decoration: underline dotted; /* Tıklanabilir hissi verir */
+}
+
+.result-card ul li:hover {
+    color: #3498db;
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Sözlük Pop-up (Modal) */
+#definitionModal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 10000;
+    width: 80%;
+    max-width: 400px;
+    display: none;
+    flex-direction: column;
+}
+
+#definitionModal h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+#definitionBody { margin: 15px 0; max-height: 200px; overflow-y: auto; line-height: 1.5; color: #555; }
+.close-def { align-self: flex-end; cursor: pointer; color: #e74c3c; font-weight: bold; }
+
+/* Karanlık Mod Uyumu */
+body.dark-mode #definitionModal { background: #2c3e50; color: white; }
+body.dark-mode #definitionBody { color: #ecf0f1; }
