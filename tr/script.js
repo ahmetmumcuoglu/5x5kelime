@@ -10447,53 +10447,64 @@ async function fetchDefinition(word) {
     const title = document.getElementById('defTitle');
     const body = document.getElementById('definitionBody');
 
-    // Modalı hazırla
+    // Modalı hazırla ve göster
     title.textContent = word.toUpperCase('tr');
-    body.innerHTML = "<i>Vikisözlük'te aranıyor...</i>";
+    body.innerHTML = "<i>Searching dictionary...</i>";
     modal.style.display = "flex";
 
-    // Vikisözlük API URL (Türkçe)
-    // Bu API CORS sorunu çıkarmaz
-    const url = `https://tr.wiktionary.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(word.toLowerCase('tr'))}`;
+    // Temiz arama için kelimeyi hazırla
+    const cleanWord = word.toLowerCase('tr').trim();
+    
+    // Vikisözlük API URL
+    const targetUrl = `https://tr.wiktionary.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(cleanWord)}`;
+    
+    // CORS Engelini aşmak için Proxy URL
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
     try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Kelime bulunamadı");
-        
-        const data = await response.json();
-        
-        // Vikisözlük'ten gelen verinin ilk bölümündeki metni al
-        // Genelde ilk anlam lead section içindeki 'text' alanındadır
-        let rawText = data.lead.sections[0].text;
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error();
 
-        // HTML etiketlerini temizle ve anlamı ayıkla
-        // Vikisözlük verisi bazen çok kalabalık olabilir, sadece ilk listeyi (anlamı) almaya çalışalım
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = rawText;
-        
-        // Genelde tanımlar <li> veya <p> içindedir
-        const firstMeaning = tempDiv.querySelector("ol li") || tempDiv.querySelector("p");
+        const json = await response.json();
+        // Proxy veriyi 'contents' içinde string olarak döndürür, onu objeye çeviriyoruz
+        const data = JSON.parse(json.contents);
 
-        if (firstMeaning) {
-            // Anlamın içindeki linkleri ve gereksiz notları temizle
-            body.innerHTML = `<div class="wiki-content">${firstMeaning.innerHTML}</div>`;
+        if (data && data.lead && data.lead.sections) {
+            // İlk bölümdeki metni al
+            let rawText = data.lead.sections[0].text;
             
-            // Pop-up içindeki linklerin çalışmaması (oyundan koparmaması) için:
-            const links = body.querySelectorAll('a');
-            links.forEach(link => link.onclick = (e) => e.preventDefault());
-        } else {
-            body.innerHTML = "Kelime bulundu ancak tam tanımı ayrıştırılamadı.";
-        }
+            // Geçici bir div oluşturup metni temizleyelim
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = rawText;
 
-    } catch (e) {
-        body.innerHTML = "Bu kelime Vikisözlük'te bulunamadı veya bir hata oluştu.";
-        console.error("Vikisözlük Hatası:", e);
+            // Gereksiz etiketleri (style, link, meta) temizle
+            const unwanted = tempDiv.querySelectorAll('style, link, .hatnote, .metadata');
+            unwanted.forEach(el => el.remove());
+
+            // Anlamları içeren listeyi bul
+            const meaning = tempDiv.querySelector("ol") || tempDiv.querySelector("p");
+
+            if (meaning) {
+                // Linkleri etkisizleştir (oyundan kopmamak için)
+                const links = meaning.querySelectorAll('a');
+                links.forEach(l => {
+                    l.style.color = "inherit";
+                    l.style.textDecoration = "none";
+                    l.onclick = (e) => e.preventDefault();
+                });
+                body.innerHTML = `<div class="wiki-content">${meaning.innerHTML}</div>`;
+            } else {
+                body.innerHTML = "Anlam bulundu fakat uygun formatta değil.";
+            }
+        } else {
+            throw new Error();
+        }
+    } catch (error) {
+        console.error("Dictionary Error:", error);
+        body.innerHTML = "Maalesef bu kelimenin tanımı bulunamadı.";
     }
 }
 
-function closeDefinition() {
-    document.getElementById('definitionModal').style.display = "none";
-}
 
 
 
