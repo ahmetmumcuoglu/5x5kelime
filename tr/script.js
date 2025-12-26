@@ -10447,40 +10447,55 @@ async function fetchDefinition(word) {
     const title = document.getElementById('defTitle');
     const body = document.getElementById('definitionBody');
 
+    // Modalı hazırla
     title.textContent = word.toUpperCase('tr');
-    body.innerHTML = "<i>Sözlükte aranıyor...</i>";
+    body.innerHTML = "<i>TDK Sözlükte aranıyor...</i>";
     modal.style.display = "flex";
 
-    try {
-        // TDK Genel Türkçe Sözlük API
-        const response = await fetch(`https://sozluk.gov.tr/gts?ara=${word.toLowerCase('tr')}`);
-        const data = await response.json();
+    // AllOrigins Proxy üzerinden TDK'ya güvenli erişim
+    const targetUrl = `https://sozluk.gov.tr/gts?ara=${encodeURIComponent(word.toLowerCase('tr'))}`;
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
-        if (data.error || !data[0]) {
-            throw new Error("Bulunamadı");
+    try {
+        const response = await fetch(proxyUrl);
+        if (!response.ok) throw new Error("Ağ hatası");
+        
+        const result = await response.json();
+        const data = JSON.parse(result.contents); // Proxy'den gelen string veriyi objeye çevir
+
+        if (!data || data.error || !data[0]) {
+            throw new Error("Kelime bulunamadı");
         }
 
-        // TDK verisindeki ilk anlamı alıyoruz
+        // İlk anlamı al
         let anlam = data[0].anlamlarListe[0].anlam;
         
-        // Eğer varsa örnek cümleyi de ekleyelim
-        let ornek = "";
-        if (data[0].anlamlarListe[0].orneklerListe && data[0].anlamlarListe[0].orneklerListe[0]) {
-            ornek = `<br><small style="color: #7f8c8d; font-style: italic;">"${data[0].anlamlarListe[0].orneklerListe[0].ornek}"</small>`;
+        // Varsa kelime türünü ekle (isim, fiil vb.)
+        let tur = "";
+        if (data[0].anlamlarListe[0].ozelliklerListe) {
+            tur = `<i style="color: #95a5a6;">(${data[0].anlamlarListe[0].ozelliklerListe[0].tam_adi})</i> `;
         }
 
-        body.innerHTML = `<p>${anlam}</p>${ornek}`;
+        // Varsa örnek cümleyi ekle
+        let ornek = "";
+        if (data[0].anlamlarListe[0].orneklerListe && data[0].anlamlarListe[0].orneklerListe[0]) {
+            ornek = `<div style="margin-top:10px; padding-top:10px; border-top:1px dashed #eee; font-style: italic; color: #7f8c8d;">
+                        "${data[0].anlamlarListe[0].orneklerListe[0].ornek}"
+                     </div>`;
+        }
+
+        body.innerHTML = `<p>${tur}${anlam}</p>${ornek}`;
 
     } catch (e) {
-        // Eğer API hata verirse veya kelime bulunamazsa
-        body.innerHTML = "Bu kelimenin tanımı sözlükte bulunamadı.";
-        console.error("TDK API Hatası:", e);
+        body.innerHTML = "Bu kelimenin tanımı şu an getirilemedi veya sözlükte bulunamadı.";
+        console.error("Sözlük Hatası:", e);
     }
 }
 
 function closeDefinition() {
     document.getElementById('definitionModal').style.display = "none";
 }
+
 
 
 
