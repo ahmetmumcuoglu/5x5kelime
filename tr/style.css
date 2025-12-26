@@ -1023,3 +1023,22 @@ body.dark-mode .joker-key:hover { background-color: #444; }
 /* Karanlık Mod Uyumu */
 body.dark-mode #definitionModal { background: #2c3e50; color: white; }
 body.dark-mode #definitionBody { color: #ecf0f1; }
+
+/* Pop-up içindeki Vikisözlük metni stili */
+.wiki-content {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Vikisözlük'ten gelen gereksiz mavi linkleri siyah yap */
+.wiki-content a {
+    color: inherit;
+    text-decoration: none;
+    pointer-events: none; /* Linkleri tamamen etkisizleştirir */
+}
+
+/* Varsa liste işaretlerini düzelt */
+.wiki-content ul, .wiki-content ol {
+    padding-left: 20px;
+    margin-top: 10px;
+}
