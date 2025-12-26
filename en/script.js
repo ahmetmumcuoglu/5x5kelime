@@ -1379,9 +1379,10 @@ function showResults(data) {
     renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
     
     // Kelime listesi A
-    wordsListAEl.innerHTML = resultA.words.length > 0 
-        ? resultA.words.map(w => `<li>${w}</li>`).join('') 
-        : '<li>Kelime yok</li>';
+    // Bunu bul ve değiştir:
+wordsListAEl.innerHTML = resultA.words.length > 0 
+    ? resultA.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+    : '<li>No words found</li>';
 
     // 6. TEK KİŞİLİK / ÇOK KİŞİLİK GÖRÜNÜM AYARI
     if (data.isSinglePlayer) {
@@ -1412,9 +1413,9 @@ function showResults(data) {
         renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
         
         // Kelime listesi B
-        wordsListBEl.innerHTML = resultB.words.length > 0 
-            ? resultB.words.map(w => `<li>${w}</li>`).join('') 
-            : '<li>Kelime yok</li>';
+wordsListBEl.innerHTML = resultB.words.length > 0 
+    ? resultB.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+    : '<li>No words found</li>';
 
         // Başlıkları "Sen" ve "Rakip" olarak ayarla
         const titleA = document.getElementById('resultTitleA');
@@ -1753,9 +1754,52 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+async function fetchDefinition(word) {
+    const modal = document.getElementById('definitionModal');
+    const title = document.getElementById('defTitle');
+    const body = document.getElementById('definitionBody');
 
+    // Başlığı güncelle ve modalı göster
+    title.textContent = word.toUpperCase();
+    body.innerHTML = "<i>Searching dictionary...</i>";
+    modal.style.display = "flex";
 
+    try {
+        // İngilizce Sözlük API çağrısı
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        
+        if (!response.ok) {
+            throw new Error("Word not found");
+        }
 
+        const data = await response.json();
+        
+        // API'den gelen veriyi işle (İlk anlamı al)
+        const firstMeaning = data[0].meanings[0].definitions[0].definition;
+        
+        // Eğer varsa örnek cümleyi de ekle (opsiyonel)
+        const example = data[0].meanings[0].definitions[0].example;
+        
+        body.innerHTML = `
+            <p>${firstMeaning}</p>
+            ${example ? `<br><small style="color: #7f8c8d;">Example: "${example}"</small>` : ''}
+        `;
+
+    } catch (e) {
+        body.innerHTML = "Sorry, no definition found for this word.";
+    }
+}
+
+function closeDefinition() {
+    document.getElementById('definitionModal').style.display = "none";
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('definitionModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
 
 
 
