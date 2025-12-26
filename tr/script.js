@@ -10449,52 +10449,52 @@ async function fetchDefinition(word) {
 
     // Modalı hazırla
     title.textContent = word.toUpperCase('tr');
-    body.innerHTML = "<i>TDK Sözlükte aranıyor...</i>";
+    body.innerHTML = "<i>Vikisözlük'te aranıyor...</i>";
     modal.style.display = "flex";
 
-    // AllOrigins Proxy üzerinden TDK'ya güvenli erişim
-    const targetUrl = `https://sozluk.gov.tr/gts?ara=${encodeURIComponent(word.toLowerCase('tr'))}`;
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    // Vikisözlük API URL (Türkçe)
+    // Bu API CORS sorunu çıkarmaz
+    const url = `https://tr.wiktionary.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(word.toLowerCase('tr'))}`;
 
     try {
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("Ağ hatası");
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Kelime bulunamadı");
         
-        const result = await response.json();
-        const data = JSON.parse(result.contents); // Proxy'den gelen string veriyi objeye çevir
-
-        if (!data || data.error || !data[0]) {
-            throw new Error("Kelime bulunamadı");
-        }
-
-        // İlk anlamı al
-        let anlam = data[0].anlamlarListe[0].anlam;
+        const data = await response.json();
         
-        // Varsa kelime türünü ekle (isim, fiil vb.)
-        let tur = "";
-        if (data[0].anlamlarListe[0].ozelliklerListe) {
-            tur = `<i style="color: #95a5a6;">(${data[0].anlamlarListe[0].ozelliklerListe[0].tam_adi})</i> `;
-        }
+        // Vikisözlük'ten gelen verinin ilk bölümündeki metni al
+        // Genelde ilk anlam lead section içindeki 'text' alanındadır
+        let rawText = data.lead.sections[0].text;
 
-        // Varsa örnek cümleyi ekle
-        let ornek = "";
-        if (data[0].anlamlarListe[0].orneklerListe && data[0].anlamlarListe[0].orneklerListe[0]) {
-            ornek = `<div style="margin-top:10px; padding-top:10px; border-top:1px dashed #eee; font-style: italic; color: #7f8c8d;">
-                        "${data[0].anlamlarListe[0].orneklerListe[0].ornek}"
-                     </div>`;
-        }
+        // HTML etiketlerini temizle ve anlamı ayıkla
+        // Vikisözlük verisi bazen çok kalabalık olabilir, sadece ilk listeyi (anlamı) almaya çalışalım
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = rawText;
+        
+        // Genelde tanımlar <li> veya <p> içindedir
+        const firstMeaning = tempDiv.querySelector("ol li") || tempDiv.querySelector("p");
 
-        body.innerHTML = `<p>${tur}${anlam}</p>${ornek}`;
+        if (firstMeaning) {
+            // Anlamın içindeki linkleri ve gereksiz notları temizle
+            body.innerHTML = `<div class="wiki-content">${firstMeaning.innerHTML}</div>`;
+            
+            // Pop-up içindeki linklerin çalışmaması (oyundan koparmaması) için:
+            const links = body.querySelectorAll('a');
+            links.forEach(link => link.onclick = (e) => e.preventDefault());
+        } else {
+            body.innerHTML = "Kelime bulundu ancak tam tanımı ayrıştırılamadı.";
+        }
 
     } catch (e) {
-        body.innerHTML = "Bu kelimenin tanımı şu an getirilemedi veya sözlükte bulunamadı.";
-        console.error("Sözlük Hatası:", e);
+        body.innerHTML = "Bu kelime Vikisözlük'te bulunamadı veya bir hata oluştu.";
+        console.error("Vikisözlük Hatası:", e);
     }
 }
 
 function closeDefinition() {
     document.getElementById('definitionModal').style.display = "none";
 }
+
 
 
 
