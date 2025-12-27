@@ -10469,6 +10469,13 @@ async function fetchDefinition(word) {
     }
 }
 
+// Boşluğa tıklandığında kapanma özelliği (UX için önemli)
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('definitionModal');
+    if (event.target === modal) {
+        closeDefinition();
+    }
+});
 
 
 
