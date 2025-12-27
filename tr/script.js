@@ -10447,61 +10447,25 @@ async function fetchDefinition(word) {
     const title = document.getElementById('defTitle');
     const body = document.getElementById('definitionBody');
 
-    // Modalı hazırla ve göster
     title.textContent = word.toUpperCase('tr');
-    body.innerHTML = "<i>Searching dictionary...</i>";
+    body.innerHTML = "<i>Searching...</i>";
     modal.style.display = "flex";
 
-    // Temiz arama için kelimeyi hazırla
-    const cleanWord = word.toLowerCase('tr').trim();
-    
-    // Vikisözlük API URL
-    const targetUrl = `https://tr.wiktionary.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(cleanWord)}`;
-    
-    // CORS Engelini aşmak için Proxy URL
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    // BURAYA KENDİ GOOGLE SCRIPT URL'Nİ YAPIŞTIR
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyHywT-EMNS7J1eOGbALgi2TGNF-uuM9wFpsVk12gn1_Lwwz0bq6AgY7m9EuAHSKXlP/exec"; 
 
     try {
-        const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error();
+        const response = await fetch(`${scriptUrl}?word=${encodeURIComponent(word.toLowerCase('tr'))}`);
+        const data = await response.json();
 
-        const json = await response.json();
-        // Proxy veriyi 'contents' içinde string olarak döndürür, onu objeye çeviriyoruz
-        const data = JSON.parse(json.contents);
-
-        if (data && data.lead && data.lead.sections) {
-            // İlk bölümdeki metni al
-            let rawText = data.lead.sections[0].text;
-            
-            // Geçici bir div oluşturup metni temizleyelim
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = rawText;
-
-            // Gereksiz etiketleri (style, link, meta) temizle
-            const unwanted = tempDiv.querySelectorAll('style, link, .hatnote, .metadata');
-            unwanted.forEach(el => el.remove());
-
-            // Anlamları içeren listeyi bul
-            const meaning = tempDiv.querySelector("ol") || tempDiv.querySelector("p");
-
-            if (meaning) {
-                // Linkleri etkisizleştir (oyundan kopmamak için)
-                const links = meaning.querySelectorAll('a');
-                links.forEach(l => {
-                    l.style.color = "inherit";
-                    l.style.textDecoration = "none";
-                    l.onclick = (e) => e.preventDefault();
-                });
-                body.innerHTML = `<div class="wiki-content">${meaning.innerHTML}</div>`;
-            } else {
-                body.innerHTML = "Anlam bulundu fakat uygun formatta değil.";
-            }
+        if (data && data[0] && data[0].anlamlarListe) {
+            let anlam = data[0].anlamlarListe[0].anlam;
+            body.innerHTML = `<p>${anlam}</p>`;
         } else {
-            throw new Error();
+            body.innerHTML = "Definition not found.";
         }
     } catch (error) {
-        console.error("Dictionary Error:", error);
-        body.innerHTML = "Maalesef bu kelimenin tanımı bulunamadı.";
+        body.innerHTML = "Error connecting to dictionary.";
     }
 }
 
