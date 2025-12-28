@@ -78,35 +78,40 @@
     </div>
         
     <div id="gamePanel" class="panel hidden">
-        <div class="game-header">
-            <div class="room-info">Oda: <b id="gameCodeDisplay">--</b></div>
-            
-            <div id="turnStatusBadge" class="status-badge hidden">Yükleniyor...</div>
-            
-            <div id="gameTimer" class="game-timer hidden">20</div>
+    <div class="game-header">
+        <div class="room-info">Oda: <b id="gameCodeDisplay">--</b></div>
+        <div id="turnStatusBadge" class="status-badge hidden">Yükleniyor...</div>
+        <div id="gameTimer" class="game-timer hidden">20</div>
+    </div>
+    
+    <div class="game-container">
+        <div id="randomGameInfoArea" class="random-info-wrapper hidden">
+            <div id="randomLetterDisplay" class="random-letter-box">?</div>
+
+            <div id="remainingStatsBox" class="stats-box">
+                <div class="stats-title">Kalan Harfler</div>
+                <div class="stats-row">Sesli: <span id="vowel-count">0</span></div>
+                <div class="stats-row">Sessiz: <span id="consonant-count">0</span></div>
+            </div>
         </div>
-        
-        <div class="game-container">
-            <div class="grid-section hidden-during-game" id="opponentSection">
-                <div id="opponentGrid" class="grid locked"></div>
-            </div>
 
-            <div class="grid-section">
-                <div id="myGrid" class="grid"></div>
-            </div>
+        <div class="grid-section hidden-during-game" id="opponentSection">
+            <div id="opponentGrid" class="grid locked"></div>
+        </div>
 
-                        <div class="controls-section">
-                <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
-                            
-                 <div id="classicLetterSelectionArea" class="hidden">
-                 <p class="section-label">Harf Seç ve Onayla:</p>
-                 <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
-                 <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>ONAYLA</button>
-                </div>
+        <div class="grid-section">
+            <div id="myGrid" class="grid"></div>
+        </div>
+
+        <div class="controls-section">
+            <div id="classicLetterSelectionArea" class="hidden">
+                <p class="section-label">Harf Seç ve Onayla:</p>
+                <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
+                <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>ONAYLA</button>
             </div>
-                
         </div>
     </div>
+</div>
         
          <div id="gameOverPanel" class="panel hidden">
         <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
@@ -227,6 +232,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
