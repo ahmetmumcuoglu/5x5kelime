@@ -1086,4 +1086,10 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     margin-top: 10px;
 }
 
+/* 25. turda harf kutusu (içinde alfabe varken) tam genişlik olsun */
+#randomLetterDisplay:has(.alphabet-wrapper),
+#randomLetterDisplay:has(.joker-btn) { 
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+}
 
