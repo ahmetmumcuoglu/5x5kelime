@@ -9071,6 +9071,7 @@ const gameOverPanel = document.getElementById('gameOverPanel');
 const myGridEl = document.getElementById('myGrid');
 const oppGridEl = document.getElementById('opponentGrid');
 const statusMsg = document.getElementById('gameStatusMsg');
+const VOWELS_TR = "AEIİOÖUÜ";
 
 // HTML'deki ID'lerle eşleştirilen kritik elementler
 const gameCodeDisplay = document.getElementById('gameCodeDisplay'); 
@@ -10485,6 +10486,7 @@ window.addEventListener('click', function(event) {
         closeDefinition();
     }
 });
+
 
 
 
