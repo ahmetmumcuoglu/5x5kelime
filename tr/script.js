@@ -10469,6 +10469,15 @@ async function fetchDefinition(word) {
     }
 }
 
+function closeDefinition() {
+    const modal = document.getElementById('definitionModal');
+    if (modal) {
+        modal.style.display = "none";
+        // İçeriği temizleyelim ki bir sonraki aramada eski yazı görünmesin
+        document.getElementById('definitionBody').innerHTML = "";
+    }
+}
+
 // Boşluğa tıklandığında kapanma özelliği (UX için önemli)
 window.addEventListener('click', function(event) {
     const modal = document.getElementById('definitionModal');
@@ -10476,6 +10485,7 @@ window.addEventListener('click', function(event) {
         closeDefinition();
     }
 });
+
 
 
 
