@@ -9071,7 +9071,7 @@ const gameOverPanel = document.getElementById('gameOverPanel');
 const myGridEl = document.getElementById('myGrid');
 const oppGridEl = document.getElementById('opponentGrid');
 const statusMsg = document.getElementById('gameStatusMsg');
-const VOWELS_TR = "AEIİOÖUÜ";
+const ALL_VOWELS = "AEIİOÖUÜ";
 
 // HTML'deki ID'lerle eşleştirilen kritik elementler
 const gameCodeDisplay = document.getElementById('gameCodeDisplay'); 
@@ -9364,6 +9364,21 @@ function listenToGame() {
             }
 
             const data = doc.data();
+
+          // --- İSTATİSTİK GÜNCELLEME BURAYA ---
+if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
+    // Random info alanını göster
+    const infoArea = document.getElementById('randomGameInfoArea');
+    if (infoArea) infoArea.classList.remove('hidden');
+    
+    // İstatistikleri hesapla ve yaz
+    updateLetterStats(data.letterSequence, data.moveNumber);
+} else {
+    // Klasik modda bu paneli gizleyebiliriz
+    const infoArea = document.getElementById('randomGameInfoArea');
+    if (infoArea) infoArea.classList.add('hidden');
+}
+// ------------------------------------
 
             // 1. Grid Verilerini Al ve Çiz
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
@@ -10486,6 +10501,36 @@ window.addEventListener('click', function(event) {
         closeDefinition();
     }
 });
+
+function updateLetterStats(sequence, moveNumber) {
+    if (!sequence || sequence.length === 0) return;
+
+    // moveNumber 1'den başlar. 
+    // Örneğin 1. hamledeysek, sequence[0]'ı yerleştiriyoruzdur. 
+    // Kalan harfler sequence[1] ve sonrası (index moveNumber ve sonrası)
+    // Ancak 25. hamle (joker) dizi dışıdır, bu yüzden kontrol ekliyoruz.
+    const remainingPool = (moveNumber <= 24) ? sequence.slice(moveNumber) : [];
+
+    let vCount = 0;
+    let cCount = 0;
+
+    remainingPool.forEach(char => {
+        if (ALL_VOWELS.includes(char.toUpperCase())) {
+            vCount++;
+        } else {
+            cCount++;
+        }
+    });
+
+    const vEl = document.getElementById('vowel-count');
+    const cEl = document.getElementById('consonant-count');
+    
+    if (vEl && cEl) {
+        vEl.textContent = vCount;
+        cEl.textContent = cCount;
+    }
+}
+
 
 
 
