@@ -9451,20 +9451,28 @@ if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
                 // A. 25. TUR: JOKER HAMLESİ
                 // ====================================================
                 if (currentMove === 25) {
-                    if (randomDisplay) randomDisplay.classList.remove('hidden');
-                    
-                    if (myFilledCount >= 25) {
-                        updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
-                    } else {
-                        renderAlphabetSelector(); 
-                        if (!myFinalLetter) {
-                            updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
-                        } else {
-                            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
-                        }
-                    }
-                    return; // Fonksiyondan çık, aşağısı çalışmasın
-                }
+    // 1. Sayaç kutusunu bul (ID'nin doğruluğundan emin ol)
+    const statsBox = document.getElementById('remainingStatsBox');
+
+    if (randomDisplay) randomDisplay.classList.remove('hidden');
+    
+    // 2. 25. turda sayacı gizle
+    if (statsBox) statsBox.classList.add('hidden');
+
+    if (myFilledCount >= 25) {
+        updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
+        // Biterken harf kutusunu da gizle
+        if (randomDisplay) randomDisplay.classList.add('hidden');
+    } else {
+        renderAlphabetSelector(); 
+        if (!myFinalLetter) {
+            updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
+        } else {
+            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
+        }
+    }
+    return;
+}
 
                 // ====================================================
                 // B. KLASİK MOD (CLASSIC)
@@ -10530,6 +10538,7 @@ function updateLetterStats(sequence, moveNumber) {
         cEl.textContent = cCount;
     }
 }
+
 
 
 
