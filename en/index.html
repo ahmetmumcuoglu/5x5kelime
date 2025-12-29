@@ -85,25 +85,33 @@
         </div>
         
         <div class="game-container">
-            <div class="grid-section hidden-during-game" id="opponentSection">
-                <div id="opponentGrid" class="grid locked"></div>
-            </div>
+        <div id="randomGameInfoArea" class="random-info-wrapper hidden">
+            <div id="randomLetterDisplay" class="random-letter-box">?</div>
 
-            <div class="grid-section">
-                <div id="myGrid" class="grid"></div>
+            <div id="remainingStatsBox" class="stats-box">
+                <div class="stats-title">Remaining letters</div>
+                <div class="stats-row">Vowels: <span id="vowel-count">0</span></div>
+                <div class="stats-row">Consonants: <span id="consonant-count">0</span></div>
             </div>
+        </div>
 
-            <div class="controls-section">
-                <div id="randomLetterDisplay" class="random-letter-box hidden">?</div>
-                            
-                 <div id="classicLetterSelectionArea" class="hidden">
-                 <p class="section-label">Select and Confirm Letter:</p>
-                 <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
-                 <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>CONFIRM</button>
-                </div>
+        <div class="grid-section hidden-during-game" id="opponentSection">
+            <div id="opponentGrid" class="grid locked"></div>
+        </div>
+
+        <div class="grid-section">
+            <div id="myGrid" class="grid"></div>
+        </div>
+
+        <div class="controls-section">
+            <div id="classicLetterSelectionArea" class="hidden">
+                <p class="section-label">Pick a letter and confirm:</p>
+                <div id="classicAlphabetContainer" class="alphabet-wrapper"></div>
+                <button id="confirmLetterBtn" class="confirm-btn" onclick="submitClassicLetter()" disabled>CONFIRM</button>
             </div>
         </div>
     </div>
+</div>
         
     <div id="gameOverPanel" class="panel hidden">
         <h3 id="finalResultMsg" class="result-message">Determining Winner...</h3>
