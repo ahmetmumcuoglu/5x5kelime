@@ -1773,7 +1773,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function fetchEnglishDefinition(word) {
+async function fetchDefinition(word) {
     const modal = document.getElementById('definitionModal');
     const title = document.getElementById('defTitle');
     const body = document.getElementById('definitionBody');
