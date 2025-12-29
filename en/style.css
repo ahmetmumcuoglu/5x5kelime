@@ -370,6 +370,39 @@ button[onclick*="startSinglePlayerGame"].random {
     text-align: center;
 }
 
+/* Yeni istatistik kutusu */
+.stats-box {
+    flex: 1;
+    border: 2px solid #e67e22;
+    border-radius: 10px;
+    background: white;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+    font-family: Arial, sans-serif;
+}
+
+.stats-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #7f8c8d;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #eee;
+}
+
+.stats-row {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    line-height: 1.5;
+}
+
+#vowel-count { color: #e67e22; }
+#consonant-count { color: #2980b9; }
+
 /* Grid Konteynerleri */
 .grids-container {
     display: flex;
