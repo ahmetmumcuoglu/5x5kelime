@@ -673,6 +673,23 @@ function listenToGame() {
             }
 
             const data = doc.data();
+            const statsBox = document.getElementById('remainingStatsBox');
+
+            if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
+                const infoArea = document.getElementById('randomGameInfoArea');
+                if (infoArea) infoArea.classList.remove('hidden');
+                
+                // 25. turdan önce sayacı göster, 25'te gizle
+                if (statsBox) {
+                    if (data.moveNumber < 25) {
+                        statsBox.classList.remove('hidden');
+                    } else {
+                        statsBox.classList.add('hidden');
+                    }
+                }
+                
+                updateLetterStats(data.letterSequence, data.moveNumber);
+            }
 
             // 1. Grid Verilerini Al ve Çiz
             myGridData = (myPlayerId === 'PlayerA') ? data.gridA : data.gridB;
@@ -745,20 +762,21 @@ function listenToGame() {
                 // A. 25. TUR: JOKER HAMLESİ
                 // ====================================================
                 if (currentMove === 25) {
-                    if (randomDisplay) randomDisplay.classList.remove('hidden');
-                    
-                    if (myFilledCount >= 25) {
-                        updateUIState("GAME ENDING... WAITING FOR OPPONENT", "badge-neutral", false);
+                if (randomDisplay) randomDisplay.classList.remove('hidden');
+                if (statsBox) statsBox.classList.add('hidden'); // Kesinlik için burada da gizle
+                
+                if (myFilledCount >= 25) {
+                    updateUIState("GAME ENDING...", "badge-neutral", false);
+                } else {
+                    renderAlphabetSelector(); 
+                    if (!myFinalLetter) {
+                        updateUIState("PICK A JOKER LETTER", "badge-info", false);
                     } else {
-                        renderAlphabetSelector(); 
-                        if (!myFinalLetter) {
-                            updateUIState("LAST LETTER: PICK A LETTER", "badge-info", false);
-                        } else {
-                            updateUIState(`SELECTED: ${myFinalLetter} - PLACE IT`, "badge-success", true);
-                        }
+                        updateUIState(`SELECTED: ${myFinalLetter} - PLACE IT`, "badge-success", true);
                     }
-                    return; // Fonksiyondan çık, aşağısı çalışmasın
                 }
+                return;
+            }
 
                 // ====================================================
                 // B. KLASİK MOD (CLASSIC)
