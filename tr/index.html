@@ -115,6 +115,42 @@
             </div>
         </div>
     </div>
+
+        <div id="dailyInfoPanel" class="daily-info-container hidden">
+    <div class="daily-left">
+        <div id="dailyDateText">29 Aralık 2025</div>
+        <div id="dailyGameNum">Challenge #142</div>
+    </div>
+    
+    <div class="daily-right">
+        <button class="daily-icon-btn" title="Nasıl Oynanır?"><span>?</span></button>
+        <button class="daily-icon-btn" title="İstatistikler"><span>📊</span></button>
+        <button id="themeToggle" class="daily-icon-btn"><span>🌙</span></button>
+    </div>
+</div>
+
+<div id="dailyResultPanel" class="daily-summary-wrapper hidden">
+    <div class="summary-card">
+        <div class="summary-stat">
+            <span class="stat-value" id="resScore">0</span>
+            <span class="stat-label">PUANIN</span>
+        </div>
+        <div class="summary-stat">
+            <span class="stat-value" id="resTopScore">---</span>
+            <span class="stat-label">GÜNÜN REKORU</span>
+        </div>
+        <div class="summary-stat">
+            <span class="stat-value" id="resRank">---</span>
+            <span class="stat-label">SIRALAMAN</span>
+        </div>
+    </div>
+    
+    <div class="summary-actions">
+        <button class="share-btn">SONUCU PAYLAŞ 📤</button>
+        <button class="archive-btn">GEÇMİŞ OYUNLAR 📅</button>
+    </div>
+</div>
+        
 </div>
         
          <div id="gameOverPanel" class="panel hidden">
@@ -236,6 +272,7 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
