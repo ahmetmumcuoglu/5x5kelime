@@ -380,6 +380,7 @@ const gameOverPanel = document.getElementById('gameOverPanel');
 const myGridEl = document.getElementById('myGrid');
 const oppGridEl = document.getElementById('opponentGrid');
 const statusMsg = document.getElementById('gameStatusMsg');
+const VOWELS_EN = "AEIOU";
 
 // HTML'deki ID'lerle eşleştirilen kritik elementler
 const gameCodeDisplay = document.getElementById('gameCodeDisplay'); 
