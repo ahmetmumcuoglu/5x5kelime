@@ -1773,39 +1773,46 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function fetchDefinition(word) {
+async function fetchEnglishDefinition(word) {
     const modal = document.getElementById('definitionModal');
     const title = document.getElementById('defTitle');
     const body = document.getElementById('definitionBody');
 
-    // Başlığı güncelle ve modalı göster
     title.textContent = word.toUpperCase();
-    body.innerHTML = "<i>Searching dictionary...</i>";
+    body.innerHTML = "<i>Searching dictionaries...</i>";
     modal.style.display = "flex";
 
     try {
-        // İngilizce Sözlük API çağrısı
-        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        // 1. DENEME: Mevcut API (DictionaryAPI.dev)
+        const res1 = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
         
-        if (!response.ok) {
-            throw new Error("Word not found");
+        if (res1.ok) {
+            const data1 = await res1.json();
+            const def = data1[0].meanings[0].definitions[0].definition;
+            body.innerHTML = `<p>${def}</p><small style="color:#888">Source: DictionaryAPI</small>`;
+            return;
         }
 
-        const data = await response.json();
+        // 2. DENEME: Kelime bulunamadıysa Wiktionary üzerinden sorgula (Anahtar gerekmez)
+        // Bu API Wiktionary verilerini JSON olarak döner
+        const res2 = await fetch(`https://en.wiktionary.org/api/rest_v1/page/definition/${word.toLowerCase()}`);
         
-        // API'den gelen veriyi işle (İlk anlamı al)
-        const firstMeaning = data[0].meanings[0].definitions[0].definition;
-        
-        // Eğer varsa örnek cümleyi de ekle (opsiyonel)
-        const example = data[0].meanings[0].definitions[0].example;
-        
-        body.innerHTML = `
-            <p>${firstMeaning}</p>
-            ${example ? `<br><small style="color: #7f8c8d;">Example: "${example}"</small>` : ''}
-        `;
+        if (res2.ok) {
+            const data2 = await res2.json();
+            // Wiktionary yapısı biraz farklıdır, ilk geçerli tanımı alalım
+            if (data2.en && data2.en[0].definitions[0]) {
+                const def = data2.en[0].definitions[0].definition;
+                // Wiktionary HTML tagları içerebilir, temizleyelim
+                const cleanDef = def.replace(/<[^>]*>?/gm, ''); 
+                body.innerHTML = `<p>${cleanDef}</p><small style="color:#888">Source: Wiktionary</small>`;
+                return;
+            }
+        }
 
-    } catch (e) {
-        body.innerHTML = "Sorry, no definition found for this word.";
+        body.innerHTML = "Definition not found. This might be a very rare word or a proper noun.";
+
+    } catch (error) {
+        body.innerHTML = "Error connecting to dictionaries.";
     }
 }
 
