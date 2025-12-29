@@ -1782,37 +1782,43 @@ async function fetchEnglishDefinition(word) {
     body.innerHTML = "<i>Searching dictionaries...</i>";
     modal.style.display = "flex";
 
+    const cleanWord = word.trim().toLowerCase();
+
     try {
-        // 1. DENEME: Mevcut API (DictionaryAPI.dev)
-        const res1 = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        // 1. DENEME: Google'ın da desteklediği en yaygın Free Dictionary API
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${cleanWord}`);
         
-        if (res1.ok) {
-            const data1 = await res1.json();
-            const def = data1[0].meanings[0].definitions[0].definition;
-            body.innerHTML = `<p>${def}</p><small style="color:#888">Source: DictionaryAPI</small>`;
+        if (response.ok) {
+            const data = await response.json();
+            // Bazı kelimelerde birden fazla anlam olur, ilkini en temiz şekilde alalım
+            const meaning = data[0].meanings[0].definitions[0].definition;
+            body.innerHTML = `<p>${meaning}</p><small style="color:#888">Source: DictionaryAPI</small>`;
             return;
         }
 
-        // 2. DENEME: Kelime bulunamadıysa Wiktionary üzerinden sorgula (Anahtar gerekmez)
-        // Bu API Wiktionary verilerini JSON olarak döner
-        const res2 = await fetch(`https://en.wiktionary.org/api/rest_v1/page/definition/${word.toLowerCase()}`);
-        
-        if (res2.ok) {
-            const data2 = await res2.json();
-            // Wiktionary yapısı biraz farklıdır, ilk geçerli tanımı alalım
-            if (data2.en && data2.en[0].definitions[0]) {
-                const def = data2.en[0].definitions[0].definition;
-                // Wiktionary HTML tagları içerebilir, temizleyelim
-                const cleanDef = def.replace(/<[^>]*>?/gm, ''); 
-                body.innerHTML = `<p>${cleanDef}</p><small style="color:#888">Source: Wiktionary</small>`;
-                return;
-            }
+        // 2. DENEME: Eğer yukarıdaki API 404 dönerse, Datamuse API (Anlam/Tanım odaklı)
+        // Bu API çok daha geniş bir veri setine sahiptir ve üyelik istemez.
+        const fallbackRes = await fetch(`https://api.datamuse.com/words?sp=${cleanWord}&md=d&max=1`);
+        const fallbackData = await fallbackRes.json();
+
+        if (fallbackData.length > 0 && fallbackData[0].defs) {
+            // Datamuse tanımları "n\t" veya "v\t" (noun/verb) ön ekleriyle verir, temizleyelim
+            let rawDef = fallbackData[0].defs[0];
+            let cleanDef = rawDef.split('\t')[1]; // Sadece tanım kısmını al
+            body.innerHTML = `<p>${cleanDef}</p><small style="color:#888">Source: Datamuse Engine</small>`;
+            return;
         }
 
-        body.innerHTML = "Definition not found. This might be a very rare word or a proper noun.";
+        // 3. ADIM: Hala bulunamadıysa (UX Kurtarma)
+        body.innerHTML = `
+            <p>Definition not found in our database.</p>
+            <a href="https://www.google.com/search?q=define+${cleanWord}" target="_blank" style="color:#e67e22; text-decoration:underline;">
+                Search on Google
+            </a>`;
 
     } catch (error) {
-        body.innerHTML = "Error connecting to dictionaries.";
+        console.error("Dictionary Error:", error);
+        body.innerHTML = "Error connecting to dictionaries. Please try again.";
     }
 }
 
