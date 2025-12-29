@@ -359,15 +359,25 @@ button[onclick*="startSinglePlayerGame"].random {
 }
 
 #randomLetterDisplay {
-    font-size: 2.5em; 
-    font-weight: bold; 
-    color: var(--accent); 
-    border: 3px solid var(--accent); 
-    padding: 5px 25px; 
-    border-radius: 8px; 
-    background: var(--bg-panel); 
-    min-width: 50px;
-    text-align: center;
+    flex: 1;
+    min-height: 80px;
+    margin: 0 !important; /* Mevcut marginleri sıfırla */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    border: 2px solid #e67e22;
+    border-radius: 10px;
+    background: white;
+}
+
+.random-info-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 10px;
+    margin: 10px auto;
+    max-width: 320px; /* Grid genişliğine göre ayarlanabilir */
 }
 
 /* Yeni istatistik kutusu */
