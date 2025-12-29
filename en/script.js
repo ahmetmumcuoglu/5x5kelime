@@ -1802,5 +1802,30 @@ window.onclick = function(event) {
     }
 }
 
+function updateLetterStats(sequence, moveNumber) {
+    if (!sequence || sequence.length === 0) return;
 
+    // 25. hamle joker olduğu için dizi dışıdır
+    const remainingPool = (moveNumber <= 24) ? sequence.slice(moveNumber) : [];
+
+    let vCount = 0;
+    let cCount = 0;
+
+    remainingPool.forEach(char => {
+        // Sadece İngilizce sesli harfleri kontrol et
+        if (VOWELS_EN.includes(char.toUpperCase())) {
+            vCount++;
+        } else {
+            cCount++;
+        }
+    });
+
+    const vEl = document.getElementById('vowel-count');
+    const cEl = document.getElementById('consonant-count');
+    
+    if (vEl && cEl) {
+        vEl.textContent = vCount;
+        cEl.textContent = cCount;
+    }
+}
 
