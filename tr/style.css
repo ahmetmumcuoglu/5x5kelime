@@ -306,6 +306,22 @@ button[onclick*="startSinglePlayerGame"].random {
     background-color: #16a085 !important; /* Yeşilimsi Turkuaz */ 
 }
 
+/* 3. GÜNLÜK MÜCADELE (Mor - Amethyst Tonları) */
+/* "startDailyGame" çağıran tüm butonlar */
+button[onclick*="startDailyGame"] {
+    background-color: #8e44ad !important; /* Amethyst Mor (Baz) */
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+button[onclick*="startDailyGame"]:hover {
+    background-color: #9b59b6 !important; /* Biraz daha açık mor */
+}
+
+/* Eğer butona özel bir sınıf eklediysen (opsiyonel) */
+button[onclick*="startDailyGame"].daily {
+    background-color: #7d3c98 !important; /* Daha derin mor */
+}
+
 /* ================================================= */
 /* OYUNA KATILMA VE DİĞER BUTONLAR */
 /* ================================================= */
@@ -1092,4 +1108,5 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     flex: 1 1 100% !important;
     max-width: 100% !important;
 }
+
 
