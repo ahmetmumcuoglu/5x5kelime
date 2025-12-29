@@ -62,14 +62,19 @@
             </div>
             
             <div class="control-group">
-                <p class="group-title">SINGLE PLAYER</p>
-                <div class="mode-buttons">
-                    <button class="btn-mode random" onclick="startSinglePlayerGame('RANDOM')">
-                        <span class="mode-icon">🎲</span>
-                        <span class="mode-name">RANDOM</span>
-                    </button>
-                </div>
+            <p class="group-title">SINGLE PLAYER</p>
+            <div class="mode-buttons">
+                <button class="btn-mode daily" onclick="startDailyGame()">
+                    <span class="mode-icon">📅</span>
+                    <span class="mode-name">DAILY</span>
+                </button>
+        
+                <button class="btn-mode random" onclick="startSinglePlayerGame('RANDOM')">
+                    <span class="mode-icon">🎲</span>
+                    <span class="mode-name">RANDOM</span>
+                </button>
             </div>
+        </div>
 
         </div>
         <div id="lobbyStatus" class="status-error"></div>
