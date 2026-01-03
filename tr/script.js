@@ -65,7 +65,7 @@ function getMyStatsId() {
 
 // 2. Yerel İstatistikleri Getir
 function getLocalRandomStats() {
-    const raw = localStorage.getItem('kelimelik_random_history');
+    const raw = localStore.getItem('kelimelik_random_history');
     // Veri yapısı: { allScores: [120, 90, ...], dates: [...] }
     if (!raw) return { allScores: [] };
     return JSON.parse(raw);
@@ -10534,6 +10534,7 @@ function updateLetterStats(sequence, moveNumber) {
         cEl.textContent = cCount;
     }
 }
+
 
 
 
