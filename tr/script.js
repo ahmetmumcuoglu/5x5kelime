@@ -10271,18 +10271,7 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
-        cell.textContent = gridData[i] || '';
-
-      // --- DOĞRU JOKER TESPİTİ ---
-        // Eğer bu harf, oyuncunun 25. hamlede seçtiği harf ise (myFinalLetter)
-        // Not: Eğer myFinalLetter o an mevcut değilse (sayfa yenilendiyse), 
-        // veritabanındaki sıralamadan bulmak gerekir. 
-        // Şimdilik görsel test için 25. sıradaki harfi baz alıyoruz:
-        if (i === 24) { 
-            cell.classList.add('joker-cell');
-        }
-        // ---------------------------
-      
+        cell.textContent = gridData[i] || '';      
         gridElement.appendChild(cell);
 
         // Satır sonu (i=4, 9, 14, 19, 24)
@@ -10545,6 +10534,7 @@ function updateLetterStats(sequence, moveNumber) {
         cEl.textContent = cCount;
     }
 }
+
 
 
 
