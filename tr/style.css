@@ -1194,3 +1194,15 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     cursor: pointer;
 }
 
+/* Joker harfi için düz ve modern bir renk */
+.cell.joker-cell {
+    background-color: #6c5ce7 !important; /* Modern Mor */
+    color: #ffffff !important;
+    font-weight: bold;
+    border: none;
+    /* Diğer hücrelerle aynı dokuda olması için */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
