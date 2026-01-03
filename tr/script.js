@@ -10273,11 +10273,15 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
         cell.classList.add('cell');
         cell.textContent = gridData[i] || '';
 
-      // --- İLAVE KISIM: Joker harfi (25. hücre) renklendir ---
-        if (i === 24) {
+      // --- DOĞRU JOKER TESPİTİ ---
+        // Eğer bu harf, oyuncunun 25. hamlede seçtiği harf ise (myFinalLetter)
+        // Not: Eğer myFinalLetter o an mevcut değilse (sayfa yenilendiyse), 
+        // veritabanındaki sıralamadan bulmak gerekir. 
+        // Şimdilik görsel test için 25. sıradaki harfi baz alıyoruz:
+        if (i === 24) { 
             cell.classList.add('joker-cell');
         }
-        // ------------------------------------------------------
+        // ---------------------------
       
         gridElement.appendChild(cell);
 
@@ -10541,6 +10545,7 @@ function updateLetterStats(sequence, moveNumber) {
         cEl.textContent = cCount;
     }
 }
+
 
 
 
