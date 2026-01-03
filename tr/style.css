@@ -1194,15 +1194,3 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     cursor: pointer;
 }
 
-/* Joker harfi için düz ve modern bir renk */
-.grid-cell.joker-cell {
-    /* Mor tonlarında yumuşak bir geçiş */
-    background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important; 
-    color: #ffffff !important;
-    font-weight: 800; /* Harfi biraz daha kalın yapalım */
-    border: none !important;
-    /* Puan kutucuklarındaki gibi hafif bir gölge */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-    position: relative;
-}
-
