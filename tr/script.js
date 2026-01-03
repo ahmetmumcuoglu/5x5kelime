@@ -10272,6 +10272,13 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
         cell.textContent = gridData[i] || '';
+
+      // --- İLAVE KISIM: Joker harfi (25. hücre) renklendir ---
+        if (i === 24) {
+            cell.classList.add('joker-cell');
+        }
+        // ------------------------------------------------------
+      
         gridElement.appendChild(cell);
 
         // Satır sonu (i=4, 9, 14, 19, 24)
@@ -10534,6 +10541,7 @@ function updateLetterStats(sequence, moveNumber) {
         cEl.textContent = cCount;
     }
 }
+
 
 
 
