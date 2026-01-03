@@ -1195,14 +1195,14 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
 }
 
 /* Joker harfi için düz ve modern bir renk */
-.cell.joker-cell {
-    background-color: #6c5ce7 !important; /* Modern Mor */
+.grid-cell.joker-cell {
+    /* Mor tonlarında yumuşak bir geçiş */
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important; 
     color: #ffffff !important;
-    font-weight: bold;
-    border: none;
-    /* Diğer hücrelerle aynı dokuda olması için */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
+    font-weight: 800; /* Harfi biraz daha kalın yapalım */
+    border: none !important;
+    /* Puan kutucuklarındaki gibi hafif bir gölge */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+    position: relative;
 }
+
