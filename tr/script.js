@@ -9131,7 +9131,7 @@ async function createNewGame(mode) { // 'mode' parametresini dışarıdan (buton
         });
 
         // 5. Arayüzü Güncelle
-        setupGameUI(code);
+        setupGameUI(code, true);
 
         // UI Görünürlük Ayarları
         const oppSection = document.getElementById('opponentSection');
@@ -9198,7 +9198,7 @@ async function joinGame() {
         });
 
         // 4. Arayüzü oyun paneline geçir
-        setupGameUI(code);
+        setupGameUI(code, true);
 
         // --- KRİTİK DÜZELTME: GİZLENEN ALANLARI GERİ AÇ ---
         // Tek kişilik oyundan gelindiyse bu alanlar 'display: none' kalmış olabilir.
@@ -9303,26 +9303,31 @@ async function startSinglePlayerGame() {
 // ARAYÜZ HAZIRLAMA (DÜZELTİLMİŞ)
 // ==========================================
 
-function setupGameUI(gameId) {
+function setupGameUI(gameId, isMultiplayer = false) {
     const lobbyPanel = document.getElementById('lobbyPanel');
     const gamePanel = document.getElementById('gamePanel');
     const gameOverPanel = document.getElementById('gameOverPanel');
     const displayCode = document.getElementById('gameCodeDisplay');
+    const roomInfoDiv = document.querySelector('.room-info'); // Oda kodu satırı
     
     // Panelleri Geçiş
     if (lobbyPanel) lobbyPanel.classList.add('hidden');
     if (gameOverPanel) gameOverPanel.classList.add('hidden');
     if (gamePanel) gamePanel.classList.remove('hidden');
 
-    // Oda Kodunu Yaz
+    // Oda Kodunu Yaz ve Görünürlüğünü Ayarla
     if (displayCode) displayCode.textContent = gameId;
+    
+    if (roomInfoDiv) {
+        // Eğer Multiplayer ise GÖSTER, değilse (Daily/Single) GİZLE
+        roomInfoDiv.style.display = isMultiplayer ? 'block' : 'none';
+    }
 
     // UI Sıfırlama
     const statusMsg = document.getElementById('gameStatusMsg');
     if (statusMsg) statusMsg.textContent = "Oyun Yükleniyor...";
 
-    // --- ÖNEMLİ: Daily Footer'ı Varsayılan Olarak Gizle ---
-    // (Sadece startDailyGame içinde manuel açılacak)
+    // Daily Footer'ı Varsayılan Olarak Gizle
     const dailyFooter = document.getElementById('dailyFooterInfo');
     if (dailyFooter) dailyFooter.classList.add('hidden');
 
@@ -10064,7 +10069,7 @@ function calculateScore(gridData) {
 function showResults(data) {
     // 1. Puanları Hesapla
     const resultA = calculateScore(data.gridA);
-    const resultB = calculateScore(data.gridB); // Multiplayer değilse boş döner, sorun yok.
+    const resultB = calculateScore(data.gridB);
 
     // 2. Panelleri Değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
@@ -10072,17 +10077,20 @@ function showResults(data) {
     const gameOverPanel = document.getElementById('gameOverPanel');
     gameOverPanel.classList.remove('hidden');
 
+    // --- İSTENMEYEN YAZIYI GİZLE ---
+    const resultMsg = document.getElementById('finalResultMsg');
+    if (resultMsg) resultMsg.style.display = 'none'; // Gizle
+    // -------------------------------
+
     // 3. Elementleri Seç
     const scoreAEl = document.getElementById('scoreA');
     const wordsListAEl = document.getElementById('wordsListA');
-    const finalGridAEl = document.getElementById('finalGridA');
     
-    // Daily Mod Elementleri
     const dailySummary = document.getElementById('dailyResultSummary');
     const opponentCard = document.getElementById('opponentResultCard');
     const titleA = document.getElementById('resultTitleA');
 
-    // 4. Sonuçları Yaz (Senin Kartın)
+    // 4. Sonuçları Yaz
     scoreAEl.textContent = resultA.score;
     renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
     
@@ -10090,47 +10098,43 @@ function showResults(data) {
         ? resultA.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
         : '<li>Kelime bulunamadı</li>';
 
-    // 5. MOD KONTROLÜ: GÖRÜNÜM AYARLARI
+    // 5. MOD KONTROLÜ
     if (data.isDailyChallenge) {
         // --- DAILY MOD ---
-        
-        // A. Rakip Kartını Gizle
         if (opponentCard) opponentCard.style.display = 'none';
-
-        // B. Daily Özet Alanını Göster
         if (dailySummary) dailySummary.classList.remove('hidden');
+        if (titleA) titleA.innerHTML = `SKORUNUZ: <span style="color:#8e44ad">${resultA.score}</span>`;
 
-        // C. Başlığı Düzenle
-        if (titleA) titleA.innerHTML = `GÜNLÜK SKORUN: <span style="color:#8e44ad">${resultA.score}</span>`;
-
-        // D. "Bugün Oynandı" Bilgisini Kaydet
+        // Local Storage Güncellemeleri
         const todayKey = new Date().toISOString().split('T')[0];
         localStorage.setItem('daily_last_played', todayKey);
         
-        // E. Günün Rekoru (Basit LocalStorage Mantığı)
-        // Gerçek bir leaderboard için Firebase gerekir ama şimdilik yerel rekor:
-        let best = localStorage.getItem('daily_best_score') || 0;
+        let best = parseInt(localStorage.getItem('daily_best_score') || '0');
         if (resultA.score > best) {
             best = resultA.score;
             localStorage.setItem('daily_best_score', best);
         }
         document.getElementById('resTopScore').textContent = best;
         
-        // F. Sıralama (Firebase olmadığı için geçici metin)
-        document.getElementById('resRank').textContent = "-"; 
+        // --- SIRALAMAYI ÇEK (ASYNC) ---
+        const rankEl = document.getElementById('resRank');
+        rankEl.textContent = "Hesaplanıyor...";
+        
+        submitDailyScoreAndGetRank(resultA.score).then(rank => {
+            rankEl.textContent = rank + "."; // Örn: 1.
+        });
 
     } else if (data.isSinglePlayer) {
-        // --- SINGLE RANDOM MOD ---
+        // --- SINGLE RANDOM ---
         if (opponentCard) opponentCard.style.display = 'none';
-        if (dailySummary) dailySummary.classList.add('hidden'); // Daily özetini gizle
+        if (dailySummary) dailySummary.classList.add('hidden');
         if (titleA) titleA.textContent = "OYUN SONUCUNUZ";
 
     } else {
-        // --- MULTIPLAYER MOD ---
+        // --- MULTIPLAYER ---
         if (opponentCard) opponentCard.style.display = 'flex';
         if (dailySummary) dailySummary.classList.add('hidden');
         
-        // Rakip Skorlarını Yaz
         const scoreBEl = document.getElementById('scoreB');
         const wordsListBEl = document.getElementById('wordsListB');
         scoreBEl.textContent = resultB.score;
@@ -10139,6 +10143,14 @@ function showResults(data) {
         wordsListBEl.innerHTML = resultB.words.length > 0 
             ? resultB.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
             : '<li>Kelime bulunamadı</li>';
+            
+        // Multiplayer modda "Kazanan Belirleniyor" yerine sonucu yazabiliriz (İsteğe bağlı)
+        if (resultMsg) {
+             resultMsg.style.display = 'block'; // Geri aç
+             if (resultA.score > resultB.score) resultMsg.textContent = "KAZANDIN! 🎉";
+             else if (resultB.score > resultA.score) resultMsg.textContent = "KAYBETTİN 😔";
+             else resultMsg.textContent = "BERABERE 🤝";
+        }
     }
 
     // Dinlemeyi durdur
@@ -10146,17 +10158,6 @@ function showResults(data) {
         unsubscribe();
         unsubscribe = null;
     }
-}
-
-// Paylaş Butonu Fonksiyonu
-function shareDailyResult() {
-    const score = document.getElementById('scoreA').textContent;
-    const challengeNum = getChallengeNumber();
-    const text = `Kelimelik 5x5 - Challenge #${challengeNum} 📅\nSkorum: ${score} Puan! 🏆\n\nSen de oyna!`;
-    
-    navigator.clipboard.writeText(text).then(() => {
-        alert("Sonuç panoya kopyalandı! Arkadaşlarına gönderebilirsin.");
-    });
 }
 // showResults bitişi
 
@@ -10662,4 +10663,40 @@ async function startDailyGame() {
     }
 }
 
+// ==========================================
+// GÜNLÜK SIRALAMA SİSTEMİ (FIREBASE)
+// ==========================================
+
+async function submitDailyScoreAndGetRank(score) {
+    const todayKey = new Date().toISOString().split('T')[0]; // "2026-01-05"
+    
+    // Kullanıcıya benzersiz bir ID ata (Browser bazlı)
+    let userId = localStorage.getItem('kelimelik_user_id');
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('kelimelik_user_id', userId);
+    }
+
+    const leaderboardRef = db.collection('daily_leaderboard').doc(todayKey).collection('scores');
+
+    try {
+        // 1. Skoru Kaydet (veya güncelle)
+        await leaderboardRef.doc(userId).set({
+            score: score,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            userId: userId
+        });
+
+        // 2. Sıralamayı Hesapla
+        // Benden yüksek puanı olan kaç kişi var?
+        const snapshot = await leaderboardRef.where('score', '>', score).get();
+        const rank = snapshot.size + 1; // Benden yüksek 0 kişi varsa 1. benimdir.
+
+        return rank;
+
+    } catch (error) {
+        console.error("Sıralama hatası:", error);
+        return "-";
+    }
+}
 
