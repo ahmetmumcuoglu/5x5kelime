@@ -9530,12 +9530,8 @@ if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
             // DURUM: OYUN BİTTİ (FINISHED)
             // -------------------------------------------------
             else if (data.status === 'finished') {
-                  if (data.isDailyChallenge) {
-                  showDailyResults(data);
-                  } else {
-                showResults(data);
-    }
-}
+                    showResults(data); 
+        }
         });
 }
 
@@ -10651,3 +10647,4 @@ async function startDailyGame() {
         document.getElementById('lobbyStatus').textContent = "Günlük oyun başlatılamadı.";
     }
 }
+
