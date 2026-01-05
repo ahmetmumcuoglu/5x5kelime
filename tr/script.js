@@ -9304,42 +9304,31 @@ async function startSinglePlayerGame() {
 // ==========================================
 
 function setupGameUI(gameId) {
-    // 1. Panelleri Tanımla
     const lobbyPanel = document.getElementById('lobbyPanel');
     const gamePanel = document.getElementById('gamePanel');
     const gameOverPanel = document.getElementById('gameOverPanel');
-    
-    // DÜZELTME 1: HTML'deki ID 'gameCodeDisplay' olduğu için bunu kullanmalıyız
     const displayCode = document.getElementById('gameCodeDisplay');
     
-    // 2. Panelleri Değiştir
+    // Panelleri Geçiş
     if (lobbyPanel) lobbyPanel.classList.add('hidden');
     if (gameOverPanel) gameOverPanel.classList.add('hidden');
-    
-    if (gamePanel) {
-        gamePanel.classList.remove('hidden');
-    } else {
-        console.error("HATA: gamePanel HTML'de bulunamadı!");
-        return; 
-    }
+    if (gamePanel) gamePanel.classList.remove('hidden');
 
-    // 3. Oyun Kodunu Ekrana Yaz
-    if (displayCode) {
-        displayCode.textContent = gameId;
-    }
+    // Oda Kodunu Yaz
+    if (displayCode) displayCode.textContent = gameId;
 
-    // 4. Durum Mesajını Sıfırla
-    // DÜZELTME 2: HTML'deki ID 'gameStatusMsg'
+    // UI Sıfırlama
     const statusMsg = document.getElementById('gameStatusMsg');
-    if (statusMsg) {
-        statusMsg.textContent = "Oyun Yükleniyor...";
-        statusMsg.className = "status-msg"; 
-    }
+    if (statusMsg) statusMsg.textContent = "Oyun Yükleniyor...";
 
-    // 5. Action Area ve Random Harf Ekranını Sıfırla
+    // --- ÖNEMLİ: Daily Footer'ı Varsayılan Olarak Gizle ---
+    // (Sadece startDailyGame içinde manuel açılacak)
+    const dailyFooter = document.getElementById('dailyFooterInfo');
+    if (dailyFooter) dailyFooter.classList.add('hidden');
+
+    // Diğer elementleri sıfırla
     const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
-    
     if (actionArea) actionArea.classList.add('hidden');
     if (randomLetterDisplay) randomLetterDisplay.classList.add('hidden');
 }
@@ -10065,118 +10054,99 @@ function calculateScore(gridData) {
 function showResults(data) {
     // 1. Puanları Hesapla
     const resultA = calculateScore(data.gridA);
-    const resultB = calculateScore(data.gridB);
+    const resultB = calculateScore(data.gridB); // Multiplayer değilse boş döner, sorun yok.
 
-    // 2. DOM Elementlerini Seç
-    const scoreAEl = document.getElementById('scoreA');
-    const scoreBEl = document.getElementById('scoreB');
-    const wordsListAEl = document.getElementById('wordsListA');
-    const wordsListBEl = document.getElementById('wordsListB');
-    const finalResultMsgEl = document.getElementById('finalResultMsg');
-    
-    // Skor Kartlarını (Kutularını) Seç
-    const resultCards = document.querySelectorAll('.result-card'); 
-
-    // 3. Panelleri Geçiş
+    // 2. Panelleri Değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.add('hidden');
-    document.getElementById('gameOverPanel').classList.remove('hidden');
+    const gameOverPanel = document.getElementById('gameOverPanel');
+    gameOverPanel.classList.remove('hidden');
 
-    // 4. İstenmeyen Yazıları Gizle (Kazandın/Kaybettin)
-    if (finalResultMsgEl) {
-        finalResultMsgEl.style.display = 'none'; // Bu yazıyı tamamen kaldırıyoruz
-        finalResultMsgEl.textContent = '';
-    }
+    // 3. Elementleri Seç
+    const scoreAEl = document.getElementById('scoreA');
+    const wordsListAEl = document.getElementById('wordsListA');
+    const finalGridAEl = document.getElementById('finalGridA');
+    
+    // Daily Mod Elementleri
+    const dailySummary = document.getElementById('dailyResultSummary');
+    const opponentCard = document.getElementById('opponentResultCard');
+    const titleA = document.getElementById('resultTitleA');
 
-    // 5. Gridleri ve Skorları Doldur
-    // A Oyuncusu (Her zaman var)
+    // 4. Sonuçları Yaz (Senin Kartın)
     scoreAEl.textContent = resultA.score;
     renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
     
-    // Kelime listesi A
     wordsListAEl.innerHTML = resultA.words.length > 0 
-    ? resultA.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
-    : '<li>No words found</li>';
+        ? resultA.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+        : '<li>Kelime bulunamadı</li>';
 
-    // 6. TEK KİŞİLİK / ÇOK KİŞİLİK GÖRÜNÜM AYARI
-    if (data.isSinglePlayer) {
-        // --- TEK KİŞİLİK MOD ---
+    // 5. MOD KONTROLÜ: GÖRÜNÜM AYARLARI
+    if (data.isDailyChallenge) {
+        // --- DAILY MOD ---
         
-        // İkinci kartı (Rakip/Boş olanı) tamamen GİZLE
-        if (resultCards.length > 1) {
-            resultCards[1].style.display = 'none';
-        }
+        // A. Rakip Kartını Gizle
+        if (opponentCard) opponentCard.style.display = 'none';
+
+        // B. Daily Özet Alanını Göster
+        if (dailySummary) dailySummary.classList.remove('hidden');
+
+        // C. Başlığı Düzenle
+        if (titleA) titleA.innerHTML = `GÜNLÜK SKORUN: <span style="color:#8e44ad">${resultA.score}</span>`;
+
+        // D. "Bugün Oynandı" Bilgisini Kaydet
+        const todayKey = new Date().toISOString().split('T')[0];
+        localStorage.setItem('daily_last_played', todayKey);
         
-        // Başlığı düzenle ("Kurucu A" yerine "SKOR TABLONUZ" gibi)
-        const titleA = document.getElementById('resultTitleA');
-        if (titleA) {
-            titleA.innerHTML = 'OYUN SONUCUNUZ';
-            titleA.style.color = '#2c3e50';
+        // E. Günün Rekoru (Basit LocalStorage Mantığı)
+        // Gerçek bir leaderboard için Firebase gerekir ama şimdilik yerel rekor:
+        let best = localStorage.getItem('daily_best_score') || 0;
+        if (resultA.score > best) {
+            best = resultA.score;
+            localStorage.setItem('daily_best_score', best);
         }
+        document.getElementById('resTopScore').textContent = best;
+        
+        // F. Sıralama (Firebase olmadığı için geçici metin)
+        document.getElementById('resRank').textContent = "-"; 
+
+    } else if (data.isSinglePlayer) {
+        // --- SINGLE RANDOM MOD ---
+        if (opponentCard) opponentCard.style.display = 'none';
+        if (dailySummary) dailySummary.classList.add('hidden'); // Daily özetini gizle
+        if (titleA) titleA.textContent = "OYUN SONUCUNUZ";
 
     } else {
-        // --- MULTIPLAYER MOD (KLASİK & RANDOM) ---
-
-        // İkinci kartı GÖSTER (Eğer gizlendiyse geri aç)
-        if (resultCards.length > 1) {
-            resultCards[1].style.display = 'flex'; // Veya 'block', CSS yapınıza göre
-        }
-
-        // B Oyuncusunun verilerini doldur
+        // --- MULTIPLAYER MOD ---
+        if (opponentCard) opponentCard.style.display = 'flex';
+        if (dailySummary) dailySummary.classList.add('hidden');
+        
+        // Rakip Skorlarını Yaz
+        const scoreBEl = document.getElementById('scoreB');
+        const wordsListBEl = document.getElementById('wordsListB');
         scoreBEl.textContent = resultB.score;
         renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
         
-        // Kelime listesi B
         wordsListBEl.innerHTML = resultB.words.length > 0 
-    ? resultB.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
-    : '<li>No words found</li>';
-
-        // Başlıkları "Sen" ve "Rakip" olarak ayarla
-        const titleA = document.getElementById('resultTitleA');
-        const titleB = document.getElementById('resultTitleB');
-
-        if (titleA && titleB) {
-            if (myPlayerId === 'PlayerA') {
-                titleA.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-                titleB.innerHTML = 'RAKİP ALANI';
-                titleA.style.color = '#2c3e50'; 
-                titleB.style.color = '#95a5a6';
-            } else {
-                titleA.innerHTML = 'RAKİP ALANI';
-                titleB.innerHTML = 'SİZİN ALANINIZ <span style="color:#2ecc71">(SEN)</span>';
-                titleB.style.color = '#2c3e50';
-                titleA.style.color = '#95a5a6'; 
-            }
-        }
+            ? resultB.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+            : '<li>Kelime bulunamadı</li>';
     }
 
-    // Dinleyiciyi kapat
+    // Dinlemeyi durdur
     if (unsubscribe) {
         unsubscribe();
         unsubscribe = null;
-      }
-
-      // ... (showResults fonksiyonunun en sonu) ...
-
-    // --- YENİ İSTATİSTİK GÜNCELLEME (SADECE RANDOM MOD) ---
-    const lastProcessedGame = localStorage.getItem('last_processed_game_id');
-    
-    if (lastProcessedGame !== currentGameId) {
-        localStorage.setItem('last_processed_game_id', currentGameId);
-        
-        // Sadece RANDOM mod ise istatistiği işle
-        // Not: Tek kişilik oyun her zaman Random'dır.
-        if (data.gameMode === 'RANDOM' || data.isSinglePlayer) {
-            
-            let myScore = 0;
-            if (myPlayerId === 'PlayerA') myScore = resultA.score;
-            else myScore = resultB.score;
-
-            // Yeni Fonksiyonu Çağır
-            updateRandomStats(myScore);
-            console.log("Random mod istatistiği kaydedildi:", myScore);
-        }
     }
+}
+
+// Paylaş Butonu Fonksiyonu
+function shareDailyResult() {
+    const score = document.getElementById('scoreA').textContent;
+    const challengeNum = getChallengeNumber();
+    const text = `Kelimelik 5x5 - Challenge #${challengeNum} 📅\nSkorum: ${score} Puan! 🏆\n\nSen de oyna!`;
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Sonuç panoya kopyalandı! Arkadaşlarına gönderebilirsin.");
+    });
 }
 // showResults bitişi
 
@@ -10187,6 +10157,9 @@ function showResults(data) {
 function renderGrid(gridData, elementId) {
     const gridElement = document.getElementById(elementId);
     if (!gridElement) return;
+
+  // KORUMA KALKANI: Veri yoksa çizme
+    if (!gridData || !Array.isArray(gridData)) return;
 
     gridElement.innerHTML = ''; 
     
@@ -10539,3 +10512,142 @@ function updateLetterStats(sequence, moveNumber) {
     }
 }
 
+
+// ==========================================
+// DAILY CHALLENGE YARDIMCI FONKSİYONLARI
+// ==========================================
+
+// 1. Tohumlu Rastgele Sayı Üretici (Seedable RNG)
+// Bu fonksiyon, aynı 'a' sayısı (tohum) verildiğinde HEP AYNI rastgele sayıları üretir.
+function mulberry32(a) {
+    return function() {
+      var t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+// 2. Günlük Harf Dizisini Üret
+function generateDailySequence() {
+    const now = new Date();
+    // Seed: YYYYMMDD formatında bir sayı (Örn: 20260105)
+    // Bu sayede o gün oynayan herkes aynı seed'i kullanır.
+    const seed = (now.getFullYear() * 10000) + ((now.getMonth() + 1) * 100) + now.getDate();
+    
+    // Seed'i kullanarak rastgelelik fonksiyonunu oluştur
+    const randomFunc = mulberry32(seed);
+
+    // --- Harf Havuzu Mantığı (Mevcut logic ile aynı) ---
+    let vowelPool = [];
+    let consonantPool = [];
+
+    // Harf havuzunu doldur
+    for (let [letter, count] of Object.entries(LETTER_POOL_CONFIG)) {
+        for (let i = 0; i < count; i++) {
+            if (VOWELS.includes(letter)) vowelPool.push(letter);
+            else consonantPool.push(letter);
+        }
+    }
+
+    // Karıştırma fonksiyonu (randomFunc kullanarak)
+    const shuffleDaily = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(randomFunc() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    };
+
+    // Havuzları karıştır
+    shuffleDaily(vowelPool);
+    shuffleDaily(consonantPool);
+
+    // 12 Sesli + 12 Sessiz Çek
+    let finalSequence = [];
+    finalSequence.push(...vowelPool.slice(0, 12));
+    finalSequence.push(...consonantPool.slice(0, 12));
+    
+    // Son diziyi tekrar karıştır
+    shuffleDaily(finalSequence);
+
+    return finalSequence;
+}
+
+// 3. Challenge Numarası Hesapla
+function getChallengeNumber() {
+    // Başlangıç tarihi: 1 Ocak 2025 (veya istediğiniz bir milat)
+    const startDate = new Date("2025-01-01"); 
+    const now = new Date();
+    const diffTime = Math.abs(now - startDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    return diffDays;
+}
+
+async function startDailyGame() {
+    const now = new Date();
+    const dateString = now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const todayKey = now.toISOString().split('T')[0]; // "2026-01-05"
+
+    // 1. KONTROL: Bugün oynandı mı?
+    const lastPlayed = localStorage.getItem('daily_last_played');
+    if (lastPlayed === todayKey) {
+        alert("Bugünkü Challenge'ı zaten tamamladınız! Yarın yeni kelimelerle görüşmek üzere.");
+        return;
+    }
+
+    document.getElementById('lobbyStatus').textContent = "Günün oyunu hazırlanıyor...";
+
+    // 2. Harf Dizisini Üret (Seed ile)
+    const sequence = generateDailySequence();
+    
+    // 3. Oyun Kodunu Belirle (Sabit)
+    // Her oyuncu kendi local oyununu oynayacağı için 'isSinglePlayer' true olacak.
+    // Ancak skorları karşılaştırmak isterseniz 'DAILY-YYYY-MM-DD' formatını kullanabiliriz.
+    // Şimdilik çakışmayı önlemek için Random ID üretiyoruz ama içeriği günlük sequence ile dolduruyoruz.
+    const code = "DAILY-" + Math.random().toString(36).substring(2, 6).toUpperCase();
+    
+    myPlayerId = 'PlayerA';
+    currentGameId = code;
+
+    try {
+        // 4. Firebase'e Yaz
+        await db.collection('games').doc(code).set({
+            status: 'active',
+            isSinglePlayer: true,     // Tek kişilik mantığıyla çalışır
+            isDailyChallenge: true,   // ÖZEL FLAG: Daily mod olduğunu belirtir
+            gameMode: 'RANDOM',       // Mekanik olarak Random moddur
+            letterSequence: sequence,
+            currentLetter: sequence[0],
+            moveNumber: 1,
+            gridA: Array(25).fill(''),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 5. Arayüzü Hazırla
+        setupGameUI(code);
+
+        // --- DAILY MODA ÖZEL UI AYARLARI ---
+        
+        // A. Alt Bilgi Satırını Doldur ve Göster
+        const footer = document.getElementById('dailyFooterInfo');
+        const numSpan = document.getElementById('dailyGameNumDisplay');
+        const dateSpan = document.getElementById('dailyDateDisplay');
+        
+        if (footer && numSpan && dateSpan) {
+            numSpan.textContent = `Challenge #${getChallengeNumber()}`;
+            dateSpan.textContent = dateString;
+            footer.classList.remove('hidden'); // Görünür yap
+        }
+
+        // B. Rakip Alanını Gizle (Single Random gibi)
+        const opponentSection = document.getElementById('opponentSection');
+        if (opponentSection) opponentSection.style.display = 'none';
+
+        // Dinlemeyi Başlat
+        listenToGame();
+
+    } catch (error) {
+        console.error("Daily game error:", error);
+        document.getElementById('lobbyStatus').textContent = "Günlük oyun başlatılamadı.";
+    }
+}
