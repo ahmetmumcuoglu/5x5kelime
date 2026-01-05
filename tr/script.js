@@ -9920,15 +9920,28 @@ async function handleCellClick(index) {
 }
 
 // ==========================================
-// PUAN HESAPLAMA (GÜNCELLENMİŞ - Satır/Sütun Puanlarını Döndürür)
+// PUAN HESAPLAMA (GÜNCELLENMİŞ - HATA KORUMALI)
 // ==========================================
 
 function calculateScore(gridData) {
+    // --- 1. GÜVENLİK KONTROLÜ (BU KISIM EKLENDİ) ---
+    // Eğer grid verisi yoksa veya dizi değilse, boş sonuç döndür.
+    // Bu, "Cannot read properties of undefined" hatasını engeller.
+    if (!gridData || !Array.isArray(gridData)) {
+        return {
+            score: 0,
+            words: [],
+            rowScores: [0, 0, 0, 0, 0],
+            colScores: [0, 0, 0, 0, 0]
+        };
+    }
+    // ------------------------------------------------
+
     const GRID_SIZE = 5;
     let totalScore = 0;
     let foundWords = new Set();
     
-    // YENİ EKLENEN: Satır ve Sütun bazlı puanları tutar
+    // Satır ve Sütun bazlı puanları tutar
     const rowScores = Array(5).fill(0);
     const colScores = Array(5).fill(0);
     
@@ -9996,6 +10009,7 @@ function calculateScore(gridData) {
     };
 
     const getLineString = (indices) => {
+        // Güvenlik kontrolü sayesinde gridData burada kesinlikle bir dizidir.
         return indices.map(index => gridData[index] || ' ').join('');
     };
 
@@ -10010,7 +10024,7 @@ function calculateScore(gridData) {
             if (segment.length >= 2) { 
                 const segmentScore = getSegmentMaxScore(segment);
                 totalScore += segmentScore;
-                rowScores[row] += segmentScore; // <--- PUANI KAYDET
+                rowScores[row] += segmentScore; 
             }
         });
     }
@@ -10026,12 +10040,12 @@ function calculateScore(gridData) {
             if (segment.length >= 2) {
                 const segmentScore = getSegmentMaxScore(segment);
                 totalScore += segmentScore;
-                colScores[col] += segmentScore; // <--- PUANI KAYDET
+                colScores[col] += segmentScore; 
             }
         });
     }
 
-    // SONUÇLARI YENİ YAPIDA DÖNDÜR
+    // SONUÇLARI DÖNDÜR
     return {
         score: totalScore,
         words: Array.from(foundWords).sort((a, b) => {
@@ -10647,4 +10661,5 @@ async function startDailyGame() {
         document.getElementById('lobbyStatus').textContent = "Günlük oyun başlatılamadı.";
     }
 }
+
 
