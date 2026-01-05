@@ -10586,12 +10586,21 @@ function generateDailySequence() {
 
 // 3. Challenge Numarası Hesapla
 function getChallengeNumber() {
-    // Başlangıç tarihi: 1 Ocak 2025 (veya istediğiniz bir milat)
-    const startDate = new Date("2025-01-01"); 
+    // BAŞLANGIÇ TARİHİ: 5 Ocak 2026 (Bugün 1. oyun olsun)
+    // Not: JavaScript'te aylar 0'dan başlar ama string formatında (YYYY-MM-DD) normal yazılır.
+    const startDate = new Date("2026-01-05"); 
     const now = new Date();
-    const diffTime = Math.abs(now - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-    return diffDays;
+
+    // Saat farklarından etkilenmemek için her iki tarihi de o günün gece yarısına (00:00) eşitliyoruz
+    const utc1 = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const utc2 = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Milisaniye farkını güne çevir
+    const diffDays = Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+
+    // Fark 0 ise (bugünse) 1. oyun demektir. O yüzden +1 ekliyoruz.
+    // Negatif çıkarsa (tarih hatası vb.) en az 1 dönsün.
+    return Math.max(1, diffDays + 1);
 }
 
 async function startDailyGame() {
@@ -10699,4 +10708,5 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
