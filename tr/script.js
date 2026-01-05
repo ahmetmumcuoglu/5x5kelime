@@ -10539,4 +10539,121 @@ function updateLetterStats(sequence, moveNumber) {
     }
 }
 
+// ==========================================
+// DAILY CHALLENGE (GÜNLÜK MOD) MANTIĞI
+// ==========================================
+
+// 1. Tarihe Dayalı Rastgele Sayı Üretici (Seedable Random)
+// Bu fonksiyon, verilen seed aynı olduğu sürece hep aynı rastgele diziyi üretir.
+function mulberry32(a) {
+    return function() {
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+}
+
+// 2. Günlük Harf Dizisini Üret
+function generateDailySequence() {
+    const now = new Date();
+    // Örn: 20260105 (Her gün için benzersiz bir sayı)
+    const seed = (now.getFullYear() * 10000) + ((now.getMonth() + 1) * 100) + now.getDate();
+    const randomFunc = mulberry32(seed);
+
+    let vowelPool = [];
+    let consonantPool = [];
+
+    // Harf havuzunu ayır
+    for (let [letter, count] of Object.entries(LETTER_POOL_CONFIG)) {
+        for (let i = 0; i < count; i++) {
+            if (VOWELS.includes(letter)) vowelPool.push(letter);
+            else consonantPool.push(letter);
+        }
+    }
+
+    // Karıştırma algoritmasını günlük random fonksiyonuyla değiştir
+    const shuffleDaily = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(randomFunc() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    };
+
+    shuffleDaily(vowelPool);
+    shuffleDaily(consonantPool);
+
+    let finalSequence = [];
+    finalSequence.push(...vowelPool.slice(0, 12));
+    finalSequence.push(...consonantPool.slice(0, 12));
+    shuffleDaily(finalSequence);
+
+    return finalSequence;
+}
+
+// 3. Günlük Oyunu Başlat
+async function startDailyGame() {
+    const now = new Date();
+    const todayKey = now.toISOString().split('T')[0]; // "2026-01-05"
+    
+    // Daha önce oynadı mı kontrol et
+    const dailyData = JSON.parse(localStorage.getItem('daily_record') || '{}');
+    if (dailyData.date === todayKey) {
+        alert("Bugünkü hakkınızı kullandınız! Yarın tekrar bekleriz.");
+        // İstatistik modalını açabilirsin
+        return;
+    }
+
+    // Tek kişilik oyun mantığıyla başlat ama DAILY olduğunu işaretle
+    const code = "DAILY-" + todayKey;
+    myPlayerId = 'PlayerA';
+    currentGameId = code;
+
+    const sequence = generateDailySequence();
+    
+    // UI Güncelleme (HTML'deki Daily panellerini göster)
+    document.getElementById('dailyInfoPanel').classList.remove('hidden');
+    document.getElementById('dailyDateText').textContent = now.toLocaleDateString('tr-TR', { day:'numeric', month:'long', year:'numeric' });
+    
+    // Oyunu Firebase'e veya sadece yerel belleğe kur (Sıralama için Firebase önerilir)
+    await db.collection('games').doc(code).set({
+        status: 'active',
+        isSinglePlayer: true,
+        isDailyChallenge: true,
+        gameMode: 'RANDOM',
+        letterSequence: sequence,
+        currentLetter: sequence[0],
+        moveNumber: 1,
+        gridA: Array(25).fill(''),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    setupGameUI(code);
+    listenToGame();
+}
+
+// 4. Günlük Sonuçları Göster
+function showDailyResults(data) {
+    const result = calculateScore(data.gridA);
+    const todayKey = new Date().toISOString().split('T')[0];
+
+    // Panelleri ayarla
+    document.getElementById('gamePanel').classList.add('hidden');
+    document.getElementById('dailyResultPanel').classList.remove('hidden');
+    
+    // Skorları yaz
+    document.getElementById('resScore').textContent = result.score;
+    
+    // Rekoru ve oynama durumunu kaydet
+    let dailyHistory = JSON.parse(localStorage.getItem('daily_history') || '[]');
+    dailyHistory.push({ date: todayKey, score: result.score });
+    localStorage.setItem('daily_history', JSON.stringify(dailyHistory));
+    localStorage.setItem('daily_record', JSON.stringify({ date: todayKey, score: result.score }));
+
+    // Paylaş butonu işlevi
+    document.querySelector('.share-btn').onclick = () => {
+        const shareText = `5x5 Kelime Oyunu 📅 ${todayKey}\nSkorum: ${result.score} Puan! 🏆\nSen de oyna: [LİNK]`;
+        navigator.clipboard.writeText(shareText).then(() => alert("Sonuç panoya kopyalandı!"));
+    };
+}
 
