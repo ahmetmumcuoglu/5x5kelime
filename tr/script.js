@@ -10648,11 +10648,33 @@ async function startDailyGame() {
             
             // Eğer oyun zaten bittiyse (status === 'finished')
             if (data.status === 'finished') {
-                alert("Bugünkü Challenge'ı zaten tamamladınız! Yarın yeni kelimelerle görüşmek üzere.");
-                showResults(data); // Doğrudan sonuçları göster
+                const myResult = calculateScore(data.gridA);
+                
+                // Günlük Rekoru Bul (Basit Sorgu)
+                const todayStart = new Date();
+                todayStart.setHours(0,0,0,0);
+
+                const snapshot = await db.collection('games')
+                    .where('isDailyChallenge', '==', true)
+                    .where('createdAt', '>=', todayStart)
+                    .get();
+
+                let dailyBest = 0;
+                snapshot.forEach(d => {
+                    const score = calculateScore(d.data().gridA).score;
+                    if (score > dailyBest) dailyBest = score;
+                });
+
+                // Sadeleştirilmiş Uyarı Kutusu
+                lobbyStatus.innerHTML = `
+                    <div style="background: rgba(142, 68, 173, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #8e44ad; margin-top: 10px;">
+                        <p style="color: #8e44ad; font-weight: bold; margin-bottom: 5px;">Bugünkü Challenge Tamamlandı!</p>
+                        <p style="margin: 5px 0;">Skorun: <strong>${myResult.score}</strong></p>
+                        <p style="margin: 5px 0;">Günün Rekoru: <strong style="color: #f1c40f;">👑 ${dailyBest}</strong></p>
+                    </div>
+                `;
                 return;
             }
-
             // OYUN VAR VE AKTİF: Kaldığı yerden devam et
             currentGameId = fixedDailyCode;
             myPlayerId = 'PlayerA';
@@ -10741,6 +10763,7 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
 
 
