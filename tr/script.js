@@ -10625,64 +10625,63 @@ function getChallengeNumber() {
 async function startDailyGame() {
     const now = new Date();
     const dateString = now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
-    const todayKey = now.toISOString().split('T')[0]; // "2026-01-05"
+    const todayKey = now.toISOString().split('T')[0]; // Örn: "2026-01-06"
 
-    // 1. KONTROL: Bugün oynandı mı?
-    const lastPlayed = localStorage.getItem('daily_last_played');
-    if (lastPlayed === todayKey) {
-        alert("Bugünkü Challenge'ı zaten tamamladınız! Yarın yeni kelimelerle görüşmek üzere.");
-        return;
+    // 1. Oyuncu Kimliği ve Sabit Oda Kodu (Bu oyuncuya özel ve günlük sabit)
+    let userId = localStorage.getItem('kelimelik_user_id');
+    if (!userId) {
+        userId = 'user_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('kelimelik_user_id', userId);
     }
+    // Örn ID: DAILY-2026-01-06-user_abc123
+    const fixedDailyCode = `DAILY-${todayKey}-${userId}`; 
 
-    document.getElementById('lobbyStatus').textContent = "Günün oyunu hazırlanıyor...";
-
-    // 2. Harf Dizisini Üret (Seed ile)
-    const sequence = generateDailySequence();
-    
-    // 3. Oyun Kodunu Belirle (Sabit)
-    // Her oyuncu kendi local oyununu oynayacağı için 'isSinglePlayer' true olacak.
-    // Ancak skorları karşılaştırmak isterseniz 'DAILY-YYYY-MM-DD' formatını kullanabiliriz.
-    // Şimdilik çakışmayı önlemek için Random ID üretiyoruz ama içeriği günlük sequence ile dolduruyoruz.
-    const code = "DAILY-" + Math.random().toString(36).substring(2, 6).toUpperCase();
-    
-    myPlayerId = 'PlayerA';
-    currentGameId = code;
+    document.getElementById('lobbyStatus').textContent = "Kontrol ediliyor...";
 
     try {
-        // 4. Firebase'e Yaz
-        await db.collection('games').doc(code).set({
+        // 2. Firebase'de bu oyun zaten var mı? (Kaldığı yeri kontrol et)
+        const gameRef = db.collection('games').doc(fixedDailyCode);
+        const doc = await gameRef.get();
+
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // Eğer oyun zaten bittiyse (status === 'finished')
+            if (data.status === 'finished') {
+                alert("Bugünkü Challenge'ı zaten tamamladınız! Yarın yeni kelimelerle görüşmek üzere.");
+                showResults(data); // Doğrudan sonuçları göster
+                return;
+            }
+
+            // OYUN VAR VE AKTİF: Kaldığı yerden devam et
+            currentGameId = fixedDailyCode;
+            myPlayerId = 'PlayerA';
+            setupGameUI(fixedDailyCode);
+            prepareDailyUI(dateString); // Alt bilgi satırı hazırlığı
+            listenToGame(); // Mevcut verilerle dinlemeyi başlat
+            return; 
+        }
+
+        // 3. OYUN YOK: Sıfırdan Yeni Daily Challenge Başlat
+        const sequence = generateDailySequence();
+        
+        await gameRef.set({
             status: 'active',
-            isSinglePlayer: true,     // Tek kişilik mantığıyla çalışır
-            isDailyChallenge: true,   // ÖZEL FLAG: Daily mod olduğunu belirtir
-            gameMode: 'RANDOM',       // Mekanik olarak Random moddur
+            isSinglePlayer: true,
+            isDailyChallenge: true,
+            gameMode: 'RANDOM',
             letterSequence: sequence,
             currentLetter: sequence[0],
             moveNumber: 1,
             gridA: Array(25).fill(''),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            userId: userId // Takip için
         });
 
-        // 5. Arayüzü Hazırla
-        setupGameUI(code);
-
-        // --- DAILY MODA ÖZEL UI AYARLARI ---
-        
-        // A. Alt Bilgi Satırını Doldur ve Göster
-        const footer = document.getElementById('dailyFooterInfo');
-        const numSpan = document.getElementById('dailyGameNumDisplay');
-        const dateSpan = document.getElementById('dailyDateDisplay');
-        
-        if (footer && numSpan && dateSpan) {
-            numSpan.textContent = `Challenge #${getChallengeNumber()}`;
-            dateSpan.textContent = dateString;
-            footer.classList.remove('hidden'); // Görünür yap
-        }
-
-        // B. Rakip Alanını Gizle (Single Random gibi)
-        const opponentSection = document.getElementById('opponentSection');
-        if (opponentSection) opponentSection.style.display = 'none';
-
-        // Dinlemeyi Başlat
+        currentGameId = fixedDailyCode;
+        myPlayerId = 'PlayerA';
+        setupGameUI(fixedDailyCode);
+        prepareDailyUI(dateString);
         listenToGame();
 
     } catch (error) {
@@ -10691,6 +10690,21 @@ async function startDailyGame() {
     }
 }
 
+// UI hazırlığını bir yardımcı fonksiyona alalım (Tekrarı önlemek için)
+function prepareDailyUI(dateString) {
+    const footer = document.getElementById('dailyFooterInfo');
+    const numSpan = document.getElementById('dailyGameNumDisplay');
+    const dateSpan = document.getElementById('dailyDateDisplay');
+    
+    if (footer && numSpan && dateSpan) {
+        numSpan.textContent = `Challenge #${getChallengeNumber()}`;
+        dateSpan.textContent = dateString;
+        footer.classList.remove('hidden');
+    }
+
+    const opponentSection = document.getElementById('opponentSection');
+    if (opponentSection) opponentSection.style.display = 'none';
+}
 // ==========================================
 // GÜNLÜK SIRALAMA SİSTEMİ (FIREBASE)
 // ==========================================
@@ -10727,6 +10741,7 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
 
 
