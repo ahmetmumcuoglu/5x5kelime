@@ -10068,8 +10068,17 @@ function calculateScore(gridData) {
 
 function showResults(data) {
     // 1. Puanları Hesapla
-    const resultA = calculateScore(data.gridA);
-    const resultB = calculateScore(data.gridB);
+    const resA = calculateScore(data.gridA);
+    const resB = calculateScore(data.gridB);
+
+    // --- ÖNEMLİ DÜZELTME: KİM HANGİ OYUNCU? ---
+    // Eğer ben PlayerB isem, benim sonuçlarım resB'dir, rakibinki resA'dır.
+    const isMeA = (myPlayerId === 'PlayerA');
+    const myRes = isMeA ? resA : resB;
+    const oppRes = isMeA ? resB : resA;
+    const myGrid = isMeA ? data.gridA : data.gridB;
+    const oppGrid = isMeA ? data.gridB : data.gridA;
+    // -----------------------------------------
 
     // 2. Panelleri Değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
@@ -10077,83 +10086,87 @@ function showResults(data) {
     const gameOverPanel = document.getElementById('gameOverPanel');
     gameOverPanel.classList.remove('hidden');
 
-    // --- İSTENMEYEN YAZIYI GİZLE ---
     const resultMsg = document.getElementById('finalResultMsg');
-    if (resultMsg) resultMsg.style.display = 'none'; // Gizle
-    // -------------------------------
+    if (resultMsg) resultMsg.style.display = 'none'; 
 
     // 3. Elementleri Seç
-    const scoreAEl = document.getElementById('scoreA');
+    const scoreAEl = document.getElementById('scoreA'); // "Senin Skorun" alanı
     const wordsListAEl = document.getElementById('wordsListA');
-    
     const dailySummary = document.getElementById('dailyResultSummary');
     const opponentCard = document.getElementById('opponentResultCard');
     const titleA = document.getElementById('resultTitleA');
+    const titleB = document.getElementById('resultTitleB');
 
-    // 4. Sonuçları Yaz
-    scoreAEl.textContent = resultA.score;
-    renderFinalScoreGrid(data.gridA, 'finalGridA', resultA.rowScores, resultA.colScores);
+    // 4. Senin Sonuçlarını Yaz (Her zaman sol karta kendi sonucunu basıyoruz)
+    scoreAEl.textContent = myRes.score;
+    renderFinalScoreGrid(myGrid, 'finalGridA', myRes.rowScores, myRes.colScores);
     
-    wordsListAEl.innerHTML = resultA.words.length > 0 
-        ? resultA.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+    wordsListAEl.innerHTML = myRes.words.length > 0 
+        ? myRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
         : '<li>Kelime bulunamadı</li>';
 
     // 5. MOD KONTROLÜ
     if (data.isDailyChallenge) {
-        // --- DAILY MOD ---
         if (opponentCard) opponentCard.style.display = 'none';
         if (dailySummary) dailySummary.classList.remove('hidden');
-        if (titleA) titleA.innerHTML = `SKORUNUZ: <span style="color:#8e44ad">${resultA.score}</span>`;
+        if (titleA) titleA.innerHTML = `SKORUNUZ: <span style="color:#8e44ad">${myRes.score}</span>`;
 
-        // Local Storage Güncellemeleri
         const todayKey = new Date().toISOString().split('T')[0];
         localStorage.setItem('daily_last_played', todayKey);
         
         let best = parseInt(localStorage.getItem('daily_best_score') || '0');
-        if (resultA.score > best) {
-            best = resultA.score;
+        if (myRes.score > best) {
+            best = myRes.score;
             localStorage.setItem('daily_best_score', best);
         }
         document.getElementById('resTopScore').textContent = best;
         
-        // --- SIRALAMAYI ÇEK (ASYNC) ---
         const rankEl = document.getElementById('resRank');
         rankEl.textContent = "Hesaplanıyor...";
-        
-        submitDailyScoreAndGetRank(resultA.score).then(rank => {
-            rankEl.textContent = rank + "."; // Örn: 1.
+        submitDailyScoreAndGetRank(myRes.score).then(rank => {
+            rankEl.textContent = rank + ".";
         });
 
     } else if (data.isSinglePlayer) {
-        // --- SINGLE RANDOM ---
         if (opponentCard) opponentCard.style.display = 'none';
         if (dailySummary) dailySummary.classList.add('hidden');
         if (titleA) titleA.textContent = "OYUN SONUCUNUZ";
 
     } else {
-        // --- MULTIPLAYER ---
+        // --- MULTIPLAYER DÜZELTMESİ ---
         if (opponentCard) opponentCard.style.display = 'flex';
         if (dailySummary) dailySummary.classList.add('hidden');
         
-        const scoreBEl = document.getElementById('scoreB');
+        // Başlıkları netleştir
+        if (titleA) titleA.innerHTML = 'SENİN ALANIN <span style="color:#2ecc71">(SEN)</span>';
+        if (titleB) titleB.textContent = 'RAKİP ALANI';
+
+        const scoreBEl = document.getElementById('scoreB'); // Rakip skor alanı
         const wordsListBEl = document.getElementById('wordsListB');
-        scoreBEl.textContent = resultB.score;
-        renderFinalScoreGrid(data.gridB, 'finalGridB', resultB.rowScores, resultB.colScores);
         
-        wordsListBEl.innerHTML = resultB.words.length > 0 
-            ? resultB.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+        scoreBEl.textContent = oppRes.score;
+        renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores);
+        
+        wordsListBEl.innerHTML = oppRes.words.length > 0 
+            ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
             : '<li>Kelime bulunamadı</li>';
             
-        // Multiplayer modda "Kazanan Belirleniyor" yerine sonucu yazabiliriz (İsteğe bağlı)
         if (resultMsg) {
-             resultMsg.style.display = 'block'; // Geri aç
-             if (resultA.score > resultB.score) resultMsg.textContent = "KAZANDIN! 🎉";
-             else if (resultB.score > resultA.score) resultMsg.textContent = "KAYBETTİN 😔";
-             else resultMsg.textContent = "BERABERE 🤝";
+             resultMsg.style.display = 'block';
+             // Kazanma durumunu skorlara göre değil, "benim skorum vs rakip skoru"na göre kontrol et
+             if (myRes.score > oppRes.score) {
+                 resultMsg.textContent = "KAZANDIN! 🎉";
+                 resultMsg.style.color = "#2ecc71";
+             } else if (oppRes.score > myRes.score) {
+                 resultMsg.textContent = "KAYBETTİN 😔";
+                 resultMsg.style.color = "#e74c3c";
+             } else {
+                 resultMsg.textContent = "BERABERE 🤝";
+                 resultMsg.style.color = "#3498db";
+             }
         }
     }
 
-    // Dinlemeyi durdur
     if (unsubscribe) {
         unsubscribe();
         unsubscribe = null;
@@ -10708,5 +10721,6 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
 
