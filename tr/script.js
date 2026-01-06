@@ -10670,7 +10670,7 @@ async function startDailyGame() {
                     <div style="background: rgba(142, 68, 173, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #8e44ad; margin-top: 10px;">
                         <p style="color: #8e44ad; font-weight: bold; margin-bottom: 5px;">Bugünkü Challenge Tamamlandı!</p>
                         <p style="margin: 5px 0;">Skorun: <strong>${myResult.score}</strong></p>
-                        <p style="margin: 5px 0;">Günün Rekoru: <strong style="color: #f1c40f;">👑 ${dailyBest}</strong></p>
+                        <p style="margin: 5px 0;">Günün Rekoru: <strong>👑 ${dailyBest}</strong></p>
                     </div>
                 `;
                 return;
@@ -10763,6 +10763,7 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
 
 
