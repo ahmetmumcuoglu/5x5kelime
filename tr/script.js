@@ -9441,27 +9441,33 @@ if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
                 // A. 25. TUR: JOKER HAMLESİ
                 // ====================================================
                 if (currentMove === 25) {
-    // 1. Sayaç kutusunu bul (ID'nin doğruluğundan emin ol)
-    const statsBox = document.getElementById('remainingStatsBox');
-
-    if (randomDisplay) randomDisplay.classList.remove('hidden');
+    // Klasik modun harf seçme butonlarını kesinlikle gizle
+    if (classicArea) classicArea.classList.add('hidden');
     
-    // 2. 25. turda sayacı gizle
+    // Alfabenin içinde olacağı kutuyu göster
+    if (randomDisplay) {
+        randomDisplay.classList.remove('hidden');
+        randomDisplay.style.display = 'flex'; // Görünürlüğü garanti et
+    }
+
+    const statsBox = document.getElementById('remainingStatsBox');
     if (statsBox) statsBox.classList.add('hidden');
 
     if (myFilledCount >= 25) {
         updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
-        // Biterken harf kutusunu da gizle
         if (randomDisplay) randomDisplay.classList.add('hidden');
     } else {
+        // Alfabeyi çiz
         renderAlphabetSelector(); 
+        
         if (!myFinalLetter) {
             updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
         } else {
+            // Harf seçildiyse gridi tıklanabilir yap
             updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
         }
     }
-    return;
+    return; // Önemli: 25. turdaysak aşağıda mod kontrollerine girmeden fonksiyonu bitir.
 }
 
                 // ====================================================
@@ -10721,6 +10727,7 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
 
 
