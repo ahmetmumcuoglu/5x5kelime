@@ -10156,21 +10156,7 @@ function showResults(data) {
         wordsListBEl.innerHTML = oppRes.words.length > 0 
             ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
             : '<li>Kelime bulunamadı</li>';
-            
-        if (resultMsg) {
-             resultMsg.style.display = 'block';
-             // Kazanma durumunu skorlara göre değil, "benim skorum vs rakip skoru"na göre kontrol et
-             if (myRes.score > oppRes.score) {
-                 resultMsg.textContent = "KAZANDIN! 🎉";
-                 resultMsg.style.color = "#2ecc71";
-             } else if (oppRes.score > myRes.score) {
-                 resultMsg.textContent = "KAYBETTİN 😔";
-                 resultMsg.style.color = "#e74c3c";
-             } else {
-                 resultMsg.textContent = "BERABERE 🤝";
-                 resultMsg.style.color = "#3498db";
-             }
-        }
+          
     }
 
     if (unsubscribe) {
@@ -10763,6 +10749,7 @@ async function submitDailyScoreAndGetRank(score) {
         return "-";
     }
 }
+
 
 
 
