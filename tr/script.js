@@ -1,4 +1,4 @@
-o// ==========================================
+// ==========================================
 // 1. AYARLAR (Lütfen Burayı Doldur)
 // ==========================================
 const firebaseConfig = {
@@ -10789,6 +10789,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
