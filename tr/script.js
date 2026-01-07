@@ -10750,6 +10750,37 @@ async function submitDailyScoreAndGetRank(score) {
     }
 }
 
+function animateSlotScore(targetNumber, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Sayıyı string'e çevirip hanelere ayır (Örn: 125 -> ["1", "2", "5"])
+    const digits = targetNumber.toString().split('');
+    container.innerHTML = ''; // İçini temizle
+
+    digits.forEach((digit, index) => {
+        const column = document.createElement('div');
+        column.className = 'slot-column';
+        
+        // 0'dan 9'a kadar rakamları ve animasyon döngüsü için ek rakamları ekle
+        let slotContent = '';
+        for (let i = 0; i <= 20; i++) { // 20 tane ekliyoruz ki dönme efekti uzun sürsün
+            slotContent += `<div class="digit">${i % 10}</div>`;
+        }
+        column.innerHTML = slotContent;
+
+        container.appendChild(column);
+
+        // Küçük bir gecikmeyle (delay) haneleri döndür
+        setTimeout(() => {
+            const finalDigit = parseInt(digit);
+            // Son rakamı bulmak için: Her hane 60px boyunda. 
+            // 10 + finalDigit diyerek en az bir tur dönmesini garanti ediyoruz.
+            const moveY = (10 + finalDigit) * 60;
+            column.style.transform = `translateY(-${moveY}px)`;
+        }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
+    });
+}
 
 
 
