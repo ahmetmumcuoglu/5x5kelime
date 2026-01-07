@@ -10748,10 +10748,10 @@ async function submitDailyScoreAndGetRank(score) {
             dailyBestScore = topScoreSnapshot.docs[0].data().score;
         }
        
-      // 3. Sıralamayı Hesapla
-        // Benden yüksek puanı olan kaç kişi var?
-        const snapshot = await leaderboardRef.where('score', '>', score).get();
-        const rank = snapshot.size + 1; // Benden yüksek 0 kişi varsa 1. benimdir.
+      // 3. Sıralamayı HESAPLA (Maliyet Dostu Sayım)
+        // .count() dökümanları çekmez, sunucu tarafında sayıp tek bir rakam döndürür.
+        const countSnapshot = await leaderboardRef.where('score', '>', score).count().get();
+        const rank = countSnapshot.data().count + 1;
 
         return rank;
 
@@ -10792,6 +10792,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
