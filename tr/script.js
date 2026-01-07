@@ -10114,27 +10114,30 @@ function showResults(data) {
 
     // 5. MOD KONTROLÜ
     if (data.isDailyChallenge) {
-        if (opponentCard) opponentCard.style.display = 'none';
-        if (dailySummary) dailySummary.classList.remove('hidden');
-        if (titleA) titleA.innerHTML = `SKORUNUZ: <span style="color:#8e44ad">${myRes.score}</span>`;
+    if (opponentCard) opponentCard.style.display = 'none';
+    if (dailySummary) dailySummary.classList.remove('hidden');
+    if (titleA) titleA.innerHTML = `SKORUNUZ: <span style="color:#8e44ad">${myRes.score}</span>`;
 
-        const todayKey = new Date().toISOString().split('T')[0];
-        localStorage.setItem('daily_last_played', todayKey);
-        
-        let best = parseInt(localStorage.getItem('daily_best_score') || '0');
-        if (myRes.score > best) {
-            best = myRes.score;
-            localStorage.setItem('daily_best_score', best);
-        }
-        document.getElementById('resTopScore').textContent = best;
-        
-        const rankEl = document.getElementById('resRank');
-        rankEl.textContent = "Hesaplanıyor...";
-        submitDailyScoreAndGetRank(myRes.score).then(rank => {
-            rankEl.textContent = rank + ".";
-        });
+    // 1. Sıralama (Rank) kısmını UI'dan gizle
+    const rankEl = document.getElementById('resRank');
+    if (rankEl && rankEl.parentElement) {
+        rankEl.parentElement.style.display = 'none';
+    }
 
-    } else if (data.isSinglePlayer) {
+    // 2. Günün Rekoru kutusunu hazırla
+    const topScoreEl = document.getElementById('resTopScore');
+    topScoreEl.textContent = "..."; // Yükleniyor
+
+    // 3. Firebase'e skoru gönder ve EN YÜKSEK skoru geri al
+    submitDailyScoreAndGetBest(myRes.score).then(dailyBest => {
+        // Artık burası localStorage'a değil, Firebase'deki gerçek rekora bakar
+        topScoreEl.textContent = dailyBest;
+    });
+
+    // Oynama tarihini kaydet (Hile engeli için)
+    const todayKey = new Date().toISOString().split('T')[0];
+    localStorage.setItem('daily_last_played', todayKey);
+} else if (data.isSinglePlayer) {
         if (opponentCard) opponentCard.style.display = 'none';
         if (dailySummary) dailySummary.classList.add('hidden');
         if (titleA) titleA.textContent = "OYUN SONUCUNUZ";
@@ -10721,43 +10724,33 @@ function prepareDailyUI(dateString) {
 // GÜNLÜK SIRALAMA SİSTEMİ (FIREBASE)
 // ==========================================
 
-async function submitDailyScoreAndGetRank(score) {
-    const todayKey = new Date().toISOString().split('T')[0]; // "2026-01-05"
-    
-    // Kullanıcıya benzersiz bir ID ata (Browser bazlı)
-    let userId = localStorage.getItem('kelimelik_user_id');
-    if (!userId) {
-        userId = 'user_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('kelimelik_user_id', userId);
-    }
-
+async function submitDailyScoreAndGetBest(score) {
+    const todayKey = new Date().toISOString().split('T')[0];
+    // Koleksiyon yolunun doğruluğundan emin olun
     const leaderboardRef = db.collection('daily_leaderboard').doc(todayKey).collection('scores');
+    let userId = localStorage.getItem('kelimelik_user_id');
 
     try {
-        // 1. Skoru Kaydet (veya güncelle)
+        // 1. Kendi skorunu kaydet (Sayı olduğundan emin ol)
         await leaderboardRef.doc(userId).set({
-            score: score,
+            score: Number(score), 
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             userId: userId
         });
 
-      // 2. Günün en yüksek skorunu bul (BU KISIM EKLENDİ)
+        // 2. Günün EN YÜKSEK skorunu bul (Sadece 1 döküman okur)
         const topScoreSnapshot = await leaderboardRef.orderBy('score', 'desc').limit(1).get();
-        let dailyBestScore = score; // Varsayılan olarak mevcut skor
+        
         if (!topScoreSnapshot.empty) {
-            dailyBestScore = topScoreSnapshot.docs[0].data().score;
+            const bestScore = topScoreSnapshot.docs[0].data().score;
+            // Eğer Firebase'deki rekor benimkinden düşükse (henüz güncellenmemişse) kendi skorumu göster
+            return Math.max(bestScore, score);
         }
-       
-      // 3. Sıralamayı HESAPLA (Maliyet Dostu Sayım)
-        // .count() dökümanları çekmez, sunucu tarafında sayıp tek bir rakam döndürür.
-        const countSnapshot = await leaderboardRef.where('score', '>', score).count().get();
-        const rank = countSnapshot.data().count + 1;
-
-        return rank;
+        return score;
 
     } catch (error) {
-        console.error("Sıralama hatası:", error);
-        return "-";
+        console.error("Rekor çekme hatası:", error);
+        return score;
     }
 }
 
@@ -10792,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
