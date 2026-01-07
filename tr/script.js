@@ -65,7 +65,7 @@ function getMyStatsId() {
 
 // 2. Yerel İstatistikleri Getir
 function getLocalRandomStats() {
-    const raw = localStore.getItem('kelimelik_random_history');
+    const raw = localStorage.getItem('kelimelik_random_history');
     // Veri yapısı: { allScores: [120, 90, ...], dates: [...] }
     if (!raw) return { allScores: [] };
     return JSON.parse(raw);
@@ -10785,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
