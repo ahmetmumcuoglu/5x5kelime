@@ -166,6 +166,7 @@ window.openStatsModal = function() {
 // 6. Lider Tablosunu Getir
 function fetchLeaderboard() {
     const tbody = document.getElementById('leaderboardBody');
+  if (!listEl) return; // Eğer element yoksa hata verme, fonksiyondan çık.
     tbody.innerHTML = '<tr><td colspan="3">Yükleniyor...</td></tr>';
 
     const date = new Date();
@@ -10789,6 +10790,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
