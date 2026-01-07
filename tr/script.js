@@ -10741,7 +10741,14 @@ async function submitDailyScoreAndGetRank(score) {
             userId: userId
         });
 
-        // 2. Sıralamayı Hesapla
+      // 2. Günün en yüksek skorunu bul (BU KISIM EKLENDİ)
+        const topScoreSnapshot = await leaderboardRef.orderBy('score', 'desc').limit(1).get();
+        let dailyBestScore = score; // Varsayılan olarak mevcut skor
+        if (!topScoreSnapshot.empty) {
+            dailyBestScore = topScoreSnapshot.docs[0].data().score;
+        }
+       
+      // 3. Sıralamayı Hesapla
         // Benden yüksek puanı olan kaç kişi var?
         const snapshot = await leaderboardRef.where('score', '>', score).get();
         const rank = snapshot.size + 1; // Benden yüksek 0 kişi varsa 1. benimdir.
@@ -10785,6 +10792,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
