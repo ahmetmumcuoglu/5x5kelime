@@ -1194,3 +1194,29 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     cursor: pointer;
 }
 
+.slot-machine-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #8e44ad; /* Senin mor rengin */
+    height: 60px;
+    overflow: hidden;
+}
+
+.slot-wrapper {
+    display: flex;
+}
+
+.slot-column {
+    height: 60px;
+    width: 35px;
+    text-align: center;
+    line-height: 60px;
+    transition: transform 2s cubic-bezier(0.23, 1, 0.32, 1); /* 2 saniye akıcı duruş */
+}
+
+.digit {
+    height: 60px;
+}
