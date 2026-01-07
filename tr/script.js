@@ -10104,7 +10104,8 @@ function showResults(data) {
     const titleB = document.getElementById('resultTitleB');
 
     // 4. Senin Sonuçlarını Yaz (Her zaman sol karta kendi sonucunu basıyoruz)
-    scoreAEl.textContent = myRes.score;
+    // showResults içinde scoreAEl.textContent = myRes.score; yerine:
+    animateSlotScore(myRes.score, 'scoreA');
     renderFinalScoreGrid(myGrid, 'finalGridA', myRes.rowScores, myRes.colScores);
     
     wordsListAEl.innerHTML = myRes.words.length > 0 
@@ -10150,7 +10151,10 @@ function showResults(data) {
         const scoreBEl = document.getElementById('scoreB'); // Rakip skor alanı
         const wordsListBEl = document.getElementById('wordsListB');
         
-        scoreBEl.textContent = oppRes.score;
+        // Multiplayer kısmında scoreBEl.textContent = oppRes.score; yerine:
+if (!data.isSinglePlayer && !data.isDailyChallenge) {
+    animateSlotScore(oppRes.score, 'scoreB');
+}
         renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores);
         
         wordsListBEl.innerHTML = oppRes.words.length > 0 
@@ -10781,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
