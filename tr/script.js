@@ -10148,7 +10148,7 @@ function showResults(data) {
         if (dailySummary) dailySummary.classList.add('hidden');
         
         // Başlıkları netleştir
-        if (titleA) titleA.innerHTML = 'SENİN ALANIN <span style="color:#2ecc71">(SEN)</span>';
+        if (titleA) titleA.innerHTML = 'SENİN ALANIN';
         if (titleB) titleB.textContent = 'RAKİP ALANI';
 
         const scoreBEl = document.getElementById('scoreB'); // Rakip skor alanı
@@ -10785,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
