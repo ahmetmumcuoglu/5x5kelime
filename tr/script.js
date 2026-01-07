@@ -10116,7 +10116,7 @@ function showResults(data) {
     if (data.isDailyChallenge) {
     if (opponentCard) opponentCard.style.display = 'none';
     if (dailySummary) dailySummary.classList.remove('hidden');
-    if (titleA) titleA.innerHTML = `SKORUNUZ: <span style="color:#8e44ad">${myRes.score}</span>`;
+    if (titleA) titleA.innerHTML = `PUANINIZ:`;
 
     // 1. Sıralama (Rank) kısmını UI'dan gizle
     const rankEl = document.getElementById('resRank');
@@ -10785,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
