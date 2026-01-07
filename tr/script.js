@@ -1,4 +1,4 @@
-// ==========================================
+o// ==========================================
 // 1. AYARLAR (Lütfen Burayı Doldur)
 // ==========================================
 const firebaseConfig = {
@@ -132,7 +132,7 @@ window.openStatsModal = function() {
 
     // --- KİŞİSEL VERİLERİ HESAPLA ---
     const data = getLocalRandomStats();
-    const scores = data.allScores;
+    const scores = data.allScores || []; // Boş dizi garantisi
     
     let lifeTimeAvg = "-";
     let last10Avg = "-";
@@ -140,20 +140,24 @@ window.openStatsModal = function() {
     if (scores.length > 0) {
         // Genel Ortalama
         const total = scores.reduce((a, b) => a + b, 0);
-        lifeTimeAvg = (total / scores.length).toFixed(1); // Virgülden sonra 1 hane
+        lifeTimeAvg = (total / scores.length).toFixed(1);
 
         // Son 10 Ortalama
-        // slice(-10) son 10 elemanı alır
         const last10 = scores.slice(-10);
         const total10 = last10.reduce((a, b) => a + b, 0);
         last10Avg = (total10 / last10.length).toFixed(1);
     }
 
-    document.getElementById('statLifeTimeAvg').textContent = lifeTimeAvg;
-    document.getElementById('statLast10Avg').textContent = last10Avg;
+    // --- GÜVENLİ YAZDIRMA (Hata Almamak İçin) ---
+    const elAvg = document.getElementById('statLifeTimeAvg');
+    const elLast10 = document.getElementById('statLast10Avg');
+
+    if (elAvg) elAvg.textContent = lifeTimeAvg;
+    if (elLast10) elLast10.textContent = last10Avg; 
+    // Eğer yukarıdaki kontrolü yapmazsan ve HTML'de statLast10Avg yoksa kod çöker.
 
     modal.classList.remove("hidden");
-    modal.style.display = "flex";
+    // modal.style.display = "flex"; // CSS'te .hidden { display: none } varsa buna gerek yok
 
     // --- LİDER TABLOSUNU ÇEK ---
     fetchLeaderboard();
@@ -10785,6 +10789,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
