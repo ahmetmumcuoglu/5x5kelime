@@ -10785,11 +10785,12 @@ function animateSlotScore(targetNumber, containerId) {
             const finalDigit = parseInt(digit);
             // Son rakamı bulmak için: Her hane 35px boyunda. 
             // 10 + finalDigit diyerek en az bir tur dönmesini garanti ediyoruz.
-            const moveY = (10 + finalDigit) * 35;
+            const moveY = (10 + finalDigit) * 45;
             column.style.transform = `translateY(-${moveY}px)`;
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
