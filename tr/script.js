@@ -228,7 +228,7 @@ window.closeStatsModal = function() {
 // ==========================================
 // 1.1. PUANLAMA VE SÖZLÜK TANIMLARI
 // ==========================================
-const SCORE_RULES = { 3: 4, 4: 8, 5: 15 };
+const SCORE_RULES = { 3: 5, 4: 9, 5: 15 };
 
 // DİKKAT: JSON dosyasının içeriği bu değişkenin içine yapıştırılacak.
 // Lütfen burayı 3542 satırlık gerçek kelime listenizle doldurun.
@@ -9963,7 +9963,7 @@ function calculateScore(gridData) {
     const rowScores = Array(5).fill(0);
     const colScores = Array(5).fill(0);
     
-    const SCORE_RULES = { 2: 1, 3: 4, 4: 8, 5: 15 };
+    const SCORE_RULES = { 2: 2, 3: 5, 4: 9, 5: 15 };
 
     const getSegmentMaxScore = (text) => {
         // --- ADIM 1: BASKIN KELİME KONTROLÜ (4 ve 5 Harfliler) ---
@@ -10264,11 +10264,11 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     // Yardımcı fonksiyon: Puana göre CSS sınıfı döndürür
     const getScoreClass = (score) => {
         if (score >= 15) return 'score-15';
-        if (score >= 8) return 'score-8';
+        if (score >= 9) return 'score-9';
+        if (score >= 7) return 'score-7';
         if (score >= 5) return 'score-5';
         if (score >= 4) return 'score-4';
-        if (score >= 2) return 'score-2';
-        if (score === 1) return 'score-1';
+        if (score === 2) return 'score-2';
         if (score === 0) return 'score-0';
         return '';
     };
@@ -10791,6 +10791,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
