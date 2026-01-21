@@ -4292,6 +4292,7 @@ const WORD_ARRAY = [
 "KAİM",
 "KAİME",
 "KAİN",
+"KAJU",
 "KAK",
 "KAKA",
 "KAKAÇ",
@@ -4377,6 +4378,7 @@ const WORD_ARRAY = [
 "KAR",
 "KAR",
 "KARA",
+"KARAF",
 "KARAR",
 "KARAY",
 "KARE",
@@ -10790,6 +10792,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
