@@ -1221,6 +1221,21 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     height: 45px;
 }
 
+/* Joker aşamasında alfabeyi zorla gösteren kurallar */
+.joker-mode-on {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 150px !important;
+}
+
+#randomLetterDisplay.joker-mode-on {
+    flex-wrap: wrap !important;
+    padding: 10px !important;
+}
 
 
 
