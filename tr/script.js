@@ -9628,7 +9628,7 @@ function selectJokerLetter(letter) {
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
 // ==========================================
 
-function handleTurnLogic(data, myGridData) {
+function (data, myGridData) {
     const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
     const turnBadge = document.getElementById('turnStatusBadge'); // Yeni Tabela
@@ -9667,9 +9667,21 @@ function handleTurnLogic(data, myGridData) {
  // --- 1. JOKER HAMLESİ (25. Hamle) ---
     if (moveNumber === 25) {
         if (actionArea) actionArea.classList.add('hidden');
-       if (randomLetterDisplay) {
-        randomLetterDisplay.classList.remove('hidden'); // Gizliyse aç
-        randomLetterDisplay.style.display = 'flex';     // Görünürlüğü garanti et
+      // Üst kapsayıcıyı ve alfabe kutusunu her ihtimale karşı görünür yapıyoruz
+    const infoArea = document.getElementById('randomGameInfoArea');
+    if (infoArea) {
+        infoArea.classList.remove('hidden');
+        infoArea.style.display = 'block'; 
+    }
+
+    if (randomLetterDisplay) {
+        randomLetterDisplay.classList.remove('hidden');
+        randomLetterDisplay.style.display = 'flex';
+        randomLetterDisplay.style.flexWrap = 'wrap'; 
+        // Not: Eğer random modda "?" kalmışsa temizlemek için:
+        if (!randomLetterDisplay.querySelector('.alphabet-wrapper')) {
+            randomLetterDisplay.innerHTML = ''; 
+        }
     }
 
         if (myFilledCount >= 25) {
@@ -10794,6 +10806,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
