@@ -9667,7 +9667,10 @@ function handleTurnLogic(data, myGridData) {
  // --- 1. JOKER HAMLESİ (25. Hamle) ---
     if (moveNumber === 25) {
         if (actionArea) actionArea.classList.add('hidden');
-        if (randomLetterDisplay) randomLetterDisplay.classList.remove('hidden');
+       if (randomLetterDisplay) {
+        randomLetterDisplay.classList.remove('hidden'); // Gizliyse aç
+        randomLetterDisplay.style.display = 'flex';     // Görünürlüğü garanti et
+    }
 
         if (myFilledCount >= 25) {
             updateBadge("OYUN BİTİYOR...", "badge-neutral", false);
@@ -10791,6 +10794,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
