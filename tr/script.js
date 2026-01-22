@@ -9628,7 +9628,7 @@ function selectJokerLetter(letter) {
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
 // ==========================================
 
-function (data, myGridData) {
+function handleTurnLogic(data, myGridData) {
     const actionArea = document.getElementById('actionArea');
     const randomLetterDisplay = document.getElementById('randomLetterDisplay');
     const turnBadge = document.getElementById('turnStatusBadge'); // Yeni Tabela
@@ -10806,6 +10806,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
