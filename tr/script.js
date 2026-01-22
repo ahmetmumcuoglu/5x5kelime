@@ -9664,48 +9664,46 @@ function handleTurnLogic(data, myGridData) {
     disableControls();
     placementMode = false;
 
- // --- 1. JOKER HAMLESİ (25. Hamle) ---
-    if (moveNumber === 25) {
-        if (actionArea) actionArea.classList.add('hidden');
-      // Üst kapsayıcıyı ve alfabe kutusunu her ihtimale karşı görünür yapıyoruz
+// --- 1. JOKER HAMLESİ (25. Hamle) ---
+if (moveNumber === 25) {
+    if (actionArea) actionArea.classList.add('hidden');
+    
     const infoArea = document.getElementById('randomGameInfoArea');
-    if (infoArea) {
-        infoArea.classList.remove('hidden');
-        infoArea.style.display = 'block'; 
-    }
+    const display = document.getElementById('randomLetterDisplay');
 
-    if (randomLetterDisplay) {
-        randomLetterDisplay.classList.remove('hidden');
-        randomLetterDisplay.style.display = 'flex';
-        randomLetterDisplay.style.flexWrap = 'wrap'; 
-        // Not: Eğer random modda "?" kalmışsa temizlemek için:
-        if (!randomLetterDisplay.querySelector('.alphabet-wrapper')) {
-            randomLetterDisplay.innerHTML = ''; 
+    if (infoArea && display) {
+        // Üst kapsayıcıyı ve harf kutusunu ZORLA açıyoruz
+        infoArea.classList.add('joker-mode-on');
+        display.classList.add('joker-mode-on');
+        
+        // Önceki turdan kalan tek harf veya "?" varsa temizle
+        if (!display.querySelector('.alphabet-wrapper')) {
+            display.innerHTML = ''; 
         }
     }
 
-        if (myFilledCount >= 25) {
-            updateBadge("OYUN BİTİYOR...", "badge-neutral", false);
+    if (myFilledCount >= 25) {
+        updateBadge("OYUN BİTİYOR...", "badge-neutral", false);
+        // Oyun bitince görsel karmaşayı önlemek için alanı tekrar gizleyebilirsin
+        if (infoArea) infoArea.classList.remove('joker-mode-on');
+    } else {
+        renderAlphabetSelector(); // Alfabeyi çiz
+
+        if (!myFinalLetter) {
+            updateBadge("JOKER HARFİ SEÇ", "badge-info", false);
         } else {
-            // HER DURUMDA ALFABEYİ GÖSTER
-            // Kullanıcı seçmiş olsa bile değiştirebilmesi için alfabe ekranda kalmalı
-            renderAlphabetSelector();
-
-            if (!myFinalLetter) {
-                // Henüz seçim yapılmadı
-                updateBadge("JOKER HARFİ SEÇ", "badge-info", false); // Grid Pasif
-            } else {
-                // Seçim yapılmış (geri dönüldüyse görseli güncellemek gerekebilir)
-                const selectedBtn = document.getElementById(`btn-joker-${myFinalLetter}`);
-                if (selectedBtn) selectedBtn.classList.add('selected');
-
-                updateBadge(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true); // Grid Aktif
-                placementMode = true;
+            // Seçili harfi görsel olarak işaretle
+            const selectedBtn = document.getElementById(`btn-joker-${myFinalLetter}`);
+            if (selectedBtn) {
+                document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('selected'));
+                selectedBtn.classList.add('selected');
             }
+            updateBadge(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
+            placementMode = true;
         }
-        return; 
     }
-
+    return; 
+}
     // --- 2. TEK KİŞİLİK MOD ---
     if (data.isSinglePlayer) {
         if (myFilledCount < moveNumber) {
@@ -10806,6 +10804,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
