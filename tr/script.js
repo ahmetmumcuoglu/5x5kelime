@@ -8986,9 +8986,9 @@ const VOWELS = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
 
 // TÜRKÇE HARF HAVUZU (Rastgele Mod İçin)
 const LETTER_POOL_CONFIG = {
-    'A': 4, 'E': 4, 'İ': 4, 'K': 6, 'L': 6, 'R': 6, 'N': 5, 'T': 5,
-    'I': 3, 'M': 4, 'U': 3, 'Y': 3, 'S': 3, 'D': 3, 'O': 3, 'B': 2, 
-    'Ü': 2, 'Ş': 2, 'Z': 2, 'G': 1, 'H': 2, 'Ç': 2, 'P': 2, 'C': 1, 
+    'A': 5, 'E': 5, 'İ': 5, 'K': 6, 'L': 5, 'R': 6, 'N': 4, 'T': 4,
+    'I': 3, 'M': 4, 'U': 4, 'Y': 3, 'S': 4, 'D': 3, 'O': 3, 'B': 3, 
+    'Ü': 3, 'Ş': 3, 'Z': 3, 'G': 21, 'H': 3, 'Ç': 3, 'P': 3, 'C': 2, 
     'V': 2, 'Ö': 2, 'F': 2, 'J': 1, 'Ğ': 1 
 };
 
@@ -10804,6 +10804,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
