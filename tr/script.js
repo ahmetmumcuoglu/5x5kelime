@@ -9594,7 +9594,63 @@ function selectJokerLetter(letter) {
 }
 
 // ==========================================
-// 4. HÜCRE TIKLAMA VE HAMLE YAPMA (KUSURSUZ BİTİŞ)
+// 4. HARF GÖNDERİMİ (KLASİK MOD İÇİN)
+// ==========================================
+async function submitLetter(letterParam = null) {
+    // 1. Harfi Belirle (Parametreden mi Inputtan mı?)
+    let letter = letterParam;
+
+    if (!letter) {
+        const letterInput = document.getElementById('letterInput');
+        if (letterInput) letter = letterInput.value.trim().toUpperCase();
+    }
+    
+    // Harf yoksa dur
+    if (!letter) return;
+    
+    // Geçerlilik Kontrolü
+    const validLetters = "ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ";
+    if (!validLetters.includes(letter)) {
+        alert("Geçersiz harf.");
+        return;
+    }
+
+    const gameRef = db.collection('games').doc(currentGameId);
+    
+    try {
+        await db.runTransaction(async (transaction) => {
+            const doc = await transaction.get(gameRef);
+            if (!doc.exists) throw new Error("Oyun bulunamadı.");
+            
+            const data = doc.data();
+
+            // Klasik Mod Kontrolleri
+            if (data.currentLetter) {
+                 // Zaten harf seçilmiş, işlem yapma
+                 return; 
+            }
+            if (data.turnOwner !== myPlayerId) {
+                throw new Error("Sıra sizde değil.");
+            }
+            
+            // Harfi Yaz
+            transaction.update(gameRef, {
+                currentLetter: letter
+            });
+        });
+        
+        // UI Temizliği
+        const classicArea = document.getElementById('classicLetterSelectionArea');
+        if (classicArea) classicArea.classList.add('hidden');
+        selectedClassicLetter = null;
+
+    } catch (error) {
+        console.error("Harf gönderme hatası:", error);
+    }
+}
+
+// ==========================================
+// 5. HÜCRE TIKLAMA VE HAMLE YAPMA (KUSURSUZ BİTİŞ)
 // ==========================================
 async function handleCellClick(index) {
     if (!placementMode) return;
@@ -10557,6 +10613,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
