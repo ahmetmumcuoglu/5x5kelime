@@ -8988,7 +8988,7 @@ const VOWELS = ['A', 'E', 'I', 'İ', 'O', 'Ö', 'U', 'Ü'];
 const LETTER_POOL_CONFIG = {
     'A': 5, 'E': 5, 'İ': 5, 'K': 6, 'L': 5, 'R': 6, 'N': 4, 'T': 4,
     'I': 3, 'M': 4, 'U': 4, 'Y': 3, 'S': 4, 'D': 3, 'O': 3, 'B': 3, 
-    'Ü': 3, 'Ş': 3, 'Z': 3, 'G': 21, 'H': 3, 'Ç': 3, 'P': 3, 'C': 2, 
+    'Ü': 3, 'Ş': 3, 'Z': 3, 'G': 1, 'H': 3, 'Ç': 3, 'P': 3, 'C': 2, 
     'V': 2, 'Ö': 2, 'F': 2, 'J': 1, 'Ğ': 1 
 };
 
@@ -10785,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
