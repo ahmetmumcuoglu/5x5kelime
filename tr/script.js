@@ -9553,14 +9553,31 @@ if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
 
 // 1. Alfabeyi Ekrana Çizen Fonksiyon
 function renderAlphabetSelector() {
-    const display = document.getElementById('randomLetterDisplay');
-    if (!display) return;
+    const randomDisplay = document.getElementById('randomLetterDisplay');
+    const classicContainer = document.getElementById('classicAlphabetContainer');
+    const classicArea = document.getElementById('classicLetterSelectionArea');
+    const confirmBtn = document.getElementById('confirmLetterBtn');
 
-    // Zaten çiziliyse tekrar çizme
-    if (display.querySelector('.alphabet-wrapper')) return;
+    // Hedef konteynerı belirle: Klasik panel görünürse orayı, değilse random kutusunu kullan.
+    let target;
+    if (classicArea && !classicArea.classList.contains('hidden')) {
+        target = classicContainer;
+        // Klasik moddaysak 'ONAYLA' butonunu gizle (Jokerde harfe basınca direkt seçilsin)
+        if (confirmBtn) confirmBtn.style.display = 'none';
+    } else {
+        target = randomDisplay;
+    }
 
-    display.innerHTML = ''; 
-    display.classList.remove('hidden');
+    if (!target) return;
+
+    // Zaten çiziliyse tekrar çizme (performans ve çift basım engeli)
+    if (target.querySelector('.alphabet-wrapper')) return;
+
+    target.innerHTML = '';
+    // Eğer üst kutu kullanılıyorsa gizliyse görünür yap
+    if (target === randomDisplay) {
+        target.classList.remove('hidden');
+    }
     
     // Alfabe Wrapper Stili
     const wrapper = document.createElement('div');
@@ -9572,53 +9589,21 @@ function renderAlphabetSelector() {
         const btn = document.createElement('div');
         btn.textContent = letter;
         btn.className = 'alpha-btn';
+        // id'yi joker- harfi şeklinde veriyoruz ki selectJokerLetter bulabilsin
         btn.id = `btn-joker-${letter}`;
         
         btn.onclick = (e) => {
-            e.stopPropagation(); // Event bubble'ı engelle
+            e.stopPropagation(); 
             selectJokerLetter(letter);
         };
         wrapper.appendChild(btn);
     });
 
-    display.appendChild(wrapper);
+    target.appendChild(wrapper);
 }
 
-// 2. Harf Seçildiğinde Çalışan Fonksiyon (Seçimi İşaretler)
-function selectJokerLetter(letter) {
-    // 1. Global değişkeni güncelle
-    myFinalLetter = letter; 
-
-    // 2. Görsel Olarak Harf Seçimini Göster
-    const allBtns = document.querySelectorAll('.alpha-btn');
-    allBtns.forEach(btn => btn.classList.remove('selected'));
-
-    const selectedBtn = document.getElementById(`btn-joker-${letter}`);
-    if (selectedBtn) {
-        selectedBtn.classList.add('selected');
-    }
-
-    // 3. Oyun Durumunu Güncelle (Tabela)
-    const turnBadge = document.getElementById('turnStatusBadge');
-    if(turnBadge) {
-        turnBadge.textContent = `SEÇİLEN: ${letter} - YERLEŞTİRİN`;
-        turnBadge.className = "status-badge badge-success";
-    }
-
-    // 4. Grid'i Aktif Et (Tıklamayı Aç)
-    const myGridEl = document.getElementById('myGrid');
-    placementMode = true; 
-    
-    if (myGridEl) {
-        myGridEl.classList.remove('waiting-turn');
-        myGridEl.classList.add('active-turn');
-        myGridEl.style.opacity = "1";
-        myGridEl.style.pointerEvents = "auto";
-    }
-
-    // Gridi yeniden çiz (Değişikliklerin yansıması için)
-    renderGrid(myGridData, 'myGrid');
-} // <-- FONKSİYON BURADA BİTMELİ
+// selectJokerLetter fonksiyonunda herhangi bir değişiklik yapmana gerek yok, 
+// çünkü id bazlı (btn-joker-A gibi) çalıştığı için alfabenin nerede olduğundan bağımsızdır. // <-- FONKSİYON BURADA BİTMELİ
 
 // ==========================================
 // HAMLE VE SIRA MANTIĞI (GÖRSEL EFEKTLİ)
@@ -10800,6 +10785,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
