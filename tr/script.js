@@ -9444,37 +9444,33 @@ if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
                 // Bu turdaki hamlem yapıldı mı?
                 const myMoveDone = (myFilledCount >= currentMove);
 
-                // ====================================================
-                // A. 25. TUR: JOKER HAMLESİ
-                // ====================================================
-                if (currentMove === 25) {
-    // Klasik modun harf seçme butonlarını kesinlikle gizle
-    if (classicArea) classicArea.classList.add('hidden');
-    
-    // Alfabenin içinde olacağı kutuyu göster
-    if (randomDisplay) {
-        randomDisplay.classList.remove('hidden');
-        randomDisplay.style.display = 'flex'; // Görünürlüğü garanti et
+    // ====================================================
+    // A. 25. TUR: JOKER HAMLESİ
+    // ====================================================
+       if (currentMove === 25) {
+    const classicArea = document.getElementById('classicLetterSelectionArea');
+    const randomDisplay = document.getElementById('randomLetterDisplay');
+
+    // Klasik moddaysak harf seçme panelini Joker için açık tut/göster
+    if (data.gameMode === 'CLASSIC' && classicArea) {
+        classicArea.classList.remove('hidden');
     }
 
-    const statsBox = document.getElementById('remainingStatsBox');
-    if (statsBox) statsBox.classList.add('hidden');
-
     if (myFilledCount >= 25) {
-        updateUIState("OYUN BİTİYOR... RAKİP BEKLENİYOR", "badge-neutral", false);
+        updateUIState("OYUN BİTTİ", "badge-neutral", false);
+        if (classicArea) classicArea.classList.add('hidden');
         if (randomDisplay) randomDisplay.classList.add('hidden');
     } else {
-        // Alfabeyi çiz
+        // Bu fonksiyon artık hangi moddaysak oraya alfabeyi çizecek
         renderAlphabetSelector(); 
         
         if (!myFinalLetter) {
-            updateUIState("SON HARF: JOKER SEÇ", "badge-info", false);
+            updateUIState("JOKER HARFİNİ SEÇ", "badge-info", false);
         } else {
-            // Harf seçildiyse gridi tıklanabilir yap
-            updateUIState(`SEÇİLEN: ${myFinalLetter} - YERLEŞTİR`, "badge-success", true);
+            updateUIState(`JOKER: ${myFinalLetter} - YERE KOY`, "badge-success", true);
         }
     }
-    return; // Önemli: 25. turdaysak aşağıda mod kontrollerine girmeden fonksiyonu bitir.
+    return;
 }
 
                 // ====================================================
@@ -10804,6 +10800,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
