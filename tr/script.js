@@ -9590,7 +9590,7 @@ window.selectJokerLetter = function(letter) {
 };
 
 // 2. Alfabeyi Ekrana Çizen Fonksiyon
-function renderAlphabetSelector() {
+window.renderAlphabetSelector = function() {
     const randomDisplay = document.getElementById('randomLetterDisplay');
     const classicContainer = document.getElementById('classicAlphabetContainer');
     const classicArea = document.getElementById('classicLetterSelectionArea');
@@ -10823,6 +10823,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
