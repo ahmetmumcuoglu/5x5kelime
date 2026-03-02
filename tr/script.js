@@ -9551,7 +9551,45 @@ if (data.gameMode === 'RANDOM' || data.gameMode === 'PUZZLE') {
 
 // --- JOKER SEÇİMİ İÇİN YENİ FONKSİYONLAR (DÜZELTİLMİŞ) ---
 
-// 1. Alfabeyi Ekrana Çizen Fonksiyon
+// 1. Önce Joker Seçim Fonksiyonunu Tanımlıyoruz (Üstte Olmalı)
+window.selectJokerLetter = function(letter) {
+    console.log("Seçilen Joker Harfi:", letter);
+    
+    // Global değişkeni güncelle
+    myFinalLetter = letter; 
+
+    // Görsel olarak harf seçimini tüm alfabe butonlarında güncelle
+    const allBtns = document.querySelectorAll('.alpha-btn');
+    allBtns.forEach(btn => btn.classList.remove('selected'));
+
+    const selectedBtn = document.getElementById(`btn-joker-${letter}`);
+    if (selectedBtn) {
+        selectedBtn.classList.add('selected');
+    }
+
+    // Tabela Durumunu Güncelle
+    const turnBadge = document.getElementById('turnStatusBadge');
+    if(turnBadge) {
+        turnBadge.textContent = `SEÇİLEN: ${letter} - YERLEŞTİRİN`;
+        turnBadge.className = "status-badge badge-success";
+    }
+
+    // Grid'i Aktif Et (Tıklamayı Aç)
+    const myGridEl = document.getElementById('myGrid');
+    placementMode = true; 
+    
+    if (myGridEl) {
+        myGridEl.classList.remove('waiting-turn');
+        myGridEl.classList.add('active-turn');
+        myGridEl.style.opacity = "1";
+        myGridEl.style.pointerEvents = "auto";
+    }
+
+    // Seçimden sonra gridi yeniden çizerek görsel onayı göster
+    renderGrid(myGridData, 'myGrid');
+};
+
+// 2. Alfabeyi Ekrana Çizen Fonksiyon
 function renderAlphabetSelector() {
     const randomDisplay = document.getElementById('randomLetterDisplay');
     const classicContainer = document.getElementById('classicAlphabetContainer');
@@ -10785,6 +10823,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
