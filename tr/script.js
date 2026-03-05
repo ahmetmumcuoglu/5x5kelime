@@ -10545,36 +10545,40 @@ function prepareDailyUI(dateString) {
     if (opponentSection) opponentSection.style.display = 'none';
 }
 // ==========================================
-// GÜNLÜK SIRALAMA SİSTEMİ (FIREBASE)
+// GÜNLÜK SIRALAMA SİSTEMİ (GÜNCELLENMİŞ)
 // ==========================================
 
-async function submitDailyScoreAndGetBest(score) {
+async function submitDailyScoreAndGetBest(score, gridData, jokerIndex) {
     const todayKey = new Date().toISOString().split('T')[0];
-    // Koleksiyon yolunun doğruluğundan emin olun
     const leaderboardRef = db.collection('daily_leaderboard').doc(todayKey).collection('scores');
     let userId = localStorage.getItem('kelimelik_user_id');
 
     try {
-        // 1. Kendi skorunu kaydet (Sayı olduğundan emin ol)
+        // 1. Kendi skorunu, gridini ve joker notunu kaydet
         await leaderboardRef.doc(userId).set({
-            score: Number(score), 
+            score: Number(score),
+            gridData: gridData || Array(25).fill(''),
+            jokerIndex: jokerIndex !== undefined ? jokerIndex : -1,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             userId: userId
         });
 
-        // 2. Günün EN YÜKSEK skorunu bul (Sadece 1 döküman okur)
+        // 2. Günün EN YÜKSEK skorunu bul (Sadece 1 belge okuruz)
         const topScoreSnapshot = await leaderboardRef.orderBy('score', 'desc').limit(1).get();
         
         if (!topScoreSnapshot.empty) {
-            const bestScore = topScoreSnapshot.docs[0].data().score;
-            // Eğer Firebase'deki rekor benimkinden düşükse (henüz güncellenmemişse) kendi skorumu göster
-            return Math.max(bestScore, score);
+            const bestDoc = topScoreSnapshot.docs[0].data();
+            
+            // Eğer Firebase'deki rekor benimkinden düşükse (henüz güncellenmemişse) kendi skorumu döndür
+            if (bestDoc.score >= score) {
+                return { score: bestDoc.score, gridData: bestDoc.gridData, jokerIndex: bestDoc.jokerIndex };
+            }
         }
-        return score;
+        return { score: score, gridData: gridData, jokerIndex: jokerIndex };
 
     } catch (error) {
         console.error("Rekor çekme hatası:", error);
-        return score;
+        return { score: score, gridData: gridData, jokerIndex: jokerIndex }; // Hatada kendi sonucunu döndür
     }
 }
 
@@ -10609,6 +10613,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
