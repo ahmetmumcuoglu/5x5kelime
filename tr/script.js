@@ -10465,31 +10465,8 @@ async function startDailyGame() {
             
             // Eğer oyun zaten bittiyse (status === 'finished')
             if (data.status === 'finished') {
-                const myResult = calculateScore(data.gridA);
-                
-                // Günlük Rekoru Bul (Basit Sorgu)
-                const todayStart = new Date();
-                todayStart.setHours(0,0,0,0);
-
-                const snapshot = await db.collection('games')
-                    .where('isDailyChallenge', '==', true)
-                    .where('createdAt', '>=', todayStart)
-                    .get();
-
-                let dailyBest = 0;
-                snapshot.forEach(d => {
-                    const score = calculateScore(d.data().gridA).score;
-                    if (score > dailyBest) dailyBest = score;
-                });
-
-                // Sadeleştirilmiş Uyarı Kutusu
-                lobbyStatus.innerHTML = `
-                    <div style="background: rgba(142, 68, 173, 0.1); padding: 15px; border-radius: 10px; border: 1px solid #8e44ad; margin-top: 10px;">
-                        <p style="color: #8e44ad; font-weight: bold; margin-bottom: 5px;">Bugünkü Challenge Tamamlandı!</p>
-                        <p style="margin: 5px 0;">Skorun: <strong>${myResult.score}</strong></p>
-                        <p style="margin: 5px 0;">Günün Rekoru: <strong>👑 ${dailyBest}</strong></p>
-                    </div>
-                `;
+                myPlayerId = 'PlayerA'; // showResults içinde isMeA kontrolü için şart
+                showResults(data); // Direkt tam ekran sonuçlara gönder
                 return;
             }
             // OYUN VAR VE AKTİF: Kaldığı yerden devam et
@@ -10613,6 +10590,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
