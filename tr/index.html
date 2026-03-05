@@ -171,21 +171,56 @@
     </div>
 
     <div id="howToPlayModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close-modal" onclick="window.closeInfoModal()">&times;</span>
-            <h2 style="color:#2c3e50; text-align:center;">NASIL OYNANIR?</h2>
-            <div class="rules-text">
-                <h3>🎯 Oyunun Amacı</h3>
-                <p>5x5'lik grid üzerinde anlamlı kelimeler oluşturup en yüksek puanı toplamaktır.</p>
-                <h3>🕹️ Oyun Modları</h3>
-                <ul>
-                    <li><strong>Günlük:</strong> Her gün herkesle aynı harflerle tek hakkınla yarışırsın!</li>
-                    <li><strong>Klasik:</strong> Karşılıklı harf seçerek oynanır.</li>
-                    <li><strong>Random:</strong> Rastgele harflerle hız ve strateji ön plandadır.</li>
-                </ul>
-            </div>
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeInfoModal()">&times;</span>
+        
+        <h2 class="modal-title">5x5 Kelimelik: Nasıl Oynanır?</h2>
+        <hr>
+
+        <div class="modal-section">
+            <h3>1. Oyunun Amacı</h3>
+            <p>5x5 boyutundaki tabloya harfler yerleştirerek hem <strong>yatayda</strong> hem de <strong>dikeyde</strong> anlamlı Türkçe kelimeler oluşturmak ve en yüksek puanı toplamaktır.</p>
+        </div>
+
+        <div class="modal-section">
+            <h3>2. Oyun Kuralları</h3>
+            <ul>
+                <li>Oyun toplam <strong>25 tur</strong> sürer.</li>
+                <li>İlk 24 tur boyunca gelen/seçilen harfler tablodaki boş bir hücreye yerleştirilir.</li>
+                <li><strong>Joker Turu (25. Tur):</strong> Son kareye geldiğinde alfabeden istediğin herhangi bir harfi seçip yerleştirebilirsin.</li>
+            </ul>
+        </div>
+
+        <div class="modal-section">
+            <h3>3. Puanlama Sistemi</h3>
+            <p>Kelimeler soldan sağa veya yukarıdan aşağıya okunur. Aynı satır veya sütun içinde birden fazla kelime puanlanabilir. <strong>Bir harf yatayda veya dikeyde birden fazla kelime kombinasyonunda kullanılamaz.</strong></p>
+            
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th>Kelime Uzunluğu</th>
+                        <th>Puan Değeri</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>2 Harfli</td><td>2 Puan</td></tr>
+                    <tr><td>3 Harfli</td><td>5 Puan</td></tr>
+                    <tr><td>4 Harfli</td><td>9 Puan</td></tr>
+                    <tr><td>5 Harfli</td><td>15 Puan</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="modal-section">
+            <h3>4. Oyun Modları</h3>
+            <ul>
+                <li><strong>Klasik Mod (Karşılıklı):</strong> 24 tur boyunca oyuncular her tur sırayla birer harf seçer. Seçilen harf, her iki oyuncu tarafından da kendi tablolarına yerleştirilir. 25. turda oyuncular kendi joker harflerini seçer.</li>
+                <li><strong>Rastgele (Random) Mod:</strong> 24 tur boyunca sistem tarafından belirlenen rastgele harfleri tablona yerleştir. İki kişilik oyunda her iki oyuncuya da aynı rastgele harfler gelir. 25. turda oyuncular kendi joker harflerini seçer.</li>
+                <li><strong>Günlük Challenge:</strong> Her gün yeni bir 24 harflik dizin belirlenir ve tüm oyuncular bu dizine göre oynar. Oyun sonunda <strong>"Günün Rekoru"</strong> ile kendi sonucunu kıyaslayabilirsin.</li>
+            </ul>
         </div>
     </div>
+</div>
 
     <div id="statsModal" class="modal hidden">
         <div class="modal-content">
@@ -214,5 +249,6 @@
     <script src="script.js"></script>
 </body>
 </html>
+
 
 
