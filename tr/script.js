@@ -10082,7 +10082,7 @@ function renderGrid(gridData, elementId) {
 // YENİ FONKSİYON: SONUÇ GRIDINI ÇİZME (GÜVENLİ VE RENK KODLAMALI)
 // ==========================================
 
-function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
+function renderFinalScoreGrid(gridData, elementId, rowScores, colScores, jokerIndex = -1) {
     const gridElement = document.getElementById(elementId);
     if (!gridElement) return;
 
@@ -10109,12 +10109,12 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
-      // --- YENİ EKLENEN BOYAMA KONTROLÜ ---
-        // Eğer şu an çizdiğimiz hücre, veritabanına kaydettiğimiz joker indexiyle aynıysa:
+        
+        // --- JOKER BOYAMA KONTROLÜ ---
         if (i === jokerIndex) {
             cell.classList.add('joker-highlight');
         }
-        // ------------------------------------
+        
         cell.textContent = gridData[i] || '';      
         gridElement.appendChild(cell);
 
@@ -10124,11 +10124,8 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
             const scoreCell = document.createElement('div');
             const score = rowScores[rowIndex];
             
-            // --- KRİTİK GÜVENLİK DÜZELTMESİ ---
-            // Sınıf listesini oluştur, boş stringleri filtrele
             const classes = ['cell', 'score-cell-row', getScoreClass(score)].filter(Boolean);
             scoreCell.classList.add(...classes);
-            // ----------------------------------
             
             scoreCell.textContent = score;
             gridElement.appendChild(scoreCell);
@@ -10136,15 +10133,11 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     }
     
     // 5x1 kolon puanı hücresi oluştur
-    // Hata izi bu forEach döngüsünü işaret ediyor olabilir.
     colScores.forEach(score => {
         const scoreCell = document.createElement('div');
         
-        // --- KRİTİK GÜVENLİK DÜZELTMESİ ---
-        // Sınıf listesini oluştur, boş stringleri filtrele
         const classes = ['cell', 'score-cell-col', getScoreClass(score)].filter(Boolean);
         scoreCell.classList.add(...classes);
-        // ----------------------------------
 
         scoreCell.textContent = score;
         gridElement.appendChild(scoreCell);
@@ -10629,6 +10622,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
