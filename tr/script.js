@@ -9911,21 +9911,18 @@ function showResults(data) {
     const resA = calculateScore(data.gridA);
     const resB = calculateScore(data.gridB);
 
-    // --- ÖNEMLİ DÜZELTME: KİM HANGİ OYUNCU? ---
-    // Eğer ben PlayerB isem, benim sonuçlarım resB'dir, rakibinki resA'dır.
+    // 2. Kim Hangi Oyuncu?
     const isMeA = (myPlayerId === 'PlayerA');
     const myRes = isMeA ? resA : resB;
     const oppRes = isMeA ? resB : resA;
     const myGrid = isMeA ? data.gridA : data.gridB;
     const oppGrid = isMeA ? data.gridB : data.gridA;
-    // -----------------------------------------
 
-  // --- YENİ EKLENEN JOKER OKUMA KISMI ---
-const myJokerIndex = isMeA ? data.jokerIndexA : data.jokerIndexB;
-const oppJokerIndex = isMeA ? data.jokerIndexB : data.jokerIndexA;
-// -------------------------------------
+    // --- YENİ EKLENEN JOKER OKUMA KISMI ---
+    const myJokerIndex = isMeA ? data.jokerIndexA : data.jokerIndexB;
+    const oppJokerIndex = isMeA ? data.jokerIndexB : data.jokerIndexA;
 
-    // 2. Panelleri Değiştir
+    // 3. Panelleri Değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.add('hidden');
     const gameOverPanel = document.getElementById('gameOverPanel');
@@ -9934,16 +9931,15 @@ const oppJokerIndex = isMeA ? data.jokerIndexB : data.jokerIndexA;
     const resultMsg = document.getElementById('finalResultMsg');
     if (resultMsg) resultMsg.style.display = 'none'; 
 
-    // 3. Elementleri Seç
-    const scoreAEl = document.getElementById('scoreA'); // "Senin Skorun" alanı
+    // 4. Elementleri Seç
+    const scoreAEl = document.getElementById('scoreA');
     const wordsListAEl = document.getElementById('wordsListA');
     const dailySummary = document.getElementById('dailyResultSummary');
     const opponentCard = document.getElementById('opponentResultCard');
     const titleA = document.getElementById('resultTitleA');
     const titleB = document.getElementById('resultTitleB');
 
-    // 4. Senin Sonuçlarını Yaz (Her zaman sol karta kendi sonucunu basıyoruz)
-    // showResults içinde scoreAEl.textContent = myRes.score; yerine:
+    // 5. Senin Sonuçlarını Yaz (Joker Index Eklendi)
     animateSlotScore(myRes.score, 'scoreA');
     renderFinalScoreGrid(myGrid, 'finalGridA', myRes.rowScores, myRes.colScores, myJokerIndex);
     
@@ -9951,58 +9947,49 @@ const oppJokerIndex = isMeA ? data.jokerIndexB : data.jokerIndexA;
         ? myRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
         : '<li>Kelime bulunamadı</li>';
 
-    // 5. MOD KONTROLÜ
+    // 6. MOD KONTROLÜ
     if (data.isDailyChallenge) {
-    if (opponentCard) opponentCard.style.display = 'none';
-    if (dailySummary) dailySummary.classList.remove('hidden');
-    if (titleA) titleA.innerHTML = `PUANINIZ:`;
+        if (opponentCard) opponentCard.style.display = 'none';
+        if (dailySummary) dailySummary.classList.remove('hidden');
+        if (titleA) titleA.innerHTML = `PUANINIZ:`;
 
-    // 1. Sıralama (Rank) kısmını UI'dan gizle
-    const rankEl = document.getElementById('resRank');
-    if (rankEl && rankEl.parentElement) {
-        rankEl.parentElement.style.display = 'none';
-    }
+        const rankEl = document.getElementById('resRank');
+        if (rankEl && rankEl.parentElement) {
+            rankEl.parentElement.style.display = 'none';
+        }
 
-    // 2. Günün Rekoru kutusunu hazırla
-    const topScoreEl = document.getElementById('resTopScore');
-    topScoreEl.textContent = "..."; // Yükleniyor
+        const topScoreEl = document.getElementById('resTopScore');
+        topScoreEl.textContent = "..."; 
 
-    // 3. Firebase'e skoru gönder ve EN YÜKSEK skoru geri al
-    submitDailyScoreAndGetBest(myRes.score).then(dailyBest => {
-        // Artık burası localStorage'a değil, Firebase'deki gerçek rekora bakar
-        topScoreEl.textContent = dailyBest;
-    });
+        submitDailyScoreAndGetBest(myRes.score).then(dailyBest => {
+            topScoreEl.textContent = dailyBest;
+        });
 
-    // Oynama tarihini kaydet (Hile engeli için)
-    const todayKey = new Date().toISOString().split('T')[0];
-    localStorage.setItem('daily_last_played', todayKey);
-} else if (data.isSinglePlayer) {
+        const todayKey = new Date().toISOString().split('T')[0];
+        localStorage.setItem('daily_last_played', todayKey);
+
+    } else if (data.isSinglePlayer) {
         if (opponentCard) opponentCard.style.display = 'none';
         if (dailySummary) dailySummary.classList.add('hidden');
         if (titleA) titleA.textContent = "OYUN SONUCUNUZ";
 
     } else {
-        // --- MULTIPLAYER DÜZELTMESİ ---
+        // MULTIPLAYER
         if (opponentCard) opponentCard.style.display = 'flex';
         if (dailySummary) dailySummary.classList.add('hidden');
         
-        // Başlıkları netleştir
         if (titleA) titleA.innerHTML = 'SENİN ALANIN';
         if (titleB) titleB.textContent = 'RAKİP ALANI';
 
-        const scoreBEl = document.getElementById('scoreB'); // Rakip skor alanı
         const wordsListBEl = document.getElementById('wordsListB');
         
-        // Multiplayer kısmında scoreBEl.textContent = oppRes.score; yerine:
-if (!data.isSinglePlayer && !data.isDailyChallenge) {
-    animateSlotScore(oppRes.score, 'scoreB');
-}
+        // Rakip Sonuçları (Joker Index Eklendi)
+        animateSlotScore(oppRes.score, 'scoreB');
         renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores, oppJokerIndex);
         
         wordsListBEl.innerHTML = oppRes.words.length > 0 
             ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
             : '<li>Kelime bulunamadı</li>';
-          
     }
 
     if (unsubscribe) {
@@ -10622,6 +10609,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
