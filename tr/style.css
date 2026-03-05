@@ -1237,6 +1237,11 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     padding: 10px !important;
 }
 
+/* Joker Harfi Vurgusu (Sadece Arka Plan) */
+.joker-highlight {
+    background-color: #ffdfba !important; /* Tatlı bir turuncu/sarı tonu */
+    border: 2px solid #ffb347 !important; /* İsteğe bağlı, hafif koyu bir çerçeve */
+}
 
 
 
