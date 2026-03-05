@@ -9700,8 +9700,13 @@ async function handleCellClick(index) {
             myCurrentGrid[index] = letterToPlace;
             
             let updatePayload = {};
-            if (myPlayerId === 'PlayerA') updatePayload.gridA = myCurrentGrid;
-            else updatePayload.gridB = myCurrentGrid;
+if (myPlayerId === 'PlayerA') {
+    updatePayload.gridA = myCurrentGrid;
+    if (isFinalMove) updatePayload.jokerIndexA = index; // JOKER NOTU: A oyuncusu nereye koydu?
+} else {
+    updatePayload.gridB = myCurrentGrid;
+    if (isFinalMove) updatePayload.jokerIndexB = index; // JOKER NOTU: B oyuncusu nereye koydu?
+}
             
             // --- TUR ATLAMA VE BİTİRME MANTIĞI ---
             if (isSinglePlayer) {
@@ -9915,6 +9920,11 @@ function showResults(data) {
     const oppGrid = isMeA ? data.gridB : data.gridA;
     // -----------------------------------------
 
+  // --- YENİ EKLENEN JOKER OKUMA KISMI ---
+const myJokerIndex = isMeA ? data.jokerIndexA : data.jokerIndexB;
+const oppJokerIndex = isMeA ? data.jokerIndexB : data.jokerIndexA;
+// -------------------------------------
+
     // 2. Panelleri Değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.add('hidden');
@@ -9935,7 +9945,7 @@ function showResults(data) {
     // 4. Senin Sonuçlarını Yaz (Her zaman sol karta kendi sonucunu basıyoruz)
     // showResults içinde scoreAEl.textContent = myRes.score; yerine:
     animateSlotScore(myRes.score, 'scoreA');
-    renderFinalScoreGrid(myGrid, 'finalGridA', myRes.rowScores, myRes.colScores);
+    renderFinalScoreGrid(myGrid, 'finalGridA', myRes.rowScores, myRes.colScores, myJokerIndex);
     
     wordsListAEl.innerHTML = myRes.words.length > 0 
         ? myRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
@@ -9987,7 +9997,7 @@ function showResults(data) {
 if (!data.isSinglePlayer && !data.isDailyChallenge) {
     animateSlotScore(oppRes.score, 'scoreB');
 }
-        renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores);
+        renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores, oppJokerIndex);
         
         wordsListBEl.innerHTML = oppRes.words.length > 0 
             ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
@@ -10613,6 +10623,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
