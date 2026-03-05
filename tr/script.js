@@ -10109,6 +10109,12 @@ function renderFinalScoreGrid(gridData, elementId, rowScores, colScores) {
     for (let i = 0; i < 25; i++) {
         const cell = document.createElement('div');
         cell.classList.add('cell');
+      // --- YENİ EKLENEN BOYAMA KONTROLÜ ---
+        // Eğer şu an çizdiğimiz hücre, veritabanına kaydettiğimiz joker indexiyle aynıysa:
+        if (i === jokerIndex) {
+            cell.classList.add('joker-highlight');
+        }
+        // ------------------------------------
         cell.textContent = gridData[i] || '';      
         gridElement.appendChild(cell);
 
@@ -10623,6 +10629,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
