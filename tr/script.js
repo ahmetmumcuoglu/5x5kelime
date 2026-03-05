@@ -9713,6 +9713,14 @@ if (myPlayerId === 'PlayerA') {
                 if (isFinalMove) {
                     updatePayload.status = 'finished'; // Tek kişi bitirdi, oyun biter.
                     updatePayload.currentLetter = null;
+                  // --- KRİTİK EKLEME: GÜNLÜK CHALLENGE REKOR KAYDI ---
+        if (data.isDailyChallenge) {
+            // MyCurrentGrid zaten 25 harfin yerleşmiş hali (az önce index'e harfi koyduk)
+            const finalRes = calculateScore(myCurrentGrid);
+            // Skoru, 25 harflik gridi ve son koyduğumuz hücrenin index'ini gönderiyoruz
+            submitDailyScoreAndGetBest(finalRes.score, myCurrentGrid, index);
+        }
+        // ------------------------------------------------
                 } else {
                     const nextMove = currentMoveNumber + 1;
                     updatePayload.moveNumber = nextMove;
@@ -10606,6 +10614,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
