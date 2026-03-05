@@ -9906,7 +9906,23 @@ function calculateScore(gridData) {
 // OYUN SONUÇLARINI GÖSTERME (TEMİZLENMİŞ VERSİYON)
 // ==========================================
 
-function showResults(data) {
+async function showResults(data) {
+    // --- 1. GÜNLÜK MOD İÇİN HAYALET RAKİP OLUŞTURMA ---
+    if (data.isDailyChallenge) {
+        const titleB = document.getElementById('resultTitleB');
+        if (titleB) titleB.textContent = "REKOR YÜKLENİYOR...";
+        
+        // Önce kendi skorumuzu hesaplayıp fonksiyona yollayalım
+        const tempResA = calculateScore(data.gridA);
+        
+        // Rekoru çek (Bekliyoruz)
+        const bestRecord = await submitDailyScoreAndGetBest(tempResA.score, data.gridA, data.jokerIndexA);
+        
+        // Çektiğimiz rekoru boş duran Rakip (B) slotuna yerleştir
+        data.gridB = bestRecord.gridData || Array(25).fill('');
+        data.jokerIndexB = bestRecord.jokerIndex !== undefined ? bestRecord.jokerIndex : -1;
+    }
+  
     // 1. Puanları Hesapla
     const resA = calculateScore(data.gridA);
     const resB = calculateScore(data.gridB);
@@ -10590,6 +10606,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
