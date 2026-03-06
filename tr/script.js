@@ -9920,7 +9920,6 @@ async function showResults(data) {
         const titleB = document.getElementById('resultTitleB');
         if (titleB) titleB.textContent = "REKOR YÜKLENİYOR...";
         
-        // Önce kendi skorumuzu hesaplayıp fonksiyona yollayalım
         const tempResA = calculateScore(data.gridA);
         
         // Rekoru çek (Bekliyoruz)
@@ -9930,40 +9929,36 @@ async function showResults(data) {
         data.gridB = bestRecord.gridData || Array(25).fill('');
         data.jokerIndexB = bestRecord.jokerIndex !== undefined ? bestRecord.jokerIndex : -1;
     }
-  
-    // 1. Puanları Hesapla
+
+    // 2. Puanları Hesapla
     const resA = calculateScore(data.gridA);
     const resB = calculateScore(data.gridB);
 
-    // 2. Kim Hangi Oyuncu?
     const isMeA = (myPlayerId === 'PlayerA');
     const myRes = isMeA ? resA : resB;
     const oppRes = isMeA ? resB : resA;
     const myGrid = isMeA ? data.gridA : data.gridB;
     const oppGrid = isMeA ? data.gridB : data.gridA;
 
-    // --- YENİ EKLENEN JOKER OKUMA KISMI ---
     const myJokerIndex = isMeA ? data.jokerIndexA : data.jokerIndexB;
     const oppJokerIndex = isMeA ? data.jokerIndexB : data.jokerIndexA;
 
     // 3. Panelleri Değiştir
     document.getElementById('lobbyPanel').classList.add('hidden');
     document.getElementById('gamePanel').classList.add('hidden');
-    const gameOverPanel = document.getElementById('gameOverPanel');
-    gameOverPanel.classList.remove('hidden');
+    document.getElementById('gameOverPanel').classList.remove('hidden');
 
     const resultMsg = document.getElementById('finalResultMsg');
     if (resultMsg) resultMsg.style.display = 'none'; 
 
-    // 4. Elementleri Seç
-    const scoreAEl = document.getElementById('scoreA');
+    // Elementleri Seç
     const wordsListAEl = document.getElementById('wordsListA');
     const dailySummary = document.getElementById('dailyResultSummary');
     const opponentCard = document.getElementById('opponentResultCard');
     const titleA = document.getElementById('resultTitleA');
     const titleB = document.getElementById('resultTitleB');
 
-    // 5. Senin Sonuçlarını Yaz (Joker Index Eklendi)
+    // 4. Senin Sonuçlarını Yaz
     animateSlotScore(myRes.score, 'scoreA');
     renderFinalScoreGrid(myGrid, 'finalGridA', myRes.rowScores, myRes.colScores, myJokerIndex);
     
@@ -9971,34 +9966,38 @@ async function showResults(data) {
         ? myRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
         : '<li>Kelime bulunamadı</li>';
 
-    // 6. MOD KONTROLÜ
+    // 5. MOD KONTROLÜ VE RAKİP KARTI
     if (data.isDailyChallenge) {
-        if (opponentCard) opponentCard.style.display = 'none';
-        if (dailySummary) dailySummary.classList.remove('hidden');
-        if (titleA) titleA.innerHTML = `PUANINIZ:`;
+        // Eski küçük kutuyu GİZLE, Gerçek Rakip Kartını AÇ
+        if (opponentCard) opponentCard.style.display = 'flex';
+        if (dailySummary) dailySummary.classList.add('hidden'); 
+        
+        if (titleA) titleA.innerHTML = 'SENİN ALANIN';
+        if (titleB) titleB.textContent = '👑 GÜNÜN REKORU';
 
-        const rankEl = document.getElementById('resRank');
-        if (rankEl && rankEl.parentElement) {
-            rankEl.parentElement.style.display = 'none';
+        const wordsListBEl = document.getElementById('wordsListB');
+        
+        // Rekor Sonuçlarını (Rakipmiş gibi) Yazdır
+        animateSlotScore(oppRes.score, 'scoreB');
+        renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores, oppJokerIndex);
+        
+        if (wordsListBEl) {
+            wordsListBEl.innerHTML = oppRes.words.length > 0 
+                ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+                : '<li>Kelime bulunamadı</li>';
         }
-
-        const topScoreEl = document.getElementById('resTopScore');
-        topScoreEl.textContent = "..."; 
-
-        submitDailyScoreAndGetBest(myRes.score).then(dailyBest => {
-            topScoreEl.textContent = dailyBest;
-        });
 
         const todayKey = new Date().toISOString().split('T')[0];
         localStorage.setItem('daily_last_played', todayKey);
 
     } else if (data.isSinglePlayer) {
+        // TEK KİŞİLİK KLASİK/RANDOM MOD
         if (opponentCard) opponentCard.style.display = 'none';
         if (dailySummary) dailySummary.classList.add('hidden');
         if (titleA) titleA.textContent = "OYUN SONUCUNUZ";
 
     } else {
-        // MULTIPLAYER
+        // MULTIPLAYER MOD
         if (opponentCard) opponentCard.style.display = 'flex';
         if (dailySummary) dailySummary.classList.add('hidden');
         
@@ -10007,13 +10006,14 @@ async function showResults(data) {
 
         const wordsListBEl = document.getElementById('wordsListB');
         
-        // Rakip Sonuçları (Joker Index Eklendi)
         animateSlotScore(oppRes.score, 'scoreB');
         renderFinalScoreGrid(oppGrid, 'finalGridB', oppRes.rowScores, oppRes.colScores, oppJokerIndex);
         
-        wordsListBEl.innerHTML = oppRes.words.length > 0 
-            ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
-            : '<li>Kelime bulunamadı</li>';
+        if (wordsListBEl) {
+            wordsListBEl.innerHTML = oppRes.words.length > 0 
+                ? oppRes.words.map(w => `<li onclick="fetchDefinition('${w}')">${w}</li>`).join('') 
+                : '<li>Kelime bulunamadı</li>';
+        }
     }
 
     if (unsubscribe) {
@@ -10614,6 +10614,7 @@ function animateSlotScore(targetNumber, containerId) {
         }, index * 150); // Her hane 150ms arayla dönmeye başlar (Slottaki gibi)
     });
 }
+
 
 
 
