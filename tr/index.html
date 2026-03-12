@@ -4,12 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kelimelik 5x5 Online</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 </head>
 <body>
-    
+
+    <!-- ==================== LOBİ ==================== -->
     <div id="lobbyPanel" class="panel">
         <div class="header-top-row">
             <h1 class="game-title">5x5 Kelime Oyunu</h1>
@@ -22,13 +23,13 @@
                 </a>
             </div>
         </div>
-        
+
         <div class="lobby-top-actions">
             <button id="howToPlayBtn" class="icon-btn info" onclick="window.openInfoModal()" title="Nasıl Oynanır?">?</button>
             <button id="statsBtn" class="icon-btn stats" onclick="window.openStatsModal()" title="İstatistikler">📊</button>
             <button id="darkModeBtn" class="icon-btn" onclick="toggleDarkMode()" title="Tema Değiştir">🌙</button>
         </div>
-        
+
         <div class="lobby-controls">
             <div class="control-group">
                 <p class="group-title">İKİ KİŞİLİK OYUN KUR</p>
@@ -43,7 +44,7 @@
                     </button>
                 </div>
             </div>
-   
+
             <div class="control-group">
                 <p class="group-title">OYUNA KATIL</p>
                 <div class="join-area">
@@ -51,7 +52,7 @@
                     <button id="joinGameBtn" onclick="joinGame()">GİRİŞ YAP</button>
                 </div>
             </div>
-    
+
             <div class="control-group">
                 <p class="group-title">TEK KİŞİLİK OYUN</p>
                 <div class="mode-buttons">
@@ -66,16 +67,18 @@
                 </div>
             </div>
         </div>
+
         <div id="lobbyStatus" class="status-error"></div>
     </div>
-        
+
+    <!-- ==================== OYUN ==================== -->
     <div id="gamePanel" class="panel hidden">
         <div class="game-header">
             <div class="room-info">Oda: <b id="gameCodeDisplay">--</b></div>
             <div id="turnStatusBadge" class="status-badge hidden">Yükleniyor...</div>
             <div id="gameTimer" class="game-timer hidden">20</div>
         </div>
-    
+
         <div class="game-container">
             <div id="randomGameInfoArea" class="random-info-wrapper hidden">
                 <div id="randomLetterDisplay" class="random-letter-box">?</div>
@@ -108,16 +111,17 @@
         </div>
     </div>
 
+    <!-- ==================== OYUN SONU ==================== -->
     <div id="gameOverPanel" class="panel hidden">
         <h3 id="finalResultMsg" class="result-message">Kazanan Belirleniyor...</h3>
-             
+
         <div class="results-container">
             <div class="result-card">
                 <div class="card-header">
                     <h4 id="resultTitleA">Senin Alanın</h4>
                     <div id="scoreAContainer" class="slot-machine-container">
-    <div id="scoreA" class="slot-wrapper"></div>
-</div>
+                        <div id="scoreA" class="slot-wrapper"></div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="mini-grid-wrapper">
@@ -134,8 +138,8 @@
                 <div class="card-header">
                     <h4 id="resultTitleB">Rakip</h4>
                     <div id="scoreBContainer" class="slot-machine-container">
-    <div id="scoreB" class="slot-wrapper"></div>
-</div>
+                        <div id="scoreB" class="slot-wrapper"></div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="mini-grid-wrapper">
@@ -170,84 +174,80 @@
         </div>
     </div>
 
+    <!-- ==================== NASIL OYNANIR MODALİ ==================== -->
     <div id="howToPlayModal" class="modal hidden">
-    <div class="modal-content">
-        <span class="close-modal" onclick="closeInfoModal()">&times;</span>
-        
-        <h2 class="modal-title">5x5 Kelimelik: Nasıl Oynanır?</h2>
-        <hr>
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeInfoModal()">&times;</span>
+            <h2 class="modal-title">5x5 Kelimelik: Nasıl Oynanır?</h2>
+            <hr>
 
-        <div class="modal-section">
-            <h3>1. Oyunun Amacı</h3>
-            <p>5x5 boyutundaki tabloya harfler yerleştirerek hem <strong>yatayda</strong> hem de <strong>dikeyde</strong> anlamlı Türkçe kelimeler oluşturmak ve en yüksek puanı toplamaktır.</p>
-        </div>
+            <div class="modal-section">
+                <h3>1. Oyunun Amacı</h3>
+                <p>5x5 boyutundaki tabloya harfler yerleştirerek hem <strong>yatayda</strong> hem de <strong>dikeyde</strong> anlamlı Türkçe kelimeler oluşturmak ve en yüksek puanı toplamaktır.</p>
+            </div>
 
-        <div class="modal-section">
-            <h3>2. Oyun Kuralları</h3>
-            <ul>
-                <li>Oyun toplam <strong>25 tur</strong> sürer.</li>
-                <li>İlk 24 tur boyunca gelen/seçilen harfler tablodaki boş bir hücreye yerleştirilir.</li>
-                <li><strong>Joker Turu (25. Tur):</strong> Bütün modlarda son tura geldiğinde alfabeden istediğin herhangi bir harfi seçip boş hücreye yerleştirebilirsin.</li>
-                <li>Rastgele ve günlük challenge modlarında harflerin gelme ihtimali belirli ağırlıklara göre belirlenir. Örnek olarak A harfinin gelme ihtimali Ö harfinden yüksektir.</li>
-            </ul>
-        </div>
+            <div class="modal-section">
+                <h3>2. Oyun Kuralları</h3>
+                <ul>
+                    <li>Oyun toplam <strong>25 tur</strong> sürer.</li>
+                    <li>İlk 24 tur boyunca gelen/seçilen harfler tablodaki boş bir hücreye yerleştirilir.</li>
+                    <li><strong>Joker Turu (25. Tur):</strong> Tüm modlarda son tura geldiğinde alfabeden istediğin herhangi bir harfi seçip boş hücreye yerleştirebilirsin.</li>
+                    <li>Rastgele ve günlük challenge modlarında harflerin gelme ihtimali belirli ağırlıklara göre belirlenir.</li>
+                </ul>
+            </div>
 
-        <div class="modal-section">
-            <h3>3. Puanlama Sistemi</h3>
-            <p>Kelimeler soldan sağa veya yukarıdan aşağıya okunur. Aynı satır veya sütun içinde birden fazla kelime puanlanabilir. <strong>Bir harf yatayda veya dikeyde birden fazla kelimede kullanılamaz.</strong></p>
-            
-            <table class="score-table">
-                <thead>
-                    <tr>
-                        <th>Kelime</th>
-                        <th>Puan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>5 Harfli</td><td>- 15 Puan</td></tr>
-                    <tr><td>4 Harfli</td><td>- 9 Puan</td></tr>
-                    <tr><td>3 Harfli</td><td>- 5 Puan</td></tr>
-                    <tr><td>2 Harfli</td><td>- 2 Puan</td></tr>
-                </tbody>
-            </table>
-        </div>
+            <div class="modal-section">
+                <h3>3. Puanlama Sistemi</h3>
+                <p>Kelimeler soldan sağa veya yukarıdan aşağıya okunur. Aynı satır veya sütun içinde birden fazla kelime puanlanabilir. <strong>Bir harf yatayda veya dikeyde birden fazla kelimede kullanılamaz.</strong></p>
+                <table class="score-table">
+                    <thead>
+                        <tr><th>Kelime</th><th>Puan</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>5 Harfli</td><td>15 Puan</td></tr>
+                        <tr><td>4 Harfli</td><td>9 Puan</td></tr>
+                        <tr><td>3 Harfli</td><td>5 Puan</td></tr>
+                        <tr><td>2 Harfli</td><td>2 Puan</td></tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="modal-section">
-            <h3>4. Oyun Modları</h3>
-            <ul>
-                <li><strong>Klasik Mod:</strong> Oyuncular her tur sırayla birer harf seçer.</li>
-                <li><strong>Rastgele Mod:</strong> Her tur oyun tarafından rastgele harf belirlenir</li>
-                <li><strong>Günlük Challenge:</strong> Her gün yeni bir 24 harflik dizin belirlenir ve tüm oyuncular bu dizine göre oynar.</li>
-            </ul>
+            <div class="modal-section">
+                <h3>4. Oyun Modları</h3>
+                <ul>
+                    <li><strong>Klasik Mod:</strong> Oyuncular her tur sırayla birer harf seçer.</li>
+                    <li><strong>Rastgele Mod:</strong> Her tur oyun tarafından rastgele harf belirlenir.</li>
+                    <li><strong>Günlük Challenge:</strong> Her gün yeni bir 24 harflik dizin belirlenir ve tüm oyuncular bu dizine göre oynar.</li>
+                </ul>
+            </div>
         </div>
     </div>
-</div>
 
+    <!-- ==================== İSTATİSTİK MODALİ ==================== -->
     <div id="statsModal" class="modal hidden">
         <div class="modal-content">
             <span class="close-modal" onclick="window.closeStatsModal()">&times;</span>
             <h2 style="color:#8e44ad; text-align:center;">İSTATİSTİKLER</h2>
             <div class="stats-container">
-        <div class="stat-box">
-        <span id="statLifeTimeAvg" class="stat-number">-</span>
-        <span class="stat-label">Genel Ort.</span>
-    </div>
-    <div class="stat-box">
-        <span id="statLast10Avg" class="stat-number">-</span>
-        <span class="stat-label">Son 10 Ort.</span>
-    </div>
-</div>
+                <div class="stat-box">
+                    <span id="statLifeTimeAvg" class="stat-number">-</span>
+                    <span class="stat-label">Genel Ort.</span>
+                </div>
+                <div class="stat-box">
+                    <span id="statLast10Avg" class="stat-number">-</span>
+                    <span class="stat-label">Son 10 Ort.</span>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- ==================== SÖZLÜK POP-UP ==================== -->
     <div id="definitionModal">
         <span class="close-def" onclick="closeDefinition()">✕ Kapat</span>
         <h3 id="defTitle">Kelime</h3>
         <div id="definitionBody">Yükleniyor...</div>
     </div>
-    
+
     <script src="script.js"></script>
 </body>
 </html>
-
