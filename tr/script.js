@@ -16,12 +16,12 @@ if (!firebase.apps.length) {
 const db = firebase.firestore();
 
 // ==========================================
-// 2. SÖZLÜK (kelimeler.json'dan yüklenir)
+// 2. SÖZLÜK (kelime.json'dan yüklenir)
 // ==========================================
 const SCORE_RULES = { 2: 2, 3: 5, 4: 9, 5: 15 };
 let DICTIONARY = new Set();
 
-fetch('kelimeler.json')
+fetch('kelime.json')
     .then(res => res.json())
     .then(words => {
         DICTIONARY = new Set(words.map(w => w.toLocaleUpperCase('tr-TR')));
@@ -1303,3 +1303,4 @@ window.addEventListener('DOMContentLoaded', () => {
         if (event.target === defModal) closeDefinition();
     };
 });
+
