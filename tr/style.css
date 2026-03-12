@@ -1,1212 +1,140 @@
 /* ================================================= */
-/* 1. RENK TANIMLAMALARI VE DEĞİŞKENLER */
+/* 1. RENK TANIMLAMALARI VE DEĞİŞKENLER (THEMING)    */
 /* ================================================= */
 :root {
-    /* --- LIGHT MODE (Varsayılan) --- */
+    /* --- AYDINLIK MOD (Varsayılan) --- */
     --bg-body: #f4f6f8;
     --bg-panel: #ffffff;
-    --bg-secondary: #f8f9fa; 
-    
     --text-main: #333333;
     --text-muted: #666666;  
-    
     --grid-bg: #dfe4ea;     
     --cell-bg: #ffffff;     
     --cell-border: #bdc3c7;
-    
-    --input-bg: #ffffff;
-    --input-border: #ddd;
-    
     --modal-overlay: rgba(0, 0, 0, 0.6);
-    --shadow: 0 4px 12px rgba(0,0,0,0.1);
-
-    /* Sabit Renkler */
+    
+    /* Marka/Oyun Renkleri */
     --primary: #3498db;
-    --primary-hover: #2980b9;
     --secondary: #2ecc71;
-    --secondary-hover: #27ae60;
-    --accent: #e67e22;
+    --brand-purple: #8e44ad; /* HTML'den taşınan özel istatistik rengi */
     --danger: #e74c3c;
-    --dark: #2c3e50;
-    --purple: #9b59b6;
 }
 
-/* --- DARK MODE RENKLERİ --- */
+/* --- KARANLIK MOD (JS ile body'e .dark-mode eklendiğinde devreye girer) --- */
 body.dark-mode {
-    --bg-body: #121212;       
-    --bg-panel: #1e1e1e;      
-    --bg-secondary: #2c2c2c;  
-    
-    --text-main: #e0e0e0;     
-    --text-muted: #a0a0a0;
-    
-    --grid-bg: #333333;       
-    --cell-bg: #252525;       
-    --cell-border: #444444;
-    
-    --input-bg: #2c2c2c;
-    --input-border: #444;
-    
-    --shadow: 0 4px 12px rgba(0,0,0,0.5);
+    --bg-body: #121212;
+    --bg-panel: #1e1e1e;
+    --text-main: #e0e0e0;
+    --text-muted: #aaaaaa;
+    --grid-bg: #2c3e50;
+    --cell-bg: #34495e;
+    --cell-border: #465c71;
+    --modal-overlay: rgba(0, 0, 0, 0.8);
 }
 
 /* ================================================= */
-/* 2. GENEL AYARLAR VE LOBİ STİLLERİ */
+/* 2. TEMEL İSKELET VE SEMANTİK YAPILAR              */
 /* ================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: var(--bg-body);
     color: var(--text-main);
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-    margin: 0;
     transition: background-color 0.3s, color 0.3s;
 }
 
-.main-wrapper {
-    max-width: 1000px;
-    width: 100%;
-    text-align: center;
+/* Üst Bilgi (Header) */
+.main-header {
+    padding: 15px;
+    background-color: var(--bg-panel);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-/* Paneller */
-.panel {
-    background: var(--bg-panel);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    margin-top: 20px;
-    transition: background-color 0.3s;
-}
-
-.hidden { 
-    display: none !important; 
-}
-
-/* Butonlar ve Inputlar */
-input[type="text"], select {
-    padding: 10px;
-    background-color: var(--input-bg);
-    color: var(--text-main);
-    border: 2px solid var(--input-border);
-    border-radius: 6px;
-    font-size: 16px;
-    text-align: center;
-    text-transform: uppercase;
-    font-family: Tahoma, Arial, sans-serif; 
-}
-input[type="text"] {
-    width: 120px;
-}
-
-button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.2s;
-    color: white; 
-}
-
-.btn-primary { background-color: var(--primary); }
-.btn-primary:hover { background-color: var(--primary-hover); }
-
-.btn-secondary { background-color: var(--secondary); }
-.btn-secondary:hover { background-color: var(--secondary-hover); }
-
-button:disabled { 
-    background-color: #ccc; 
-    cursor: not-allowed; 
-}
-body.dark-mode button:disabled {
-    background-color: #555;
-    color: #888;
-}
-
-.separator {
-    margin: 15px 0;
-    color: var(--text-muted);
-}
-.status-text {
-    font-weight: bold;
-    margin-top: 15px;
-}
-
-/* LOBİ ÜST BUTONLAR */
-.lobby-top-actions {
-    display: flex;             
-    justify-content: center;   
-    align-items: center;       
-    gap: 15px;                 
-    margin-bottom: 20px;       
-    width: 100%;               
-}
-.icon-btn {
-    width: 45px;               
-    height: 45px;              
-    border-radius: 50%;        
-    border: none;
-    cursor: pointer;
-    font-size: 20px;
-    display: flex;             
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s, background-color 0.3s;
-    color: white;
-    margin: 0;                 
-}
-.icon-btn:hover { transform: scale(1.1); }
-/* Renk atamaları */
-.icon-btn.info { background: #f39c12; }    
-.icon-btn.stats { background: #8e44ad; }    
-#darkModeBtn { background: #2c3e50; }       
-
-/* ================================================= */
-/* YENİ LOBİ VE MENÜ BUTONLARI (DÜZELTİLMİŞ) */
-/* ================================================= */
-
-.lobby-controls {
+.header-top-row {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-}
-
-.group-title {
-    font-size: 0.9rem;
-    color: #666; 
-    font-weight: bold;
-    margin: 5px 0 10px 0;
-    text-align: left;
-    width: 100%;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 5px;
-}
-
-.lobby-divider {
-    color: #aaa;
-    font-size: 0.9rem;
-    font-weight: bold;
-    margin: 10px 0;
-    letter-spacing: 1px;
-}
-
-/* Buton ve Select Genel Ayarı */
-.lobby-controls button, 
-.lobby-controls select {
-    width: auto; /* width: 100% kaldırıldı */
-    padding: 12px;
-    font-size: 1rem;
-    box-sizing: border-box;
-}
-
-/* Mod Butonlarının Kapsayıcısı */
-.mode-buttons {
-    display: flex !important;       
-    flex-direction: row !important; /* Yan yana diz */
     justify-content: space-between;
-    gap: 10px;
-    width: 100%;
-}
-
-/* Mod Butonlarının Kendisi */
-.btn-mode {
-    width: auto !important; 
-    flex: 1 !important;  /* Alanı eşit paylaş */
-    
-    display: flex;
-    flex-direction: column; /* İkon üstte, yazı altta */
     align-items: center;
-    justify-content: center;
-    
-    padding: 10px 5px;
-    height: 85px;        
-    
-    border: none;
+}
+
+/* Ana Ekran Düzeni */
+#app-content {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.panel {
+    background-color: var(--bg-panel);
     border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ================================================= */
+/* 3. OYUN BİLEŞENLERİ (TAHTA, BUTONLAR, ANİMASYON)  */
+/* ================================================= */
+
+/* Buton Standartları */
+button {
     cursor: pointer;
-    transition: transform 0.2s, filter 0.2s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    
-    color: white !important;
-    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-weight: bold;
+    transition: transform 0.1s, opacity 0.2s;
 }
 
-.btn-mode:hover {
-    transform: translateY(-3px);
-    filter: brightness(1.1);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-.btn-mode:active {
+button:active {
     transform: scale(0.95);
 }
 
-.mode-icon {
-    font-size: 2rem;
-    line-height: 1;
-    margin-bottom: 8px;
-    display: block;
-}
-
-.mode-name {
-    font-size: 0.8rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    line-height: 1.2;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-/* ================================================= */
-/* BUTON RENKLENDİRMELERİ (KESİN ÇÖZÜM) */
-/* ================================================= */
-
-/* 1. ÇİFT KİŞİLİK OYUNLAR (Mavi - Lacivert Tonları) */
-/* "createNewGame" çağıran tüm butonlar */
-button[onclick*="createNewGame"] {
-    background-color: #2c3e50 !important; /* Koyu Lacivert (Baz) */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-button[onclick*="createNewGame"]:hover {
-    background-color: #34495e !important;
-}
-
-/* Alt Mod Renkleri */
-button[onclick*="createNewGame"].classic { 
-    background-color: #2980b9 !important; /* Parlak Mavi */ 
-}
-
-
-/* 2. TEK KİŞİLİK OYUNLAR (Teal Tonları) */
-/* "startSinglePlayerGame" çağıran tüm butonlar */
-button[onclick*="startSinglePlayerGame"] {
-    background-color: #008080 !important; /* Teal (Baz) */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-button[onclick*="startSinglePlayerGame"]:hover {
-    background-color: #006666 !important;
-}
-
-/* Alt Mod Renkleri */
-button[onclick*="startSinglePlayerGame"].random { 
-    background-color: #16a085 !important; /* Yeşilimsi Turkuaz */ 
-}
-
-/* 3. GÜNLÜK MÜCADELE (Mor - Amethyst Tonları) */
-/* "startDailyGame" çağıran tüm butonlar */
-button[onclick*="startDailyGame"] {
-    background-color: #8e44ad !important; /* Amethyst Mor (Baz) */
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-button[onclick*="startDailyGame"]:hover {
-    background-color: #9b59b6 !important; /* Biraz daha açık mor */
-}
-
-/* Eğer butona özel bir sınıf eklediysen (opsiyonel) */
-button[onclick*="startDailyGame"].daily {
-    background-color: #7d3c98 !important; /* Daha derin mor */
-}
-
-/* ================================================= */
-/* OYUNA KATILMA VE DİĞER BUTONLAR */
-/* ================================================= */
-
-.join-area {
+/* Oyun Tahtası (Grid) */
+.grid-section {
+    margin: 20px 0;
     display: flex;
-    gap: 10px;
-    width: 100%;
+    justify-content: center;
 }
 
-.join-area input {
-    flex: 1;
-    padding: 12px;
-    font-size: 1rem;
-    text-align: center;
-    text-transform: uppercase;
-    border: 2px solid var(--input-border);
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    background-color: var(--grid-bg);
+    padding: 5px;
     border-radius: 8px;
 }
-
-.join-area button {
-    flex: 1;
-    white-space: nowrap;
-    background-color: var(--secondary) !important; /* Yeşil */
-    color: white;
-}
-.join-area button:hover {
-    background-color: var(--secondary-hover) !important;
-}
-
-/* ================================================= */
-/* 3. OYUN ALANI (GAME PANEL) STİLLERİ */
-/* ================================================= */
-
-.info-bar { display: none !important; }
-
-.controls-top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px !important; 
-    margin-bottom: 25px !important;
-}
-
-#actionArea {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-top: 20px !important;
-}
-
-#randomLetterDisplay {
-    flex: 1;
-    min-height: 80px;
-    margin: 0 !important; /* Mevcut marginleri sıfırla */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 40px;
-    border: 2px solid #e67e22;
-    border-radius: 10px;
-    background: white;
-}
-
-.random-info-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    gap: 10px;
-    margin: 10px auto;
-    max-width: 320px; /* Grid genişliğine göre ayarlanabilir */
-}
-
-/* Yeni istatistik kutusu */
-.stats-box {
-    flex: 1;
-    border: 2px solid #e67e22;
-    border-radius: 10px;
-    background: white;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    text-align: left;
-    font-family: Arial, sans-serif;
-}
-
-.stats-title {
-    font-size: 12px;
-    font-weight: bold;
-    color: #7f8c8d;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    border-bottom: 1px solid #eee;
-}
-
-.stats-row {
-    font-size: 14px;
-    font-weight: bold;
-    color: #333;
-    line-height: 1.5;
-}
-
-#vowel-count { color: #e67e22; }
-#consonant-count { color: #2980b9; }
-
-/* Grid Konteynerleri */
-.grids-container {
-    display: flex;
-    justify-content: center; 
-    align-items: center;     
-    padding: 10px;           
-}
-
-.grid-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-/* Grid Yapısı */
-.grid {
-    display: inline-grid; 
-    grid-template-columns: repeat(5, 50px);
-    grid-template-rows: repeat(5, 50px);
-    gap: 4px;   
-    padding: 4px; 
-    background-color: var(--grid-bg);
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin: 0 auto;
-}
-
-.hidden-during-game { display: none !important; }
 
 .cell {
     width: 50px;
     height: 50px;
-    box-sizing: border-box;
     background-color: var(--cell-bg);
+    border: 2px solid var(--cell-border);
+    border-radius: 4px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    font-size: 24px;
-    font-weight: bold;
-    cursor: default;
-    border-radius: 3px;
-    font-family: Tahoma, Arial, sans-serif;
-    color: var(--text-main);          
-    transition: 0.1s;
-    border: 1px solid transparent;
-}
-body.dark-mode .cell {
-    border: 1px solid var(--cell-border);
-}
-
-/* Etkileşimler */
-.clickable {
-    cursor: pointer;
-    background-color: #e8f8f5; 
-    border: 2px solid var(--secondary);
-    color: #333; 
-}
-body.dark-mode .clickable {
-    background-color: #2c3e50; 
-    color: #fff;
-    border-color: #2ecc71;
-}
-
-.clickable:hover { 
-    background-color: #d1f2eb; 
-    transform: scale(1.03);
-}
-body.dark-mode .clickable:hover {
-    background-color: #34495e;
-}
-
-/* Seçili (Onay Bekleyen) Hücre Stili */
-.cell.selected-draft {
-    background-color: #f1c40f !important;
-    color: #333 !important;
-    border: 1px solid transparent !important;
-    transform: scale(1.05);
-    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
-}
-
-/* Aktif Sıra */
-.active-turn {
-    box-shadow: none !important;           
-    border: 0px solid #2ecc71 !important;  
-    opacity: 1 !important;
-    cursor: pointer;
-    transform: none !important;            
-}
-
-/* Pasif Sıra */
-.waiting-turn {
-    border: 1px solid transparent !important;
-    opacity: 0.6 !important;
-    filter: grayscale(60%);
-    pointer-events: none;
-    transform: scale(1.00);
-    transition: all 0.3s ease-in-out;
-}
-
-/* ================================================= */
-/* 4. OYUN SONU EKRANI */
-/* ================================================= */
-
-#gameOverPanel {
-    max-width: 950px;
-    margin: 0 auto;
-    text-align: center;
-    padding: 20px;
-}
-
-.result-message {
-    font-size: 1.8rem;
-    margin-bottom: 30px;
-    font-weight: bold;
-    color: #249ab5 !important;
-}
-
-.results-container {
-    display: flex;
     justify-content: center;
-    gap: 30px;
-    flex-wrap: wrap;
-}
-
-.result-card {
-    background: var(--bg-secondary); 
-    border: 1px solid var(--input-border);
-    border-radius: 12px;
-    padding: 20px;
-    width: 450px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-}
-
-.card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--input-border);
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-}
-
-.card-header h4 {
-    margin: 0;
-    font-size: 1.2rem;
-    color: var(--text-main);
-    font-weight: bold;
-}
-
-.final-score {
     font-size: 1.5rem;
     font-weight: bold;
-    color: #fff;
-    background: var(--dark);
-    padding: 5px 15px;
-    border-radius: 20px;
 }
 
-.card-body {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 15px;
-}
-
-.mini-grid-wrapper {
-    flex: 0 0 auto;
-    width: auto;
-}
-
-.mini-grid {
-    width: 270px !important; 
-    height: 270px !important;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(6, 1fr);
-    gap: 3px !important;
-    padding: 5px !important;
-    background-color: var(--grid-bg) !important;
-}
-
-.mini-grid .cell {
-    font-size: 1.1rem !important;
-    width: auto !important;
-    height: auto !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    background: var(--cell-bg); 
-    color: var(--text-main);    
-    border: 1px solid var(--cell-border);
-}
-
-.word-list-wrapper {
-    flex: 1;
-    height: 220px;
-    overflow-y: auto;
-    background: var(--cell-bg); 
-    border: 1px solid var(--input-border);
-    border-radius: 8px;
-    padding: 10px;
-    text-align: left;
-}
-
-.word-list-wrapper h5 {
-    margin: 0 0 8px 0;
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--input-border);
-    padding-bottom: 5px;
-    position: sticky;
-    top: 0;
-    background: var(--cell-bg); 
-}
-
-.word-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.word-list li {
-    font-size: 0.8rem;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-weight: 600;
-    background-color: var(--grid-bg); 
-    color: var(--text-main);
-}
-
-@media (max-width: 768px) {
-    .card-body {
-        flex-direction: column;
-        align-items: center;
-    }
-    .mini-grid {
-        width: 250px !important;
-        height: 250px !important;
-    }
-    .word-list-wrapper {
-        width: 100%;
-        height: 150px;
-    }
-    .result-card {
-        width: 100%;
-    }
-}
-
-/* ========================================= */
-/* DİĞER (JOKER, TABELA, MODAL, İSTATİSTİK) */
-/* ========================================= */
-
-#opponentSection { display: none !important; }
-
-/* Renk Kodlaması */
-.score-15, .score-9, .score-7, .score-5, .score-4, .score-2, .score-1, .score-0 {
-    color: #333 !important;
-    font-weight: bold;
-}
-.score-15 { background-color: #34c5db !important; }
-.score-9 { background-color: #21d96f !important; }
-.score-7 { background-color: #9b59b6 !important; }
-.score-5 { background-color: #e67e22 !important; }
-.score-4 { background-color: #f1d70f !important; }
-.score-2 { background-color: #d768d9 !important; }
-.mini-grid .score-0, .final-grid .score-0 {
-    background-color: #abb0b3 !important;
-    color: #333 !important;
-}
-.final-grid .empty-corner {
-    background-color: transparent;
-    border: none;
-}
-
-/* Durum Tabelası */
-.status-badge {
-    padding: 10px 25px;
-    border-radius: 30px;
-    font-weight: 800;
-    font-size: 1.2rem;
-    margin-bottom: 15px;
-    display: inline-block;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    animation: fadeIn 0.5s ease;
-    color: white !important;       
-    background-color: #95a5a6;     
-}
-
-.badge-warning { background-color: #f39c12 !important; color: white !important; } 
-.badge-info { background-color: #3498db !important; color: white !important; } 
-.badge-neutral { background-color: #95a5a6 !important; color: white !important; }
-.badge-danger { background-color: #e74c3c !important; color: white !important; }
-.badge-success { background-color: #2ecc71 !important; }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-#gameStatusMsg, #myPlayerRole, #turnIndicator { display: none !important; }
-
-.room-info {
-    margin-bottom: 50px !important;
-    margin-top: 10px !important;
-    text-align: center;
-    width: 100%;
-    color: var(--text-main);
-}
-
-* {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none;
-}
-button:focus, .cell:focus, input:focus {
-    outline: none !important;
-}
-
-.grid-box h3, .grid-box h4, .grid-box .grid-title { display: none !important; }
-#turnStatusBadge { margin: 0 !important; max-width: 90%; }
-
-/* Joker Klavyesi */
-.alphabet-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 5px;
-    max-width: 340px; 
-    padding: 5px;
-}
-
-.joker-key, .alpha-btn {
-    width: 30px;
-    height: 30px;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-main);
-    background: var(--bg-panel);
-    border: 1px solid var(--cell-border);
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s;
-}
-.joker-key:hover { background-color: #ddd; }
-body.dark-mode .joker-key:hover { background-color: #444; }
-
-.joker-key.active-key, 
-.alpha-btn.active-key,
-.alpha-btn.selected {
-    background-color: var(--primary) !important;
-    color: white !important;
-    border-color: var(--primary) !important;
-}
-
-/* Modallar ve İstatistik */
-.modal {
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--modal-overlay);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: var(--bg-panel);
-    color: var(--text-main);
-    padding: 25px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    position: relative;
-    max-height: 85vh;
-    overflow-y: auto;
-    animation: fadeIn 0.3s;
-}
-
-.close-modal {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    position: absolute;
-    right: 15px;
-    top: 5px;
-}
-.close-modal:hover { color: var(--danger); }
-
-.stats-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.stat-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    padding: 10px;
-    background-color: var(--bg-secondary);
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-
-.stat-number {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--text-main);
-}
-
-.stat-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-align: center;
-    margin-top: 5px;
-}
-
-.leaderboard-section {
-    margin-top: 25px;
-    border-top: 2px solid var(--input-border);
-    padding-top: 15px;
-}
-
-.leaderboard-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
-}
-
-.leaderboard-table th {
-    background-color: var(--bg-secondary);
-    color: var(--text-main);
-    padding: 8px;
-    text-align: center;
-    border-bottom: 2px solid var(--input-border);
-}
-
-.leaderboard-table td {
-    padding: 8px;
-    border-bottom: 1px solid var(--input-border);
-    text-align: center;
-    color: var(--text-main);
-}
-
-.leaderboard-table tr:nth-child(1) td:first-child { color: #f1c40f; font-weight: bold; }
-.leaderboard-table tr:nth-child(2) td:first-child { color: #95a5a6; font-weight: bold; }
-.leaderboard-table tr:nth-child(3) td:first-child { color: #d35400; font-weight: bold; }
-
-.random-letter-box.expanded {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    aspect-ratio: auto;
-    border-radius: 12px;
-    padding: 10px;
-    flex-direction: column;
-    z-index: 100;
-    background: var(--bg-panel);
-    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-    margin: 0 auto 15px auto;
-}
-.joker-title {
-    font-size: 14px;
-    font-weight: bold;
-    color: var(--text-main);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-.joker-keyboard {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-}
-
-@media (max-width: 600px) {
-    .random-letter-box.expanded {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 95%;
-        max-width: 95%;
-        border: 2px solid var(--secondary);
-    }
-    
-    .joker-key {
-        width: 11%;
-        height: 35px;
-        font-size: 16px;
-    }
-}
-
-#restartBtn {
-    background-color: var(--secondary) !important; /* Yeşil (Secondary) değişkeni */
-    color: white !important;
-}
-
-/* Dil Butonları (Orijinal Yüksek Kalite Stil) */
-/* 1. Dış Çerçeve (Butonun Kendisi) */
-.lang-btn {
-    display: inline-flex;  /* İçeriği ortalamak için */
-    align-items: center;
-    justify-content: center;
-    
-    /* DİĞER BUTONLARLA AYNI BOYUTU BURAYA YAZ */
-    width: 32px;  
-    height: 32px;
-    
-    border-radius: 50%;    /* Tam yuvarlaklık */
-    overflow: hidden;      /* Resmin taşan kısımlarını gizle */
-    padding: 0;            /* İç boşluğu sıfırla */
-    /* margin-right: 8px;     /* Sağdaki butonla mesafe */
-    
-    background-color: #fff; /* Arka plan rengi */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2); /* Diğer butonlardaki gibi gölge */
-    border: none; /*2px solid white; /* Beyaz çerçeve temiz gösterir */
-    
-    text-decoration: none;
-    transition: transform 0.2s ease;
-}
-
-/* 2. İçindeki Bayrak Resmi */
-.lang-btn img {
-    width: 100%;
-    height: 100%;
-    
-    /* SİHİRLİ KOD: Resmi bozmadan kutuyu doldurur (Crop yapar) */
-    object-fit: cover; 
-    
-    /* Resmi tam merkeze oturtur */
-    object-position: center; 
-    
-    display: block;
-}
-
-/* 3. Hover (Üzerine Gelince) Efekti */
-.lang-btn:hover {
-    transform: translateY(-2px); /* Hafif yukarı kalkma */
-    border-color: #f1c40f;       /* Altın sarısı çerçeve */
-}
-
-/* Üst Satır Düzeni (Başlık ve Bayraklar) */
-.header-top-row {
-    display: flex;
-    justify-content: space-between; /* Başlık sola, bayraklar sağa yaslanır */
-    align-items: center; /* Dikey olarak ortalar */
-    width: 100%;
-    margin-bottom: 15px; /* Alt satırla mesafe */
-    padding: 0 10px; /* Kenarlardan hafif boşluk */
-}
-
-/* Mobil Cihazlar İçin Başlık ve Bayrak Düzenlemesi */
-@media (max-width: 480px) {
-    .header-top-row {
-        /* Elemanların birbirine çok yanaşmaması için padding ekleyelim */
-        padding: 0 5px;
-        gap: 10px;
-    }
-
-    .game-title {
-        /* Yazı boyutunu mobilde küçültüyoruz */
-        font-size: 22px !important; 
-        /* Kelimenin bölünmemesi ve tek satırda kalması için */
-        white-space: nowrap; 
-        flex-shrink: 1;
-    }
-
-    .language-selector {
-        /* Bayraklar arası boşluğu mobilde biraz daha daraltabiliriz */
-        gap: 5px;
-        /* Bayrakların yan yana kalmasını garanti eder */
-        flex-shrink: 0; 
-    }
-
-    .lang-btn.small-flag {
-        /* Bayrakları mobilde çok az daha küçültebilirsiniz (İsteğe bağlı) */
-        width: 28px;
-        height: 28px;
-    }
-}
-
-/* Aktif olmayan bayrakları biraz soluklaştır */
-.lang-btn {
-    opacity: 0.6; /* Varsayılan olarak biraz şeffaf */
-    border: 2px solid transparent; /* Çerçeve yeri ayır */
-}
-
-/* Üzerine gelince veya aktifse tam parlak olsun */
-.lang-btn:hover,
-.lang-btn.active {
-    opacity: 1;
-    transform: scale(1.1); /* Hafif büyüme efekti */
-    border-color: #fff; /* Seçili olanın etrafında beyaz halka */
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.6); /* Hafif parama */
-}
-
-/* Kelime listesindeki kelimeler */
-.result-card ul li {
-    cursor: pointer;
-    transition: color 0.2s;
-    text-decoration: underline dotted; /* Tıklanabilir hissi verir */
-}
-
-.result-card ul li:hover {
-    color: #3498db;
-    background-color: rgba(52, 152, 219, 0.1);
-}
-
-/* Sözlük Pop-up (Modal) */
-#definitionModal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    z-index: 10000;
-    width: 80%;
-    max-width: 400px;
-    display: none;
-    flex-direction: column;
-}
-
-#definitionModal h3 { margin-top: 0; color: #2c3e50; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-#definitionBody { margin: 15px 0; max-height: 200px; overflow-y: auto; line-height: 1.5; color: #555; }
-.close-def { align-self: flex-end; cursor: pointer; color: #e74c3c; font-weight: bold; }
-
-/* Karanlık Mod Uyumu */
-body.dark-mode #definitionModal { background: #2c3e50; color: white; }
-body.dark-mode #definitionBody { color: #ecf0f1; }
-
-/* Pop-up içindeki Vikisözlük metni stili */
-.wiki-content {
-    font-size: 16px;
-    line-height: 1.6;
-}
-
-/* Vikisözlük'ten gelen gereksiz mavi linkleri siyah yap */
-.wiki-content a {
-    color: inherit;
-    text-decoration: none;
-    pointer-events: none; /* Linkleri tamamen etkisizleştirir */
-}
-
-/* Varsa liste işaretlerini düzelt */
-.wiki-content ul, .wiki-content ol {
-    padding-left: 20px;
-    margin-top: 10px;
-}
-
-/* 25. turda harf kutusu (içinde alfabe varken) tam genişlik olsun */
-#randomLetterDisplay:has(.alphabet-wrapper),
-#randomLetterDisplay:has(.joker-btn) { 
-    flex: 1 1 100% !important;
-    max-width: 100% !important;
-}
-
-/* Daily Header Tasarımı */
-.daily-info-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.daily-left #dailyDateText {
-    font-size: 16px;
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.daily-left #dailyGameNum {
-    font-size: 12px;
-    color: #7f8c8d;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.daily-icon-btn {
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    width: 35px;
-    height: 35px;
-    margin-left: 5px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.daily-icon-btn:hover { background: #f0f0f0; }
-
-/* Bitiş Özet Kartı */
-.daily-summary-wrapper {
-    margin-top: 25px;
-    animation: slideUp 0.5s ease;
-}
-
-.summary-card {
-    display: flex;
-    justify-content: space-around;
-    background: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    border-top: 4px solid #8e44ad; /* Daily rengimiz Mor */
-}
-
-.summary-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.stat-value {
-    font-size: 24px;
-    font-weight: 800;
-    color: #8e44ad;
-}
-
-.stat-label {
-    font-size: 10px;
-    color: #95a5a6;
-    margin-top: 4px;
-}
-
-/* Paylaş Butonu */
-.share-btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px;
-    background: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
+/* Slot Makinesi Puan Animasyonu */
 .slot-machine-container {
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 2.9rem;
     font-weight: bold;
-    color: #8e44ad; /* Senin mor rengin */
+    color: var(--brand-purple);
     height: 45px;
     overflow: hidden;
-}
-
-.slot-wrapper {
-    display: flex;
 }
 
 .slot-column {
@@ -1214,37 +142,40 @@ body.dark-mode #definitionBody { color: #ecf0f1; }
     width: 30px;
     text-align: center;
     line-height: 45px;
-    transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1); /* 3 saniye akıcı duruş */
+    transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-.digit {
-    height: 45px;
+/* ================================================= */
+/* 4. AÇILIR PENCERELER (MODALS - DIALOG)            */
+/* ================================================= */
+.modal {
+    border: none;
+    border-radius: 12px;
+    background-color: var(--bg-panel);
+    color: var(--text-main);
+    padding: 25px;
+    max-width: 500px;
+    width: 90%;
+    margin: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* Joker aşamasında alfabeyi zorla gösteren kurallar */
-.joker-mode-on {
-    display: flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 150px !important;
+/* Dialog arkaplanını karartmak için backdrop */
+.modal::backdrop {
+    background-color: var(--modal-overlay);
 }
 
-#randomLetterDisplay.joker-mode-on {
-    flex-wrap: wrap !important;
-    padding: 10px !important;
+.modal-title, .stats-title-header {
+    color: var(--brand-purple); /* HTML'den taşındı */
+    text-align: center;
+    margin-bottom: 15px;
 }
 
-/* Joker Harfi Vurgusu (Sadece Arka Plan) */
-.joker-highlight {
-    background-color: #ffdfba !important; /* Tatlı bir turuncu/sarı tonu */
-    border: 2px solid #ffb347 !important; /* İsteğe bağlı, hafif koyu bir çerçeve */
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--danger);
 }
-
-
-
-
-
-
